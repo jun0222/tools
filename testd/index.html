@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/pure-frontend-kit@latest/dist/pure-frontend-kit.min.js"></script>
+    <title>テストデータ</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>テストデータ</h1>
+
+    <div id="testDataContainer"></div>
+
+    <script>
+      const testData = [
+        {
+          description: "ユーザー名",
+          content: "test@example.com",
+        },
+        {
+          description: "パスワード",
+          content: "password123",
+        },
+        {
+          description: "API キー",
+          content: "sk-test-abc123def456ghi789",
+        },
+        {
+          description: "URL",
+          content: "https://api.example.com/v1/users",
+        },
+        {
+          description: "JSON ペイロード",
+          content: '{"name": "テストユーザー", "email": "test@example.com", "age": 25}',
+        },
+        {
+          description: "SQL クエリ",
+          content: "SELECT * FROM users WHERE email = 'test@example.com'",
+        },
+        {
+          description: "UUID",
+          content: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        },
+        {
+          description: "電話番号",
+          content: "090-1234-5678",
+        },
+        {
+          description: "curl コマンド",
+          content: "curl -X GET 'https://api.example.com/v1/users' -H 'Authorization: Bearer token123'",
+        },
+        {
+          description: "Base64 エンコード",
+          content: "dGVzdEBleGFtcGxlLmNvbQ==",
+        },
+      ];
+
+      PureFrontendKit.createClickableTable(
+        "testDataContainer",
+        testData
+      );
+    </script>
+  </body>
+</html>
