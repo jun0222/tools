@@ -145,7 +145,6 @@
               id="customPattern"
               name="characterSet"
               value="customPattern"
-              checked
             />
             <span class="checkmark"></span>
           </label>
@@ -203,7 +202,7 @@
           </label>
           <label class="radio-container"
             >読みやすい形式 (apple@42)
-            <input type="radio" id="readablePattern" name="characterSet" value="readablePattern" />
+            <input type="radio" id="readablePattern" name="characterSet" value="readablePattern" checked />
             <span class="checkmark"></span>
           </label>
           <label class="radio-container"
@@ -214,7 +213,7 @@
         </div>
         
         <!-- 読みやすい形式のオプション -->
-        <div id="readableOptions" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 4px; background-color: #f9f9f9;">
+        <div id="readableOptions" style="display: block; margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 4px; background-color: #f9f9f9;">
           <label for="wordCount" style="display: block; margin-bottom: 5px;">単語数:</label>
           <input type="number" id="wordCount" value="2" min="1" max="5" style="width: 90%; margin-bottom: 10px;" />
           
