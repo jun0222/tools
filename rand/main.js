@@ -1,6 +1,7 @@
 class RandomStringGenerator {
-  constructor(characterSet = "alphanumeric") {
+  constructor(characterSet = "alphanumeric", options = {}) {
     this.characterSet = characterSet;
+    this.options = options;
   }
 
   generate(length) {
@@ -13,6 +14,7 @@ class RandomStringGenerator {
       hiragana: this.generateHiragana(),
       katakana: this.generateKatakana(),
       customPattern: this.generateCustomPattern(),
+      readablePattern: this.generateReadablePattern(),
       uuid: this.generateUUID(),
     };
 
@@ -22,6 +24,7 @@ class RandomStringGenerator {
     if (
       // 文字数指定を無視する文字種
       this.characterSet === "customPattern" ||
+      this.characterSet === "readablePattern" ||
       this.characterSet === "uuid"
     ) {
       result = characters;
@@ -85,21 +88,66 @@ class RandomStringGenerator {
     return katakana;
   }
 
-  generateUUID() {
-    const uuids = [
-      "feb444aa-3998-4692-9667-d6ddf11ef382",
-      "3c1425b1-35d4-447a-a8aa-3c00e1b64dbb",
-      "c7f0b593-f7cc-42e9-b907-459dc9caa7ce",
-      "b7e5a251-1f80-476d-8e07-ad803e5e7314",
-      "11e7939e-bfe2-41c0-9401-1c672752c0ac",
-      "c1b32b2e-040d-407a-93b3-eb18715bdf7d",
-      "f092b5a7-70a2-4473-a85b-3b8aff27a9a6",
-      "68f017e9-7d64-49f6-9fe2-65b4c977e055",
-      "a01dbc8f-748d-4d48-b5ce-1a52c0937d64",
-      "1861fca2-4b41-4a06-8ab4-63d23ee42ff0",
+  generateReadablePattern() {
+    const words = [
+      "apple", "dog", "cat", "car", "sun", "moon", "star", "tree", "fish", "bird",
+      "book", "desk", "door", "key", "pen", "cup", "bag", "hat", "box", "toy",
+      "fire", "water", "wind", "rock", "sand", "gold", "blue", "red", "green", "white"
     ];
+    const symbols = "_-@#";
+    const numbers = "0123456789";
+    
+    const wordCount = this.options.wordCount || 2;
+    const includeNumbers = this.options.includeNumbers !== false;
+    const includeSymbols = this.options.includeSymbols !== false;
+    const includeUppercase = this.options.includeUppercase !== false;
+    
+    let result = [];
+    let selectedSymbol = null;
+    
+    if (includeSymbols) {
+      selectedSymbol = symbols.charAt(Math.floor(Math.random() * symbols.length));
+    }
+    
+    for (let i = 0; i < wordCount; i++) {
+      let word = words[Math.floor(Math.random() * words.length)];
+      
+      if (includeUppercase && Math.random() > 0.5) {
+        const randomIndex = Math.floor(Math.random() * word.length);
+        word = word.substring(0, randomIndex) + 
+               word.charAt(randomIndex).toUpperCase() + 
+               word.substring(randomIndex + 1);
+      }
+      
+      result.push(word);
+      
+      if (i < wordCount - 1) {
+        if (includeSymbols) {
+          result.push(selectedSymbol);
+        } else if (includeNumbers) {
+          result.push(numbers.charAt(Math.floor(Math.random() * numbers.length)));
+        }
+      }
+    }
+    
+    if (includeNumbers && includeSymbols) {
+      const numberLength = Math.floor(Math.random() * 3) + 1;
+      let numberPart = "";
+      for (let i = 0; i < numberLength; i++) {
+        numberPart += numbers.charAt(Math.floor(Math.random() * numbers.length));
+      }
+      result.push(numberPart);
+    }
+    
+    return result.join("");
+  }
 
-    return uuids[Math.floor(Math.random() * uuids.length)];
+  generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 }
 
@@ -108,10 +156,21 @@ function generatePassword() {
     'input[name="characterSet"]:checked'
   ).value;
   const length = parseInt(document.getElementById("length").value);
-  const generator = new RandomStringGenerator(characterSet);
+  
+  let options = {};
+  if (characterSet === "readablePattern") {
+    options = {
+      wordCount: parseInt(document.getElementById("wordCount").value),
+      includeNumbers: document.getElementById("includeNumbers").checked,
+      includeSymbols: document.getElementById("includeSymbols").checked,
+      includeUppercase: document.getElementById("includeUppercase").checked
+    };
+  }
+  
+  const generator = new RandomStringGenerator(characterSet, options);
   const passwordOutput = generator.generate(length);
 
-  document.getElementById("passwordOutput").value = passwordOutput; // input 要素に表示
+  document.getElementById("passwordOutput").value = passwordOutput;
 }
 
 function copyToClipboard() {
@@ -155,4 +214,16 @@ document.getElementById("form").addEventListener("input", function (event) {
 
 document.getElementById("form").addEventListener("change", function () {
   generatePassword();
+});
+
+// 読みやすい形式が選択されたときにオプションを表示/非表示
+document.querySelectorAll('input[name="characterSet"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const readableOptions = document.getElementById('readableOptions');
+    if (this.value === 'readablePattern') {
+      readableOptions.style.display = 'block';
+    } else {
+      readableOptions.style.display = 'none';
+    }
+  });
 });
