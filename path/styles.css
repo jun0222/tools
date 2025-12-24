@@ -545,11 +545,6 @@ a:focus {
         padding-left: 1.5rem;
     }
 
-    ul {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-    }
-
     a {
         padding: 0.75rem 1rem;
         font-size: 0.75rem;
