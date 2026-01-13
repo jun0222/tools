@@ -1,172 +1,543 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gmail検索クエリツール</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        .container {
-            max-width: 700px;
-            margin-top: 50px;
-        }
-        .copyable {
-            cursor: pointer;
-            color: blue;
-            text-decoration: underline;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gmailq</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0a0e17;
+      color: #00ff41;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    /* CRTスキャンライン */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .terminal {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ヘッダー */
+    .header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #00ff41;
+      text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+    }
+
+    h1::before {
+      content: '$ ';
+      color: #00d4ff;
+    }
+
+    h1::after {
+      content: '█';
+      margin-left: 0.5rem;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* フォーム行 */
+    .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      gap: 0.5rem;
+    }
+
+    .prompt {
+      color: #00d4ff;
+      font-weight: 700;
+      flex-shrink: 0;
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
+    }
+
+    .label {
+      color: #ff6ec7;
+      flex-shrink: 0;
+      min-width: 80px;
+    }
+
+    input[type="text"],
+    input[type="date"] {
+      flex: 1;
+      background: rgba(0, 255, 65, 0.05);
+      border: 1px solid rgba(0, 255, 65, 0.3);
+      color: #00ff41;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus {
+      border-color: #00ff41;
+      box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+    }
+
+    input[type="date"] {
+      cursor: pointer;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1) sepia(1) saturate(5) hue-rotate(90deg);
+      cursor: pointer;
+    }
+
+    /* チェックボックス */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.5rem 0.75rem;
+      background: rgba(0, 255, 65, 0.05);
+      border: 1px solid rgba(0, 255, 65, 0.3);
+      transition: all 0.2s;
+    }
+
+    .checkbox-wrapper:hover {
+      border-color: #00ff41;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+      display: none;
+    }
+
+    .checkbox-indicator {
+      color: #4a5568;
+      font-weight: 700;
+    }
+
+    .checkbox-wrapper input:checked + .checkbox-indicator {
+      color: #00ff41;
+      text-shadow: 0 0 8px rgba(0, 255, 65, 0.8);
+    }
+
+    .checkbox-label {
+      color: #ffd700;
+    }
+
+    /* 日付セクション */
+    .date-section {
+      margin: 1rem 0;
+      padding: 1rem;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      background: rgba(0, 212, 255, 0.03);
+    }
+
+    .date-header {
+      color: #00d4ff;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .date-header::before {
+      content: '// ';
+      color: #ff6ec7;
+    }
+
+    .date-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .date-field {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .date-field label {
+      display: block;
+      color: #9d00ff;
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+    }
+
+    /* クイック日付ボタン */
+    .quick-dates {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .quick-btn {
+      background: rgba(255, 110, 199, 0.1);
+      border: 1px solid rgba(255, 110, 199, 0.3);
+      color: #ff6ec7;
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-btn:hover {
+      background: rgba(255, 110, 199, 0.2);
+      border-color: #ff6ec7;
+    }
+
+    /* アクションボタン */
+    .actions {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-search {
+      background: #00ff41;
+      color: #0a0e17;
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .btn-search:hover {
+      box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-copy {
+      background: transparent;
+      border: 1px solid #00d4ff;
+      color: #00d4ff;
+    }
+
+    .btn-copy:hover {
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-clear {
+      background: transparent;
+      border: 1px solid #ff4444;
+      color: #ff4444;
+    }
+
+    .btn-clear:hover {
+      background: rgba(255, 68, 68, 0.1);
+    }
+
+    /* 出力 */
+    .output {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border: 1px solid rgba(0, 255, 65, 0.3);
+      background: rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    .output.show {
+      display: block;
+    }
+
+    .output-label {
+      color: #4a5568;
+      font-size: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .output-query {
+      color: #ffd700;
+      word-break: break-all;
+      font-size: 0.85rem;
+    }
+
+    /* トースト */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #00ff41;
+      color: #0a0e17;
+      padding: 0.75rem 1.5rem;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 2000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem;
+      }
+
+      .form-row {
+        flex-wrap: wrap;
+      }
+
+      .label {
+        min-width: 70px;
+      }
+
+      input[type="text"],
+      input[type="date"] {
+        font-size: 16px; /* iOS zoom防止 */
+      }
+
+      .date-row {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<div class="container">
-    <h2 class="text-center mb-4">Gmail検索クエリツール</h2>
-
-    <form id="searchForm">
-        <div class="mb-3">
-            <label class="form-label">送信者 (From):</label>
-            <input type="text" id="from" class="form-control" placeholder="例: example@gmail.com">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">受信者 (To):</label>
-            <input type="text" id="to" class="form-control" placeholder="例: recipient@gmail.com">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">件名 (Subject):</label>
-            <input type="text" id="subject" class="form-control" placeholder="例: レポート">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">キーワード (本文内の単語):</label>
-            <input type="text" id="keyword" class="form-control" placeholder="例: 重要">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">添付ファイル:</label>
-            <select id="hasAttachment" class="form-select">
-                <option value="">指定なし</option>
-                <option value="has:attachment">あり</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">日付範囲:</label>
-            <div class="row">
-                <div class="col">
-                    <input type="date" id="afterDate" class="form-control">
-                </div>
-                <div class="col">
-                    <input type="date" id="beforeDate" class="form-control">
-                </div>
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">既読・未読:</label>
-            <select id="readStatus" class="form-select">
-                <option value="">指定なし</option>
-                <option value="is:unread">未読</option>
-                <option value="is:read">既読</option>
-            </select>
-        </div>
-
-        <div class="mb-3 text-center">
-            <button type="button" class="btn btn-primary" onclick="generateGmailSearch()">検索する</button>
-            <button type="button" class="btn btn-secondary" onclick="copyToClipboard()">URLをコピー</button>
-        </div>
-
-        <div class="mt-3">
-            <label class="form-label">生成されたURL：</label>
-            <input type="text" id="generatedUrl" class="form-control" readonly>
-        </div>
-    </form>
-
-    <h4 class="mt-5">主要な検索クエリ (クリックでコピー)</h4>
-    <ul class="list-group">
-        <li class="list-group-item copyable" onclick="copyText('from:example@gmail.com')">from:example@gmail.com</li>
-        <li class="list-group-item copyable" onclick="copyText('to:recipient@gmail.com')">to:recipient@gmail.com</li>
-        <li class="list-group-item copyable" onclick="copyText('subject:レポート')">subject:レポート</li>
-        <li class="list-group-item copyable" onclick="copyText('has:attachment')">has:attachment</li>
-        <li class="list-group-item copyable" onclick="copyText('after:2024/01/01')">after:2024/01/01</li>
-        <li class="list-group-item copyable" onclick="copyText('before:2024/12/31')">before:2024/12/31</li>
-        <li class="list-group-item copyable" onclick="copyText('is:unread')">is:unread</li>
-        <li class="list-group-item copyable" onclick="copyText('is:read')">is:read</li>
-        <li class="list-group-item copyable" onclick="copyText('is:starred')">is:starred</li>
-    </ul>
-</div>
-
-<!-- Bootstrap トースト通知 -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div id="toast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                コピーしました！
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
+  <div class="terminal">
+    <div class="header">
+      <h1>gmailq</h1>
     </div>
-</div>
 
-<script>
-    function generateGmailSearch() {
-        let queryParts = [];
+    <form id="form" onsubmit="return false;">
+      <!-- From -->
+      <div class="form-row">
+        <span class="prompt">></span>
+        <span class="label">from:</span>
+        <input type="text" id="from" placeholder="sender@example.com">
+      </div>
 
-        const from = document.getElementById("from").value.trim();
-        if (from) queryParts.push(`from:${from}`);
+      <!-- To -->
+      <div class="form-row">
+        <span class="prompt">></span>
+        <span class="label">to:</span>
+        <input type="text" id="to" placeholder="recipient@example.com">
+      </div>
 
-        const to = document.getElementById("to").value.trim();
-        if (to) queryParts.push(`to:${to}`);
+      <!-- Unread -->
+      <div class="checkbox-row">
+        <span class="prompt">></span>
+        <label class="checkbox-wrapper">
+          <input type="checkbox" id="unread">
+          <span class="checkbox-indicator">[<span id="unreadCheck"> </span>]</span>
+          <span class="checkbox-label">is:unread</span>
+        </label>
+      </div>
 
-        const subject = document.getElementById("subject").value.trim();
-        if (subject) queryParts.push(`subject:${subject}`);
+      <!-- 日付 -->
+      <div class="date-section">
+        <div class="date-header">日付範囲</div>
+        <div class="date-row">
+          <div class="date-field">
+            <label for="after">after:</label>
+            <input type="date" id="after">
+          </div>
+          <div class="date-field">
+            <label for="before">before:</label>
+            <input type="date" id="before">
+          </div>
+        </div>
+        <div class="quick-dates">
+          <button type="button" class="quick-btn" onclick="setQuickDate('today')">今日</button>
+          <button type="button" class="quick-btn" onclick="setQuickDate('yesterday')">昨日</button>
+          <button type="button" class="quick-btn" onclick="setQuickDate('week')">過去7日</button>
+          <button type="button" class="quick-btn" onclick="setQuickDate('month')">過去30日</button>
+          <button type="button" class="quick-btn" onclick="setQuickDate('clear')">クリア</button>
+        </div>
+      </div>
 
-        const keyword = document.getElementById("keyword").value.trim();
-        if (keyword) queryParts.push(keyword);
+      <!-- アクション -->
+      <div class="actions">
+        <button type="button" class="btn-search" onclick="search()">検索</button>
+        <button type="button" class="btn-copy" onclick="copyQuery()">コピー</button>
+        <button type="button" class="btn-clear" onclick="clearForm()">クリア</button>
+      </div>
 
-        const hasAttachment = document.getElementById("hasAttachment").value;
-        if (hasAttachment) queryParts.push(hasAttachment);
+      <!-- 出力 -->
+      <div class="output" id="output">
+        <div class="output-label">// generated query</div>
+        <div class="output-query" id="queryDisplay"></div>
+      </div>
+    </form>
+  </div>
 
-        const afterDate = document.getElementById("afterDate").value;
-        if (afterDate) queryParts.push(`after:${afterDate.replace(/-/g, "/")}`);
+  <div class="toast" id="toast">コピーしました</div>
 
-        const beforeDate = document.getElementById("beforeDate").value;
-        if (beforeDate) queryParts.push(`before:${beforeDate.replace(/-/g, "/")}`);
+  <script>
+    // チェックボックス表示更新
+    document.getElementById('unread').addEventListener('change', function() {
+      document.getElementById('unreadCheck').textContent = this.checked ? 'x' : ' ';
+    });
 
-        const readStatus = document.getElementById("readStatus").value;
-        if (readStatus) queryParts.push(readStatus);
+    // クイック日付設定
+    function setQuickDate(type) {
+      const today = new Date();
+      const afterEl = document.getElementById('after');
+      const beforeEl = document.getElementById('before');
 
-        if (queryParts.length === 0) {
-            alert("少なくとも1つの条件を入力してください！");
-            return;
-        }
+      const formatDate = (d) => d.toISOString().split('T')[0];
 
-        const query = queryParts.join(" ");
-        const encodedQuery = encodeURIComponent(query);
-        const gmailUrl = `https://mail.google.com/mail/u/0/#search/${encodedQuery}`;
-
-        document.getElementById("generatedUrl").value = gmailUrl;
-        window.open(gmailUrl, "_blank");
+      switch (type) {
+        case 'today':
+          afterEl.value = formatDate(today);
+          beforeEl.value = '';
+          break;
+        case 'yesterday':
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          afterEl.value = formatDate(yesterday);
+          beforeEl.value = formatDate(today);
+          break;
+        case 'week':
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          afterEl.value = formatDate(weekAgo);
+          beforeEl.value = '';
+          break;
+        case 'month':
+          const monthAgo = new Date(today);
+          monthAgo.setDate(monthAgo.getDate() - 30);
+          afterEl.value = formatDate(monthAgo);
+          beforeEl.value = '';
+          break;
+        case 'clear':
+          afterEl.value = '';
+          beforeEl.value = '';
+          break;
+      }
     }
 
-    function copyToClipboard() {
-        const urlField = document.getElementById("generatedUrl");
-        if (urlField.value === "") {
-            alert("まず検索条件を入力してください！");
-            return;
-        }
-        copyText(urlField.value);
+    // クエリ生成
+    function buildQuery() {
+      const parts = [];
+
+      const from = document.getElementById('from').value.trim();
+      if (from) parts.push(`from:${from}`);
+
+      const to = document.getElementById('to').value.trim();
+      if (to) parts.push(`to:${to}`);
+
+      const unread = document.getElementById('unread').checked;
+      if (unread) parts.push('is:unread');
+
+      const after = document.getElementById('after').value;
+      if (after) parts.push(`after:${after.replace(/-/g, '/')}`);
+
+      const before = document.getElementById('before').value;
+      if (before) parts.push(`before:${before.replace(/-/g, '/')}`);
+
+      return parts.join(' ');
     }
 
-    function copyText(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            let toast = new bootstrap.Toast(document.getElementById('toast'));
-            toast.show();
-        });
-    }
-</script>
+    // 検索
+    function search() {
+      const query = buildQuery();
+      if (!query) {
+        alert('条件を1つ以上入力してください');
+        return;
+      }
 
+      const encoded = encodeURIComponent(query);
+      const url = `https://mail.google.com/mail/u/0/#search/${encoded}`;
+
+      document.getElementById('queryDisplay').textContent = query;
+      document.getElementById('output').classList.add('show');
+
+      window.open(url, '_blank');
+    }
+
+    // コピー
+    function copyQuery() {
+      const query = buildQuery();
+      if (!query) {
+        alert('条件を1つ以上入力してください');
+        return;
+      }
+
+      navigator.clipboard.writeText(query).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      });
+
+      document.getElementById('queryDisplay').textContent = query;
+      document.getElementById('output').classList.add('show');
+    }
+
+    // クリア
+    function clearForm() {
+      document.getElementById('from').value = '';
+      document.getElementById('to').value = '';
+      document.getElementById('unread').checked = false;
+      document.getElementById('unreadCheck').textContent = ' ';
+      document.getElementById('after').value = '';
+      document.getElementById('before').value = '';
+      document.getElementById('output').classList.remove('show');
+    }
+  </script>
 </body>
 </html>
