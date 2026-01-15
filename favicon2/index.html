@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アイコンライブラリ - 50+ Icons</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #15151f;
+            --bg-card: #1a1a28;
+            --accent-1: #6366f1;
+            --accent-2: #8b5cf6;
+            --accent-3: #ec4899;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border: #2d2d3d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 3rem 2rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(20px);
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            font-weight: 300;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.875rem 1.75rem;
+            font-size: 0.9375rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Outfit', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.5);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .icon-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .icon-card:hover {
+            border-color: var(--accent-1);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .icon-card.selected {
+            border-color: var(--accent-2);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        }
+
+        .icon-wrapper {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-wrapper svg {
+            width: 48px;
+            height: 48px;
+            transition: transform 0.3s;
+        }
+
+        .icon-card:hover .icon-wrapper svg {
+            transform: scale(1.1);
+        }
+
+        .icon-name {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .selected-count {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+            z-index: 50;
+            display: none;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .selected-count.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            font-size: 0.9375rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .icon-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 1rem;
+            }
+
+            .icon-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>✨ アイコンライブラリ</h1>
+    <p class="subtitle">50種類以上の美しいSVGアイコン - クリックして選択、ダウンロード</p>
+    <div class="controls">
+        <button class="btn btn-primary" onclick="downloadAll()">すべてダウンロード (ZIP)</button>
+        <button class="btn" onclick="downloadSelected()">選択したものをダウンロード</button>
+        <button class="btn" onclick="selectAll()">すべて選択</button>
+        <button class="btn" onclick="clearSelection()">選択解除</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="icon-grid" id="iconGrid"></div>
+</div>
+
+<div class="selected-count" id="selectedCount">
+    <span id="countText">0個選択中</span>
+</div>
+
+<div class="footer">
+    <p>各アイコンをクリックして選択 • SVG形式 • 32×32px • カスタマイズ可能</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+    const icons = [
+        // UI基本
+        { name: 'home', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 4L4 14v14h8v-8h8v8h8V14L16 4z" fill="#6366f1"/></svg>' },
+        { name: 'search', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="13" r="7" fill="none" stroke="#f59e0b" stroke-width="2.5"/><line x1="18" y1="18" x2="26" y2="26" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'settings', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="4" fill="#8b5cf6"/><path d="M16 4v4m0 16v4M28 16h-4M8 16H4m19.8-7.8l-2.8 2.8M11 19l-2.8 2.8m0-15.6L11 9m10 10l2.8 2.8" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'user', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="11" r="5" fill="#ec4899"/><path d="M6 26c0-5.5 4.5-10 10-10s10 4.5 10 10" fill="none" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'notification', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 6c-3.9 0-7 3.1-7 7v6l-2 3h18l-2-3v-6c0-3.9-3.1-7-7-7zm-2 20a2 2 0 104 0" fill="#06b6d4" stroke="#06b6d4" stroke-width="1.5"/></svg>' },
+
+        // ファイル操作
+        { name: 'file', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M8 4v24h16V10l-6-6H8z" fill="#3b82f6"/><path d="M18 4v6h6" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linejoin="round"/></svg>' },
+        { name: 'folder', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M4 8h10l2 2h12v16H4V8z" fill="#fbbf24"/></svg>' },
+        { name: 'save', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="4" width="20" height="24" rx="2" fill="none" stroke="#10b981" stroke-width="2.5"/><rect x="10" y="4" width="12" height="8" fill="#10b981"/><rect x="10" y="18" width="12" height="6" rx="1" fill="#10b981"/></svg>' },
+        { name: 'download', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 4v16m-6-6l6 6 6-6M6 24h20" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'upload', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 20V4m-6 6l6-6 6 6M6 24h20" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+
+        // 編集
+        { name: 'edit', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M4 24l4-1 14-14a2 2 0 000-3l-1-1a2 2 0 00-3 0L4 19l-1 4z" fill="#f59e0b"/><path d="M18 8l6 6" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/></svg>' },
+        { name: 'delete', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M8 10h16l-1 16H9L8 10zm4-4h8v2H12V6z" fill="#ef4444"/><path d="M14 14v8m4-8v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>' },
+        { name: 'copy', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="16" height="16" rx="2" fill="none" stroke="#3b82f6" stroke-width="2.5"/><path d="M12 8V6a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-2" fill="none" stroke="#3b82f6" stroke-width="2.5"/></svg>' },
+        { name: 'paste', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="10" width="16" height="18" rx="2" fill="none" stroke="#10b981" stroke-width="2.5"/><path d="M12 10V7a1 1 0 011-1h6a1 1 0 011 1v3" fill="#10b981"/></svg>' },
+        { name: 'cut', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="22" r="3" fill="#f97316"/><circle cx="22" cy="22" r="3" fill="#f97316"/><path d="M10 19L16 13m0 0l6 6m-6-6l6-6m-6 6l-6 6" stroke="#f97316" stroke-width="2" stroke-linecap="round"/></svg>' },
+
+        // メディア
+        { name: 'image', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="6" width="24" height="20" rx="2" fill="none" stroke="#ec4899" stroke-width="2.5"/><circle cx="12" cy="13" r="2" fill="#ec4899"/><path d="M4 22l6-6 4 4 8-8 6 6" fill="none" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'video', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="18" height="16" rx="2" fill="#8b5cf6"/><path d="M22 12l6-4v16l-6-4" fill="#8b5cf6"/></svg>' },
+        { name: 'music', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M12 24a3 3 0 100-6 3 3 0 000 6zm12 0a3 3 0 100-6 3 3 0 000 6z" fill="#06b6d4"/><path d="M12 21V7l12-2v16" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'camera', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="10" width="24" height="16" rx="2" fill="none" stroke="#10b981" stroke-width="2.5"/><circle cx="16" cy="18" r="4" fill="#10b981"/><path d="M10 10L12 6h8l2 4" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'play', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#10b981"/><path d="M13 11l8 5-8 5V11z" fill="#fff"/></svg>' },
+
+        // コミュニケーション
+        { name: 'mail', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="24" height="16" rx="2" fill="none" stroke="#3b82f6" stroke-width="2.5"/><path d="M4 10l12 8 12-8" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'chat', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 8a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2h-8l-6 4v-4H8a2 2 0 01-2-2V8z" fill="#8b5cf6"/></svg>' },
+        { name: 'phone', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M8 4a2 2 0 00-2 2v20a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2H8zm8 20a2 2 0 100-4 2 2 0 000 4z" fill="#10b981"/></svg>' },
+        { name: 'send', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M4 16l24-8-8 24-4-10-12-6z" fill="#06b6d4"/><path d="M16 16L28 4" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'inbox', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h24v20H4V6z" fill="none" stroke="#f59e0b" stroke-width="2.5"/><path d="M4 18h6l2 4h8l2-4h6" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/></svg>' },
+
+        // ナビゲーション
+        { name: 'arrow-up', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 26V6m-8 8l8-8 8 8" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'arrow-down', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 6v20m-8-8l8 8 8-8" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'arrow-left', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M26 16H6m8-8l-8 8 8 8" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'arrow-right', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 16h20m-8-8l8 8-8 8" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'menu', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 10h20M6 16h20M6 22h20" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+
+        // アクション
+        { name: 'plus', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 8v16M8 16h16" stroke="#10b981" stroke-width="3" stroke-linecap="round"/></svg>' },
+        { name: 'minus', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M8 16h16" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>' },
+        { name: 'close', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M8 8l16 16M24 8L8 24" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>' },
+        { name: 'check', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 16l6 6L26 8" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'refresh', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M28 16A12 12 0 014 16m0 0l4-4m-4 4l4 4M4 16a12 12 0 0024 0m0 0l-4 4m4-4l-4-4" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+
+        // ビジネス
+        { name: 'calendar', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="20" height="20" rx="2" fill="none" stroke="#f59e0b" stroke-width="2.5"/><path d="M6 12h20M12 6v4m8-4v4" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'clock', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="none" stroke="#3b82f6" stroke-width="2.5"/><path d="M16 8v8l5 3" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'chart', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 26V14l6-6 6 4 8-6v20" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'briefcase', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="12" width="24" height="14" rx="2" fill="none" stroke="#8b5cf6" stroke-width="2.5"/><path d="M12 12V8a2 2 0 012-2h4a2 2 0 012 2v4" fill="none" stroke="#8b5cf6" stroke-width="2.5"/></svg>' },
+        { name: 'dollar', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="none" stroke="#10b981" stroke-width="2.5"/><path d="M16 10v12m-3-9h4.5a2.5 2.5 0 010 5H16m0 0h1.5a2.5 2.5 0 010 5H13" stroke="#10b981" stroke-width="2" stroke-linecap="round"/></svg>' },
+
+        // ソーシャル
+        { name: 'heart', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 28s-12-8-12-16c0-3.3 2.7-6 6-6 2 0 3.8 1 5 2.5A6 6 0 0122 6c3.3 0 6 2.7 6 6 0 8-12 16-12 16z" fill="#ec4899"/></svg>' },
+        { name: 'star', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 4l3.5 7 7.5 1-5.5 5.5 1.5 7.5-7-3.5-7 3.5 1.5-7.5L4 12l7.5-1L16 4z" fill="#fbbf24"/></svg>' },
+        { name: 'share', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="8" r="4" fill="#06b6d4"/><circle cx="8" cy="16" r="4" fill="#06b6d4"/><circle cx="24" cy="24" r="4" fill="#06b6d4"/><path d="M12 14l8-4m-8 12l8-4" stroke="#06b6d4" stroke-width="2"/></svg>' },
+        { name: 'bookmark', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M8 4h16v24l-8-6-8 6V4z" fill="#8b5cf6"/></svg>' },
+        { name: 'flag', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 28V4h16l-3 6 3 6H6z" fill="#ef4444"/></svg>' },
+
+        // 状態
+        { name: 'info', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#3b82f6"/><path d="M16 12v8m0-12v1" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'warning', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 4L4 26h24L16 4z" fill="#f59e0b"/><path d="M16 12v6m0 2v2" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'error', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#ef4444"/><path d="M12 12l8 8m0-8l-8 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'success', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#10b981"/><path d="M10 16l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+        { name: 'help', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#8b5cf6"/><path d="M12 12a4 4 0 016 3.5v.5c0 1.5-1 2-2 3v1m0 2v1" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+
+        // その他
+        { name: 'lock', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="14" width="16" height="12" rx="2" fill="#6366f1"/><path d="M12 14V10a4 4 0 018 0v4" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'unlock', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="14" width="16" height="12" rx="2" fill="#10b981"/><path d="M12 14V10a4 4 0 018 0" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'eye', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M2 16s6-10 14-10 14 10 14 10-6 10-14 10S2 16 2 16z" fill="none" stroke="#3b82f6" stroke-width="2.5"/><circle cx="16" cy="16" r="4" fill="#3b82f6"/></svg>' },
+        { name: 'eye-off', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M4 4l24 24M12 12a4 4 0 005 5" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><path d="M8 8C4 11 2 16 2 16s6 10 14 10c2 0 4-.5 6-1.5M24 24c4-3 6-8 6-8s-6-10-14-10c-2 0-4 .5-6 1.5" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'link', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M14 18a6 6 0 009-1l3-3a6 6 0 10-9-9l-2 2" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/><path d="M18 14a6 6 0 00-9 1l-3 3a6 6 0 109 9l2-2" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+        { name: 'tag', svg: '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h10l14 14-10 10L4 14V4z" fill="#ec4899"/><circle cx="11" cy="11" r="2" fill="#fff"/></svg>' },
+    ];
+
+    let selectedIcons = new Set();
+
+    function renderIcons() {
+        const grid = document.getElementById('iconGrid');
+        grid.innerHTML = icons.map((icon, index) => `
+                <div class="icon-card" onclick="toggleSelection(${index})">
+                    <div class="icon-wrapper">
+                        ${icon.svg}
+                    </div>
+                    <div class="icon-name">${icon.name}</div>
+                </div>
+            `).join('');
+    }
+
+    function toggleSelection(index) {
+        const cards = document.querySelectorAll('.icon-card');
+        if (selectedIcons.has(index)) {
+            selectedIcons.delete(index);
+            cards[index].classList.remove('selected');
+        } else {
+            selectedIcons.add(index);
+            cards[index].classList.add('selected');
+        }
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const countElement = document.getElementById('selectedCount');
+        const countText = document.getElementById('countText');
+        const count = selectedIcons.size;
+
+        if (count > 0) {
+            countElement.classList.add('show');
+            countText.textContent = `${count}個選択中`;
+        } else {
+            countElement.classList.remove('show');
+        }
+    }
+
+    function selectAll() {
+        const cards = document.querySelectorAll('.icon-card');
+        selectedIcons.clear();
+        icons.forEach((_, index) => {
+            selectedIcons.add(index);
+            cards[index].classList.add('selected');
+        });
+        updateSelectedCount();
+    }
+
+    function clearSelection() {
+        const cards = document.querySelectorAll('.icon-card');
+        selectedIcons.clear();
+        cards.forEach(card => card.classList.remove('selected'));
+        updateSelectedCount();
+    }
+
+    async function downloadSelected() {
+        if (selectedIcons.size === 0) {
+            alert('アイコンを選択してください');
+            return;
+        }
+
+        const zip = new JSZip();
+        const folder = zip.folder('selected-icons');
+
+        selectedIcons.forEach(index => {
+            const icon = icons[index];
+            folder.file(`${icon.name}.svg`, icon.svg);
+        });
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        downloadBlob(content, 'selected-icons.zip');
+    }
+
+    async function downloadAll() {
+        const zip = new JSZip();
+        const folder = zip.folder('all-icons');
+
+        icons.forEach(icon => {
+            folder.file(`${icon.name}.svg`, icon.svg);
+        });
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        downloadBlob(content, 'all-icons.zip');
+    }
+
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    // 初期化
+    renderIcons();
+</script>
+</body>
+</html>

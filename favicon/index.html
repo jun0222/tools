@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テキスト → Favicon ジェネレーター</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Righteous&family=Fredoka:wght@300;400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #fef3c7;
+            --bg-secondary: #fde68a;
+            --accent-1: #f59e0b;
+            --accent-2: #d97706;
+            --accent-3: #b45309;
+            --text-dark: #78350f;
+            --text-mid: #92400e;
+            --shadow: rgba(217, 119, 6, 0.2);
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 50%, #fdba74 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-family: 'Righteous', cursive;
+            font-size: 3.5rem;
+            color: var(--accent-3);
+            text-shadow: 3px 3px 0 var(--accent-1);
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-mid);
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px var(--shadow);
+            border: 3px solid var(--accent-1);
+        }
+
+        .panel h2 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.75rem;
+            color: var(--accent-2);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .emoji {
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-mid);
+            margin-bottom: 0.5rem;
+            font-size: 0.9375rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--accent-1);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            color: var(--text-dark);
+            background: var(--bg-primary);
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-2);
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        input[type="text"]::placeholder {
+            color: #d97706;
+            opacity: 0.5;
+        }
+
+        .color-picker-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .color-input-wrapper {
+            position: relative;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 50px;
+            border: 2px solid var(--accent-1);
+            border-radius: 12px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        input[type="color"]:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .preview-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .preview-sizes {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-end;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .preview-item {
+            text-align: center;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        .preview-label {
+            font-weight: 600;
+            color: var(--text-mid);
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .preview-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 3px solid var(--accent-1);
+            transition: all 0.3s;
+        }
+
+        .preview-box:hover {
+            transform: translateY(-4px) rotate(2deg);
+            box-shadow: 0 8px 30px var(--shadow);
+        }
+
+        #favicon-preview {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Fredoka', sans-serif;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px var(--shadow);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tips {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+            border: 2px dashed var(--accent-1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            animation: fadeIn 0.6s ease-out 0.4s both;
+        }
+
+        .tips h3 {
+            font-family: 'Fredoka', sans-serif;
+            color: var(--accent-2);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tips ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tips li {
+            padding: 0.5rem 0;
+            color: var(--text-mid);
+            font-weight: 500;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .tips li::before {
+            content: '✨';
+            position: absolute;
+            left: 0;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .color-picker-group {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-sizes {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎨 Favicon ジェネレーター</h1>
+        <p class="subtitle">好きなテキストを入力して、オリジナルファビコンを作ろう！</p>
+    </div>
+
+    <div class="main-content">
+        <div class="panel">
+            <h2><span class="emoji">⚙️</span>カスタマイズ</h2>
+
+            <div class="input-group">
+                <label for="text-input">テキスト（1-3文字推奨）</label>
+                <input type="text" id="text-input" placeholder="例: A, 🎨, メモ" value="A" maxlength="5">
+            </div>
+
+            <div class="input-group">
+                <label for="font-select">フォント</label>
+                <select id="font-select">
+                    <option value="Arial Black">ボールド（Arial Black）</option>
+                    <option value="Righteous">ポップ（Righteous）</option>
+                    <option value="Fredoka">丸ゴシック（Fredoka）</option>
+                    <option value="'Hiragino Sans'">ヒラギノ（日本語）</option>
+                    <option value="monospace">等幅（Monospace）</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="font-size">文字サイズ</label>
+                <input type="number" id="font-size" value="20" min="8" max="28">
+            </div>
+
+            <div class="color-picker-group">
+                <div class="input-group">
+                    <label for="bg-color">背景色</label>
+                    <input type="color" id="bg-color" value="#6366f1">
+                </div>
+                <div class="input-group">
+                    <label for="text-color">文字色</label>
+                    <input type="color" id="text-color" value="#ffffff">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="border-radius">角の丸み（0-16）</label>
+                <input type="number" id="border-radius" value="6" min="0" max="16">
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2><span class="emoji">👀</span>プレビュー</h2>
+
+            <div class="preview-section">
+                <div class="preview-sizes">
+                    <div class="preview-item">
+                        <div class="preview-label">16×16</div>
+                        <div class="preview-box">
+                            <svg id="favicon-preview-16" width="16" height="16"></svg>
+                        </div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-label">32×32</div>
+                        <div class="preview-box">
+                            <svg id="favicon-preview-32" width="32" height="32"></svg>
+                        </div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-label">64×64</div>
+                        <div class="preview-box">
+                            <svg id="favicon-preview-64" width="64" height="64"></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn" onclick="downloadSVG()">
+                        <span>📥 SVG ダウンロード</span>
+                    </button>
+                    <button class="btn" onclick="downloadPNG(32)">
+                        <span>📥 PNG 32×32</span>
+                    </button>
+                    <button class="btn" onclick="downloadPNG(64)">
+                        <span>📥 PNG 64×64</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tips">
+        <h3><span class="emoji">💡</span>ヒント</h3>
+        <ul>
+            <li>1-2文字がベストサイズ。絵文字もOK！</li>
+            <li>コントラストの高い色を選ぶと見やすくなります</li>
+            <li>SVG形式は拡大しても綺麗で、ファイルサイズも小さい</li>
+            <li>HTMLに設置: <code>&lt;link rel="icon" type="image/svg+xml" href="/favicon.svg"&gt;</code></li>
+        </ul>
+    </div>
+</div>
+
+<div class="toast" id="toast">ダウンロードしました！✨</div>
+
+<!-- 隠されたSVG（ダウンロード用） -->
+<svg id="favicon-svg" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display: none;"></svg>
+
+<script>
+    function updateFavicon() {
+        const text = document.getElementById('text-input').value || 'A';
+        const font = document.getElementById('font-select').value;
+        const fontSize = document.getElementById('font-size').value;
+        const bgColor = document.getElementById('bg-color').value;
+        const textColor = document.getElementById('text-color').value;
+        const borderRadius = document.getElementById('border-radius').value;
+
+        const svgContent = `
+                <rect width="32" height="32" rx="${borderRadius}" fill="${bgColor}"/>
+                <text x="16" y="16" font-family="${font}" font-size="${fontSize}" font-weight="bold" fill="${textColor}" text-anchor="middle" dominant-baseline="central">${text}</text>
+            `;
+
+        // 全てのプレビューを更新
+        const sizes = [16, 32, 64];
+        sizes.forEach(size => {
+            const preview = document.getElementById(`favicon-preview-${size}`);
+            preview.setAttribute('viewBox', '0 0 32 32');
+            preview.innerHTML = svgContent;
+        });
+
+        // ダウンロード用SVGも更新
+        const downloadSvg = document.getElementById('favicon-svg');
+        downloadSvg.innerHTML = svgContent;
+    }
+
+    function downloadSVG() {
+        const svg = document.getElementById('favicon-svg');
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'favicon.svg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast();
+    }
+
+    function downloadPNG(size) {
+        const svg = document.getElementById('favicon-svg');
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        canvas.width = size;
+        canvas.height = size;
+
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, size, size);
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `favicon-${size}x${size}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                showToast();
+            });
+        };
+
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    }
+
+    function showToast() {
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
+    }
+
+    // イベントリスナーを設定
+    document.getElementById('text-input').addEventListener('input', updateFavicon);
+    document.getElementById('font-select').addEventListener('change', updateFavicon);
+    document.getElementById('font-size').addEventListener('input', updateFavicon);
+    document.getElementById('bg-color').addEventListener('input', updateFavicon);
+    document.getElementById('text-color').addEventListener('input', updateFavicon);
+    document.getElementById('border-radius').addEventListener('input', updateFavicon);
+
+    // 初期表示
+    updateFavicon();
+</script>
+</body>
+</html>
