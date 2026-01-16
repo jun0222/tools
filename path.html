@@ -101,6 +101,7 @@
       { name: "rollp", path: "rollp" },
       { name: "path", path: "path.html" },
       { name: "cheat", path: "cheat" },
+      { name: "dev-blog", path: "Dev Blog", url: "https://www.juns-app.com" },
     ];
 
     const BASE_URL = "https://tools.juns-app.com/";
@@ -193,8 +194,9 @@
 
     function openTool(index) {
       if (filteredTools[index]) {
-        const url = BASE_URL + filteredTools[index].path;
-        statusLeft.textContent = `Opening ${filteredTools[index].name}...`;
+        const tool = filteredTools[index];
+        const url = tool.url || (BASE_URL + tool.path);
+        statusLeft.textContent = `Opening ${tool.name}...`;
         window.open(url, "_blank");
       }
     }
