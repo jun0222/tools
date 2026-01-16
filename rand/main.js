@@ -29,10 +29,7 @@ class ReadablePasswordGenerator {
       let word = words[Math.floor(Math.random() * words.length)];
 
       if (includeUppercase && Math.random() > 0.5) {
-        const randomIndex = Math.floor(Math.random() * word.length);
-        word = word.substring(0, randomIndex) +
-               word.charAt(randomIndex).toUpperCase() +
-               word.substring(randomIndex + 1);
+        word = word.charAt(0).toUpperCase() + word.substring(1);
       }
 
       result.push(word);
