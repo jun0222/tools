@@ -308,7 +308,7 @@ body {
     outline: none;
     color: #c9d1d9;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 16px; /* 16px以上でiOSの自動ズームを防止 */
     caret-color: #3fb950;
 }
 

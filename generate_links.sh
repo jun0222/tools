@@ -96,7 +96,7 @@ output_html="path.html"
   echo '      <div class="help-hint">'
   echo '        <span class="hint-key">Enter</span> open'
   echo '        <span class="hint-key">↑↓</span> navigate'
-  echo '        <span class="hint-key">*</span> all'
+  echo '        <span class="hint-key">man</span> all'
   echo '      </div>'
   echo ''
   echo '      <div class="results-container" id="resultsContainer">'
@@ -160,7 +160,7 @@ output_html="path.html"
         item.dataset.index = index;
 
         let nameHtml = tool.name;
-        if (highlight && highlight !== "*") {
+        if (highlight && highlight.toLowerCase() !== "man") {
           const regex = new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi");
           nameHtml = tool.name.replace(regex, "<mark>$1</mark>");
         }
@@ -201,7 +201,7 @@ output_html="path.html"
       if (query === "") {
         return [];
       }
-      if (query === "*") {
+      if (query.toLowerCase() === "man") {
         statusLeft.textContent = "Showing all tools";
         return [...tools].sort((a, b) => a.name.localeCompare(b.name));
       }
