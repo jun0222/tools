@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGTM FACTORY</title>
+    <link rel="icon" href="../img/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Climate+Crisis&family=Dela+Gothic+One&family=DM+Mono:wght@400;500&family=Rubik+Glitch&family=Silkscreen&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #1a1a1a;
+            --accent-yellow: #ffde03;
+            --accent-red: #ff2e63;
+            --accent-blue: #08d9d6;
+            --accent-green: #9dff00;
+            --text-dark: #1a1a1a;
+            --text-light: #f5f0e6;
+            --border-weight: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                    repeating-linear-gradient(
+                            0deg,
+                            transparent,
+                            transparent 50px,
+                            rgba(0,0,0,0.03) 50px,
+                            rgba(0,0,0,0.03) 51px
+                    ),
+                    repeating-linear-gradient(
+                            90deg,
+                            transparent,
+                            transparent 50px,
+                            rgba(0,0,0,0.03) 50px,
+                            rgba(0,0,0,0.03) 51px
+                    );
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        header {
+            padding: 2rem;
+            border-bottom: var(--border-weight) solid var(--text-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(2rem, 8vw, 4rem);
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::before {
+            content: 'LGTM';
+            position: absolute;
+            left: 4px;
+            top: 4px;
+            color: var(--accent-red);
+            z-index: -1;
+        }
+
+        .logo-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.3rem 0.8rem;
+            display: inline-block;
+            transform: rotate(-2deg);
+            margin-left: 1rem;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            opacity: 0.7;
+            max-width: 300px;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 120px);
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .controls-panel {
+            padding: 2rem;
+            border-right: var(--border-weight) solid var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .control-group {
+            border: var(--border-weight) solid var(--text-dark);
+            background: white;
+            position: relative;
+        }
+
+        .control-label {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.5rem 1rem;
+            display: block;
+        }
+
+        .control-content {
+            padding: 1rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            font-family: 'DM Mono', monospace;
+            font-size: 1.5rem;
+            padding: 0.8rem;
+            border: 3px solid var(--text-dark);
+            background: var(--bg-primary);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            background: var(--accent-yellow);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .style-btn {
+            aspect-ratio: 1;
+            border: 3px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.5rem;
+        }
+
+        .style-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .style-btn.active {
+            background: var(--accent-yellow);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .style-preview {
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .color-btn {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--text-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .color-btn.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px var(--bg-primary), 0 0 0 6px var(--text-dark);
+        }
+
+        .color-btn.custom-color {
+            background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+            overflow: hidden;
+        }
+
+        .color-btn.custom-color input {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            cursor: pointer;
+            opacity: 0;
+        }
+
+        .preview-panel {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background:
+                    repeating-linear-gradient(
+                            45deg,
+                            #e8e3d9,
+                            #e8e3d9 10px,
+                            #f5f0e6 10px,
+                            #f5f0e6 20px
+                    );
+            position: relative;
+        }
+
+        .preview-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .preview-frame {
+            border: var(--border-weight) solid var(--text-dark);
+            background: white;
+            padding: 1rem;
+            box-shadow: 12px 12px 0 var(--text-dark);
+        }
+
+        .preview-label {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            background: var(--accent-red);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            transform: rotate(-3deg);
+        }
+
+        #preview-canvas {
+            width: 100%;
+            aspect-ratio: 1.6;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1rem 2.5rem;
+            border: var(--border-weight) solid var(--text-dark);
+            background: var(--accent-green);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .btn-primary:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 6px 6px 0 var(--text-dark);
+        }
+
+        .btn-primary:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            padding: 1rem 1.5rem;
+            border: 3px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .size-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .size-btn {
+            flex: 1;
+            padding: 0.7rem;
+            border: 3px solid var(--text-dark);
+            background: white;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .size-btn:hover {
+            background: var(--bg-primary);
+        }
+
+        .size-btn.active {
+            background: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        .decoration-stamps {
+            position: fixed;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 8rem;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .stamp-1 { top: 10%; right: -5%; transform: rotate(15deg); }
+        .stamp-2 { bottom: 10%; left: -5%; transform: rotate(-20deg); }
+
+        footer {
+            padding: 1rem 2rem;
+            border-top: var(--border-weight) solid var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .footer-badge {
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+        }
+
+        /* Animation */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-group {
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        .control-group:nth-child(1) { animation-delay: 0.1s; }
+        .control-group:nth-child(2) { animation-delay: 0.2s; }
+        .control-group:nth-child(3) { animation-delay: 0.3s; }
+        .control-group:nth-child(4) { animation-delay: 0.4s; }
+
+        .preview-frame {
+            animation: slideIn 0.6s ease-out 0.3s backwards;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 1rem 2rem;
+            font-family: 'DM Mono', monospace;
+            border: 3px solid var(--accent-green);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div class="decoration-stamps stamp-1">LGTM</div>
+<div class="decoration-stamps stamp-2">OK!</div>
+
+<header>
+    <div class="header-content">
+        <div>
+            <span class="logo">LGTM</span>
+            <span class="logo-sub">FACTORY</span>
+        </div>
+        <p class="tagline">コードレビューをもっと楽しく。あなただけのLGTM画像を作ろう。</p>
+    </div>
+</header>
+
+<main>
+    <div class="controls-panel">
+        <div class="control-group">
+            <label class="control-label">テキスト</label>
+            <div class="control-content">
+                <input type="text" id="text-input" value="LGTM" maxlength="20" placeholder="LGTM">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">スタイル</label>
+            <div class="control-content">
+                <div class="style-grid">
+                    <button class="style-btn active" data-style="bold">
+                        <span class="style-preview" style="font-family: 'Archivo Black'">Aa</span>
+                        <span>Bold</span>
+                    </button>
+                    <button class="style-btn" data-style="glitch">
+                        <span class="style-preview" style="font-family: 'Rubik Glitch'">Aa</span>
+                        <span>Glitch</span>
+                    </button>
+                    <button class="style-btn" data-style="pixel">
+                        <span class="style-preview" style="font-family: 'Silkscreen'">Aa</span>
+                        <span>Pixel</span>
+                    </button>
+                    <button class="style-btn" data-style="gothic">
+                        <span class="style-preview" style="font-family: 'Dela Gothic One'">あ</span>
+                        <span>Gothic</span>
+                    </button>
+                    <button class="style-btn" data-style="climate">
+                        <span class="style-preview" style="font-family: 'Climate Crisis'">Aa</span>
+                        <span>Wavy</span>
+                    </button>
+                    <button class="style-btn" data-style="mono">
+                        <span class="style-preview" style="font-family: 'DM Mono'">Aa</span>
+                        <span>Mono</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">カラー</label>
+            <div class="control-content">
+                <div class="color-options">
+                    <button class="color-btn active" data-bg="#1a1a1a" data-fg="#ffde03" style="background: linear-gradient(135deg, #1a1a1a 50%, #ffde03 50%)"></button>
+                    <button class="color-btn" data-bg="#ff2e63" data-fg="#ffffff" style="background: linear-gradient(135deg, #ff2e63 50%, #ffffff 50%)"></button>
+                    <button class="color-btn" data-bg="#08d9d6" data-fg="#1a1a1a" style="background: linear-gradient(135deg, #08d9d6 50%, #1a1a1a 50%)"></button>
+                    <button class="color-btn" data-bg="#9dff00" data-fg="#1a1a1a" style="background: linear-gradient(135deg, #9dff00 50%, #1a1a1a 50%)"></button>
+                    <button class="color-btn" data-bg="#6c5ce7" data-fg="#ffeaa7" style="background: linear-gradient(135deg, #6c5ce7 50%, #ffeaa7 50%)"></button>
+                    <button class="color-btn" data-bg="#2d3436" data-fg="#00cec9" style="background: linear-gradient(135deg, #2d3436 50%, #00cec9 50%)"></button>
+                    <button class="color-btn" data-bg="#fdcb6e" data-fg="#d63031" style="background: linear-gradient(135deg, #fdcb6e 50%, #d63031 50%)"></button>
+                    <button class="color-btn custom-color" title="カスタムカラー">
+                        <input type="color" id="custom-bg" value="#1a1a1a">
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">サイズ</label>
+            <div class="control-content">
+                <div class="size-selector">
+                    <button class="size-btn" data-width="400" data-height="250">Small</button>
+                    <button class="size-btn active" data-width="600" data-height="375">Medium</button>
+                    <button class="size-btn" data-width="800" data-height="500">Large</button>
+                    <button class="size-btn" data-width="500" data-height="500">Square</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-panel">
+        <div class="preview-container">
+            <div class="preview-frame">
+                <span class="preview-label">Preview</span>
+                <canvas id="preview-canvas" width="600" height="375"></canvas>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn-primary" id="download-btn">
+                ↓ ダウンロード
+            </button>
+            <button class="btn-secondary" id="copy-btn">
+                クリップボードにコピー
+            </button>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <span>Looks Good To Me!</span>
+    <span class="footer-badge">SHIP IT 🚀</span>
+</footer>
+
+<div class="toast" id="toast">コピーしました！</div>
+
+<script>
+    const canvas = document.getElementById('preview-canvas');
+    const ctx = canvas.getContext('2d');
+    const textInput = document.getElementById('text-input');
+    const styleBtns = document.querySelectorAll('.style-btn');
+    const colorBtns = document.querySelectorAll('.color-btn:not(.custom-color)');
+    const customColorInput = document.getElementById('custom-bg');
+    const sizeBtns = document.querySelectorAll('.size-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const toast = document.getElementById('toast');
+
+    let currentStyle = 'bold';
+    let currentBg = '#1a1a1a';
+    let currentFg = '#ffde03';
+    let currentWidth = 600;
+    let currentHeight = 375;
+    let customFg = '#ffffff';
+
+    const fontMap = {
+        bold: '"Archivo Black", sans-serif',
+        glitch: '"Rubik Glitch", cursive',
+        pixel: '"Silkscreen", cursive',
+        gothic: '"Dela Gothic One", cursive',
+        climate: '"Climate Crisis", cursive',
+        mono: '"DM Mono", monospace'
+    };
+
+    function drawCanvas() {
+        canvas.width = currentWidth;
+        canvas.height = currentHeight;
+
+        // Background
+        ctx.fillStyle = currentBg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Add subtle pattern
+        ctx.save();
+        ctx.globalAlpha = 0.05;
+        for (let i = 0; i < canvas.width; i += 20) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.strokeStyle = currentFg;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Text
+        const text = textInput.value || 'LGTM';
+        ctx.fillStyle = currentFg;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Calculate font size to fit
+        let fontSize = Math.min(canvas.width / text.length * 1.5, canvas.height * 0.5);
+        ctx.font = `${fontSize}px ${fontMap[currentStyle]}`;
+
+        // Measure and adjust if needed
+        let metrics = ctx.measureText(text);
+        while (metrics.width > canvas.width * 0.85 && fontSize > 20) {
+            fontSize -= 5;
+            ctx.font = `${fontSize}px ${fontMap[currentStyle]}`;
+            metrics = ctx.measureText(text);
+        }
+
+        // Draw shadow
+        ctx.save();
+        ctx.fillStyle = currentFg;
+        ctx.globalAlpha = 0.15;
+        ctx.fillText(text, canvas.width / 2 + 6, canvas.height / 2 + 6);
+        ctx.restore();
+
+        // Draw main text
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        // Add decorative corners
+        const cornerSize = 20;
+        ctx.strokeStyle = currentFg;
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.5;
+
+        // Top left
+        ctx.beginPath();
+        ctx.moveTo(15, 35);
+        ctx.lineTo(15, 15);
+        ctx.lineTo(35, 15);
+        ctx.stroke();
+
+        // Top right
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 35, 15);
+        ctx.lineTo(canvas.width - 15, 15);
+        ctx.lineTo(canvas.width - 15, 35);
+        ctx.stroke();
+
+        // Bottom left
+        ctx.beginPath();
+        ctx.moveTo(15, canvas.height - 35);
+        ctx.lineTo(15, canvas.height - 15);
+        ctx.lineTo(35, canvas.height - 15);
+        ctx.stroke();
+
+        // Bottom right
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 35, canvas.height - 15);
+        ctx.lineTo(canvas.width - 15, canvas.height - 15);
+        ctx.lineTo(canvas.width - 15, canvas.height - 35);
+        ctx.stroke();
+
+        ctx.globalAlpha = 1;
+    }
+
+    // Event listeners
+    textInput.addEventListener('input', drawCanvas);
+
+    styleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            styleBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentStyle = btn.dataset.style;
+            drawCanvas();
+        });
+    });
+
+    colorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            colorBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector('.custom-color')?.classList.remove('active');
+            btn.classList.add('active');
+            currentBg = btn.dataset.bg;
+            currentFg = btn.dataset.fg;
+            drawCanvas();
+        });
+    });
+
+    customColorInput.addEventListener('input', (e) => {
+        colorBtns.forEach(b => b.classList.remove('active'));
+        document.querySelector('.custom-color').classList.add('active');
+        currentBg = e.target.value;
+        // Calculate contrasting color
+        const hex = e.target.value.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        currentFg = luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+        drawCanvas();
+    });
+
+    sizeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            sizeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentWidth = parseInt(btn.dataset.width);
+            currentHeight = parseInt(btn.dataset.height);
+            drawCanvas();
+        });
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = `lgtm-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+        try {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            await navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+            ]);
+            showToast('コピーしました！');
+        } catch (err) {
+            showToast('コピーに失敗しました');
+        }
+    });
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Initial draw
+    drawCanvas();
+
+    // Redraw when fonts are loaded
+    document.fonts.ready.then(drawCanvas);
+</script>
+</body>
+</html>

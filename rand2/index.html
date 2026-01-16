@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Password Generator</title>
+    <title>Random Generator</title>
     <link rel="icon" href="../img/favicon.svg" type="image/svg+xml" />
     <meta
       name="viewport"
@@ -104,17 +104,17 @@
         margin-bottom: 8px;
       }
 
-      .password-display {
-        font-size: 24px;
-        color: #58a6ff;
+      .output-display {
+        font-size: 20px;
+        color: #f0883e;
         word-break: break-all;
         cursor: pointer;
         transition: color 0.2s;
         font-weight: 500;
       }
 
-      .password-display:hover {
-        color: #79c0ff;
+      .output-display:hover {
+        color: #ffa657;
       }
 
       .options-section {
@@ -152,52 +152,64 @@
 
       .option-input:focus {
         outline: none;
-        border-color: #58a6ff;
-        box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+        border-color: #f0883e;
+        box-shadow: 0 0 0 3px rgba(240, 136, 62, 0.2);
       }
 
-      .toggle-switch {
-        position: relative;
-        width: 44px;
-        height: 24px;
+      .type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
       }
 
-      .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-      .toggle-slider {
-        position: absolute;
+      .type-option {
+        background-color: #21262d;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 12px;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        transition: all 0.2s;
+        text-align: center;
+      }
+
+      .type-option:hover {
         background-color: #30363d;
-        transition: 0.3s;
-        border-radius: 24px;
+        border-color: #8b949e;
       }
 
-      .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background-color: #c9d1d9;
-        transition: 0.3s;
-        border-radius: 50%;
+      .type-option.active {
+        background-color: #f0883e20;
+        border-color: #f0883e;
       }
 
-      input:checked + .toggle-slider {
-        background-color: #238636;
+      .type-option input {
+        display: none;
       }
 
-      input:checked + .toggle-slider:before {
-        transform: translateX(20px);
+      .type-name {
+        color: #c9d1d9;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .type-example {
+        color: #8b949e;
+        font-size: 11px;
+      }
+
+      .length-row {
+        display: none;
+        padding: 12px 0;
+        border-bottom: 1px solid #21262d;
+        margin-bottom: 12px;
+      }
+
+      .length-row.visible {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
       .action-buttons {
@@ -222,12 +234,12 @@
       }
 
       .btn-generate {
-        background: linear-gradient(180deg, #238636 0%, #2ea043 100%);
+        background: linear-gradient(180deg, #da6c25 0%, #f0883e 100%);
         color: white;
       }
 
       .btn-generate:hover {
-        background: linear-gradient(180deg, #2ea043 0%, #3fb950 100%);
+        background: linear-gradient(180deg, #f0883e 0%, #ffa657 100%);
         transform: translateY(-1px);
       }
 
@@ -266,14 +278,14 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        color: #3fb950;
+        color: #f0883e;
         font-size: 12px;
       }
 
       .status-dot {
         width: 6px;
         height: 6px;
-        background-color: #3fb950;
+        background-color: #f0883e;
         border-radius: 50%;
         animation: pulse 2s infinite;
       }
@@ -284,12 +296,16 @@
       }
 
       @media screen and (max-width: 480px) {
-        .password-display {
-          font-size: 18px;
+        .output-display {
+          font-size: 16px;
         }
 
         .terminal-body {
           padding: 16px;
+        }
+
+        .type-selector {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -302,47 +318,62 @@
           <div class="terminal-btn btn-minimize"></div>
           <div class="terminal-btn btn-maximize"></div>
         </div>
-        <div class="terminal-title">password-gen ~ readable</div>
+        <div class="terminal-title">random-gen ~ multi</div>
       </div>
       <div class="terminal-body">
         <div class="prompt-line">
           <span class="prompt">$</span>
-          <span class="command">generate --type readable</span>
+          <span class="command" id="commandText">generate --type uuid</span>
         </div>
 
         <div class="output-box">
-          <div class="output-label">Generated Password</div>
-          <div class="password-display" id="passwordOutput" onclick="copyToClipboard()">
+          <div class="output-label">Generated Output</div>
+          <div class="output-display" id="output" onclick="copyToClipboard()">
             loading...
           </div>
         </div>
 
-        <div class="options-section">
-          <div class="option-row">
-            <span class="option-label">Word Count</span>
-            <input type="number" class="option-input" id="wordCount" value="2" min="1" max="5" />
-          </div>
-          <div class="option-row">
-            <span class="option-label">Include Numbers</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="includeNumbers" checked />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="option-row">
-            <span class="option-label">Include Symbols</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="includeSymbols" checked />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="option-row">
-            <span class="option-label">Include Uppercase</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="includeUppercase" checked />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
+        <div class="type-selector">
+          <label class="type-option active">
+            <input type="radio" name="type" value="uuid" checked />
+            <div class="type-name">UUID</div>
+            <div class="type-example">a1b2c3d4-...</div>
+          </label>
+          <label class="type-option">
+            <input type="radio" name="type" value="numeric" />
+            <div class="type-name">Numeric</div>
+            <div class="type-example">8667800229</div>
+          </label>
+          <label class="type-option">
+            <input type="radio" name="type" value="alphanumeric" />
+            <div class="type-name">Alphanumeric</div>
+            <div class="type-example">pmzFHyOjw0</div>
+          </label>
+          <label class="type-option">
+            <input type="radio" name="type" value="alphanumericSymbol" />
+            <div class="type-name">With Symbols</div>
+            <div class="type-example">gpKf*T(y8e</div>
+          </label>
+          <label class="type-option">
+            <input type="radio" name="type" value="customPattern" />
+            <div class="type-name">Custom</div>
+            <div class="type-example">Kiwi_663</div>
+          </label>
+          <label class="type-option">
+            <input type="radio" name="type" value="hiragana" />
+            <div class="type-name">Hiragana</div>
+            <div class="type-example">あいうえお</div>
+          </label>
+          <label class="type-option">
+            <input type="radio" name="type" value="katakana" />
+            <div class="type-name">Katakana</div>
+            <div class="type-example">アイウエオ</div>
+          </label>
+        </div>
+
+        <div class="length-row" id="lengthRow">
+          <span class="option-label">Length</span>
+          <input type="number" class="option-input" id="length" value="10" min="1" max="100" />
         </div>
 
         <div class="action-buttons">
@@ -363,7 +394,7 @@
         </div>
 
         <div class="status-bar">
-          <span class="status-text">Click password to copy</span>
+          <span class="status-text">Click output to copy</span>
           <span class="status-indicator">
             <span class="status-dot"></span>
             Ready
