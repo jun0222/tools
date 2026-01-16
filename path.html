@@ -43,7 +43,7 @@
       <div class="help-hint">
         <span class="hint-key">Enter</span> open
         <span class="hint-key">↑↓</span> navigate
-        <span class="hint-key">man</span> all
+        <span class="hint-key">*</span> all
       </div>
 
       <div class="results-container" id="resultsContainer">
@@ -132,7 +132,7 @@
         item.dataset.index = index;
 
         let nameHtml = tool.name;
-        if (highlight && highlight.toLowerCase() !== "man") {
+        if (highlight && highlight !== "*") {
           const regex = new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi");
           nameHtml = tool.name.replace(regex, "<mark>$1</mark>");
         }
@@ -173,7 +173,7 @@
       if (query === "") {
         return [];
       }
-      if (query.toLowerCase() === "man") {
+      if (query === "*") {
         statusLeft.textContent = "Showing all tools";
         return [...tools].sort((a, b) => a.name.localeCompare(b.name));
       }
