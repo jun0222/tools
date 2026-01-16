@@ -1,0 +1,66 @@
+
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>開発ドキュメント</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/default.min.css">
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        section { margin-bottom: 40px; }
+        hr { border: none; border-top: 1px solid #ccc; }
+        pre { position: relative; }
+        .copy-button {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: #4CAF50;
+          color: #fff;
+          border: none;
+          padding: 5px 10px;
+          cursor: pointer;
+          border-radius: 3px;
+          display: none;
+        }
+        pre:hover .copy-button {
+          display: block;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        
+      <section>
+        <h2>202411020442</h2>
+        <h2>python Hello World</h2>
+<pre><code class="language-python">print(&quot;Hello World&quot;)
+</code></pre>
+
+        <hr>
+      </section>
+    
+      </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+      <script>
+        document.querySelectorAll('pre code').forEach((el) => {
+          hljs.highlightElement(el);
+        });
+        document.querySelectorAll('pre').forEach((pre) => {
+          const button = document.createElement('button');
+          button.className = 'copy-button';
+          button.innerText = 'Copy';
+          button.addEventListener('click', () => {
+            const code = pre.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+              button.innerText = 'Copied';
+              setTimeout(() => { button.innerText = 'Copy'; }, 2000);
+            });
+          });
+          pre.appendChild(button);
+        });
+      </script>
+    </body>
+    </html>
+  
