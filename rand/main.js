@@ -16,7 +16,8 @@ class ReadablePasswordGenerator {
     const wordCount = this.options.wordCount || 2;
     const includeNumbers = this.options.includeNumbers !== false;
     const includeSymbols = this.options.includeSymbols !== false;
-    const includeUppercase = this.options.includeUppercase !== false;
+    const includeUppercase = this.options.includeUppercase === true;
+    const includeSalt = this.options.includeSalt === true;
 
     let result = [];
     let selectedSymbol = null;
@@ -52,6 +53,17 @@ class ReadablePasswordGenerator {
       result.push(numberPart);
     }
 
+    // ソルト値を追加
+    if (includeSalt) {
+      const saltChars = "abcdefghijklmnopqrstuvwxyz0123456789";
+      const saltLength = 4;
+      let salt = "";
+      for (let i = 0; i < saltLength; i++) {
+        salt += saltChars.charAt(Math.floor(Math.random() * saltChars.length));
+      }
+      result.push("!" + salt);
+    }
+
     return result.join("");
   }
 }
@@ -61,7 +73,8 @@ function generatePassword() {
     wordCount: parseInt(document.getElementById("wordCount").value),
     includeNumbers: document.getElementById("includeNumbers").checked,
     includeSymbols: document.getElementById("includeSymbols").checked,
-    includeUppercase: document.getElementById("includeUppercase").checked
+    includeUppercase: document.getElementById("includeUppercase").checked,
+    includeSalt: document.getElementById("includeSalt").checked
   };
 
   const generator = new ReadablePasswordGenerator(options);
@@ -103,7 +116,7 @@ document.getElementById("copyButton").addEventListener("click", copyToClipboard)
 document.getElementById("generateButton").addEventListener("mouseover", generatePassword);
 
 // Generate on option change
-document.querySelectorAll("#wordCount, #includeNumbers, #includeSymbols, #includeUppercase").forEach(el => {
+document.querySelectorAll("#wordCount, #includeNumbers, #includeSymbols, #includeUppercase, #includeSalt").forEach(el => {
   el.addEventListener("change", generatePassword);
   el.addEventListener("input", generatePassword);
 });
