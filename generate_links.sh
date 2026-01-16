@@ -125,6 +125,9 @@ output_html="path.html"
     echo "      { name: \"$name\", path: \"$path_only\" },"
   done <<< "$html_files"
 
+  # 外部リンク
+  echo '      { name: "dev-blog", path: "Dev Blog", url: "https://www.juns-app.com" },'
+
   echo '    ];'
   echo ''
   cat << 'SCRIPT_END'
@@ -218,8 +221,9 @@ output_html="path.html"
 
     function openTool(index) {
       if (filteredTools[index]) {
-        const url = BASE_URL + filteredTools[index].path;
-        statusLeft.textContent = `Opening ${filteredTools[index].name}...`;
+        const tool = filteredTools[index];
+        const url = tool.url || (BASE_URL + tool.path);
+        statusLeft.textContent = `Opening ${tool.name}...`;
         window.open(url, "_blank");
       }
     }
