@@ -565,64 +565,6 @@
     let countdownInterval = null;
     let speechSynthesis = window.speechSynthesis;
 
-    // バックグラウンド再生用
-    let audioContext = null;
-    let silentSource = null;
-    let wakeLock = null;
-
-    // サイレントオーディオでバックグラウンド再生を維持
-    function startSilentAudio() {
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const bufferSize = audioContext.sampleRate * 2; // 2秒分
-            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-
-            silentSource = audioContext.createBufferSource();
-            silentSource.buffer = buffer;
-            silentSource.loop = true;
-            silentSource.connect(audioContext.destination);
-            silentSource.start();
-        } catch (e) {
-            console.log('Silent audio failed:', e);
-        }
-    }
-
-    function stopSilentAudio() {
-        try {
-            if (silentSource) {
-                silentSource.stop();
-                silentSource = null;
-            }
-            if (audioContext) {
-                audioContext.close();
-                audioContext = null;
-            }
-        } catch (e) {
-            console.log('Stop silent audio failed:', e);
-        }
-    }
-
-    // Wake Lock APIで画面スリープを防止
-    async function requestWakeLock() {
-        try {
-            if ('wakeLock' in navigator) {
-                wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => {
-                    console.log('Wake Lock released');
-                });
-            }
-        } catch (e) {
-            console.log('Wake Lock failed:', e);
-        }
-    }
-
-    function releaseWakeLock() {
-        if (wakeLock) {
-            wakeLock.release();
-            wakeLock = null;
-        }
-    }
-
     function parseInput() {
         const questionsText = document.getElementById('questions').value.trim();
         const answersText = document.getElementById('answers').value.trim();
@@ -686,10 +628,6 @@
         currentRound = 1;
         totalRounds = parseInt(document.getElementById('repeat').value);
         isPlaying = true;
-
-        // バックグラウンド再生対策
-        startSilentAudio();
-        requestWakeLock();
 
         document.getElementById('inputCard').style.display = 'none';
         document.getElementById('playerCard').classList.add('active');
@@ -770,10 +708,6 @@
         speechSynthesis.cancel();
         clearInterval(countdownInterval);
 
-        // バックグラウンド再生対策を解除
-        stopSilentAudio();
-        releaseWakeLock();
-
         document.getElementById('inputCard').style.display = 'block';
         document.getElementById('playerCard').classList.remove('active');
     }
@@ -810,10 +744,6 @@
         }
 
         isPlaying = false;
-
-        // バックグラウンド再生対策を解除
-        stopSilentAudio();
-        releaseWakeLock();
 
         const totalText = totalRounds === 0
             ? `${currentRound}周 終了`
