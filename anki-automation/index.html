@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虫食い問題リーダー</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f5f0e6;
+            --warm-white: #faf8f3;
+            --paper: #fffef9;
+            --ink: #2a2520;
+            --ink-light: #5c564d;
+            --accent: #c45c3e;
+            --accent-soft: #e8a088;
+            --green: #4a7c59;
+            --green-soft: #8fb996;
+            --border: #d4cfc3;
+            --shadow: rgba(42, 37, 32, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+
+        /* Subtle paper texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        h1 {
+            font-family: 'Shippori Mincho', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--ink-light);
+            letter-spacing: 0.05em;
+        }
+
+        .card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow:
+                    0 2px 8px var(--shadow),
+                    0 8px 24px var(--shadow);
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 24px;
+            right: 24px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-soft), var(--green-soft), var(--green));
+            border-radius: 0 0 4px 4px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--ink);
+            margin-bottom: 10px;
+            letter-spacing: 0.02em;
+        }
+
+        label .hint {
+            font-weight: 400;
+            color: var(--ink-light);
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 160px;
+            padding: 16px 20px;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 1rem;
+            line-height: 2;
+            color: var(--ink);
+            background: var(--warm-white);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-soft);
+            box-shadow: 0 0 0 4px rgba(196, 92, 62, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #b5ae9e;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(196, 92, 62, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #b5523a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(196, 92, 62, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: var(--border);
+            color: var(--ink-light);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--warm-white);
+            color: var(--ink);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--ink-light);
+            background: var(--cream);
+        }
+
+        .btn-stop {
+            background: var(--ink);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #1a1815;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: var(--ink-light);
+        }
+
+        .speed-control select {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background: var(--warm-white);
+            color: var(--ink);
+            cursor: pointer;
+        }
+
+        /* Player Display */
+        .player {
+            display: none;
+        }
+
+        .player.active {
+            display: block;
+        }
+
+        .now-playing {
+            background: linear-gradient(135deg, var(--ink) 0%, #3d3630 100%);
+            color: var(--cream);
+            border-radius: 12px;
+            padding: 40px 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .now-playing::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .progress-info {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 16px;
+            letter-spacing: 0.1em;
+        }
+
+        .question-display {
+            font-family: 'Shippori Mincho', serif;
+            font-size: 1.5rem;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-soft);
+            min-height: 48px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s, transform 0.4s;
+        }
+
+        .answer-display.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .countdown {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 16px 0;
+            border: 3px solid var(--accent-soft);
+        }
+
+        .countdown.waiting {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .status {
+            font-size: 0.85rem;
+            opacity: 0.6;
+            margin-top: 8px;
+        }
+
+        /* Queue Preview */
+        .queue-section {
+            margin-top: 24px;
+        }
+
+        .queue-title {
+            font-size: 0.85rem;
+            color: var(--ink-light);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--warm-white);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .queue-item.current {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .queue-item.done {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .queue-number {
+            font-weight: 700;
+            min-width: 24px;
+        }
+
+        .queue-question {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--ink-light);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        /* Decorative Elements */
+        .decoration {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 0;
+        }
+
+        .decoration.top-right {
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+        }
+
+        .decoration.bottom-left {
+            bottom: -150px;
+            left: -150px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--green) 0%, transparent 70%);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px 16px 60px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 24px 20px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .controls button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .speed-control {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .question-display {
+                font-size: 1.2rem;
+            }
+
+            .answer-display {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="decoration top-right"></div>
+<div class="decoration bottom-left"></div>
+
+<div class="container">
+    <header>
+        <h1>虫食い問題リーダー</h1>
+        <p class="subtitle">問題と答えを入力して、音声で学習</p>
+    </header>
+
+    <div class="card" id="inputCard">
+        <div class="input-group">
+            <label>
+                問題文
+                <span class="hint">（1行に1問、改行で区切る）</span>
+            </label>
+            <textarea id="questions" placeholder="例：
+日本の首都は（　　）である。
+光合成に必要な気体は（　　）である。
+1192年に開かれた幕府は（　　）幕府である。"></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>
+                答え
+                <span class="hint">（問題と同じ順番で、1行に1つ）</span>
+            </label>
+            <textarea id="answers" placeholder="例：
+東京
+二酸化炭素
+鎌倉"></textarea>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" id="startBtn" onclick="startQuiz()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                読み上げ開始
+            </button>
+            <button class="btn-secondary" onclick="clearAll()">
+                クリア
+            </button>
+            <div class="speed-control">
+                <label for="delay">答えまでの秒数：</label>
+                <select id="delay">
+                    <option value="3">3秒</option>
+                    <option value="5" selected>5秒</option>
+                    <option value="7">7秒</option>
+                    <option value="10">10秒</option>
+                </select>
+            </div>
+            <div class="speed-control">
+                <label for="repeat">リピート：</label>
+                <select id="repeat">
+                    <option value="1">1回</option>
+                    <option value="2">2回</option>
+                    <option value="3">3回</option>
+                    <option value="5">5回</option>
+                    <option value="0">∞ 無限</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card player" id="playerCard">
+        <div class="now-playing">
+            <div class="progress-info" id="progressInfo">問題 1 / 3</div>
+            <div class="question-display" id="questionDisplay">問題文がここに表示されます</div>
+            <div class="countdown" id="countdown">5</div>
+            <div class="answer-display" id="answerDisplay">答え</div>
+            <div class="status" id="status">問題を読み上げ中...</div>
+        </div>
+
+        <div class="controls" style="margin-top: 24px; justify-content: center;">
+            <button class="btn-stop" onclick="stopQuiz()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="6" width="12" height="12"></rect>
+                </svg>
+                停止
+            </button>
+        </div>
+
+        <div class="queue-section">
+            <div class="queue-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+                問題一覧
+            </div>
+            <div class="queue-list" id="queueList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let questions = [];
+    let answers = [];
+    let currentIndex = 0;
+    let currentRound = 1;
+    let totalRounds = 1;
+    let isPlaying = false;
+    let countdownInterval = null;
+    let speechSynthesis = window.speechSynthesis;
+
+    function parseInput() {
+        const questionsText = document.getElementById('questions').value.trim();
+        const answersText = document.getElementById('answers').value.trim();
+
+        if (!questionsText || !answersText) {
+            alert('問題文と答えを入力してください。');
+            return false;
+        }
+
+        questions = questionsText.split('\n').filter(q => q.trim());
+        answers = answersText.split('\n').filter(a => a.trim());
+
+        if (questions.length !== answers.length) {
+            alert(`問題数（${questions.length}）と答えの数（${answers.length}）が一致しません。`);
+            return false;
+        }
+
+        if (questions.length === 0) {
+            alert('問題を入力してください。');
+            return false;
+        }
+
+        return true;
+    }
+
+    function speak(text, onEnd) {
+        speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+
+        // Try to get a Japanese voice
+        const voices = speechSynthesis.getVoices();
+        const japaneseVoice = voices.find(v => v.lang.includes('ja'));
+        if (japaneseVoice) {
+            utterance.voice = japaneseVoice;
+        }
+
+        utterance.onend = onEnd;
+        utterance.onerror = onEnd;
+
+        speechSynthesis.speak(utterance);
+    }
+
+    function updateQueueDisplay() {
+        const queueList = document.getElementById('queueList');
+        queueList.innerHTML = questions.map((q, i) => `
+        <div class="queue-item ${i === currentIndex ? 'current' : ''} ${i < currentIndex ? 'done' : ''}">
+          <span class="queue-number">${i + 1}</span>
+          <span class="queue-question">${q}</span>
+        </div>
+      `).join('');
+    }
+
+    function startQuiz() {
+        if (!parseInput()) return;
+
+        currentIndex = 0;
+        currentRound = 1;
+        totalRounds = parseInt(document.getElementById('repeat').value);
+        isPlaying = true;
+
+        document.getElementById('inputCard').style.display = 'none';
+        document.getElementById('playerCard').classList.add('active');
+
+        updateQueueDisplay();
+        playQuestion();
+    }
+
+    function playQuestion() {
+        if (!isPlaying || currentIndex >= questions.length) {
+            finishQuiz();
+            return;
+        }
+
+        const question = questions[currentIndex];
+        const answer = answers[currentIndex];
+        const delay = parseInt(document.getElementById('delay').value);
+
+        // Update display
+        const roundInfo = totalRounds === 0
+            ? `【${currentRound}周目】`
+            : (totalRounds > 1 ? `【${currentRound}/${totalRounds}周目】` : '');
+        document.getElementById('progressInfo').textContent = `${roundInfo} 問題 ${currentIndex + 1} / ${questions.length}`;
+        document.getElementById('questionDisplay').textContent = question;
+        document.getElementById('answerDisplay').textContent = answer;
+        document.getElementById('answerDisplay').classList.remove('visible');
+        document.getElementById('countdown').textContent = delay;
+        document.getElementById('countdown').classList.remove('waiting');
+        document.getElementById('status').textContent = '問題を読み上げ中...';
+
+        updateQueueDisplay();
+
+        // Speak question
+        speak(question, () => {
+            if (!isPlaying) return;
+
+            // Start countdown
+            let remaining = delay;
+            document.getElementById('countdown').textContent = remaining;
+            document.getElementById('countdown').classList.add('waiting');
+            document.getElementById('status').textContent = '答えを考えてください...';
+
+            countdownInterval = setInterval(() => {
+                remaining--;
+                document.getElementById('countdown').textContent = remaining;
+
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown').classList.remove('waiting');
+                    speakAnswer();
+                }
+            }, 1000);
+        });
+    }
+
+    function speakAnswer() {
+        if (!isPlaying) return;
+
+        const answer = answers[currentIndex];
+
+        document.getElementById('answerDisplay').classList.add('visible');
+        document.getElementById('status').textContent = '答えを読み上げ中...';
+        document.getElementById('countdown').textContent = '✓';
+
+        speak(`答えは、${answer}`, () => {
+            if (!isPlaying) return;
+
+            // Short pause before next question
+            setTimeout(() => {
+                currentIndex++;
+                playQuestion();
+            }, 1500);
+        });
+    }
+
+    function stopQuiz() {
+        isPlaying = false;
+        speechSynthesis.cancel();
+        clearInterval(countdownInterval);
+
+        document.getElementById('inputCard').style.display = 'block';
+        document.getElementById('playerCard').classList.remove('active');
+    }
+
+    function finishQuiz() {
+        // Check if we should repeat
+        const shouldRepeat = totalRounds === 0 || currentRound < totalRounds;
+
+        if (shouldRepeat && isPlaying) {
+            // Start next round
+            currentRound++;
+            currentIndex = 0;
+
+            const roundText = totalRounds === 0
+                ? `${currentRound}周目を始めます`
+                : `${currentRound}周目、全${totalRounds}周中`;
+
+            document.getElementById('progressInfo').textContent = `${currentRound}周目 開始`;
+            document.getElementById('questionDisplay').textContent = roundText;
+            document.getElementById('answerDisplay').textContent = '';
+            document.getElementById('answerDisplay').classList.remove('visible');
+            document.getElementById('countdown').textContent = '🔄';
+            document.getElementById('countdown').classList.remove('waiting');
+            document.getElementById('status').textContent = '次の周回を準備中...';
+
+            speak(roundText, () => {
+                if (!isPlaying) return;
+                setTimeout(() => {
+                    updateQueueDisplay();
+                    playQuestion();
+                }, 1000);
+            });
+            return;
+        }
+
+        isPlaying = false;
+
+        const totalText = totalRounds === 0
+            ? `${currentRound}周 終了`
+            : (totalRounds > 1 ? `全${totalRounds}周 × ${questions.length}問 終了` : `全${questions.length}問 終了`);
+
+        document.getElementById('progressInfo').textContent = '完了！';
+        document.getElementById('questionDisplay').textContent = 'すべての問題が終わりました';
+        document.getElementById('answerDisplay').textContent = '';
+        document.getElementById('answerDisplay').classList.remove('visible');
+        document.getElementById('countdown').textContent = '🎉';
+        document.getElementById('countdown').classList.remove('waiting');
+        document.getElementById('status').textContent = totalText;
+
+        speak('すべての問題が終わりました。お疲れ様でした。', () => {
+            // Auto return after 3 seconds
+            setTimeout(() => {
+                if (!isPlaying) {
+                    document.getElementById('inputCard').style.display = 'block';
+                    document.getElementById('playerCard').classList.remove('active');
+                }
+            }, 3000);
+        });
+    }
+
+    function clearAll() {
+        document.getElementById('questions').value = '';
+        document.getElementById('answers').value = '';
+        localStorage.removeItem(STORAGE_KEY);
+    }
+
+    // Load voices
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => {
+            speechSynthesis.getVoices();
+        };
+    }
+
+    // LocalStorage auto-save
+    const STORAGE_KEY = 'quizReaderData';
+
+    function saveToStorage() {
+        const data = {
+            questions: document.getElementById('questions').value,
+            answers: document.getElementById('answers').value,
+            delay: document.getElementById('delay').value,
+            repeat: document.getElementById('repeat').value
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadFromStorage() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                if (data.questions) document.getElementById('questions').value = data.questions;
+                if (data.answers) document.getElementById('answers').value = data.answers;
+                if (data.delay) document.getElementById('delay').value = data.delay;
+                if (data.repeat) document.getElementById('repeat').value = data.repeat;
+            } catch (e) {
+                console.log('Failed to load saved data');
+            }
+        }
+    }
+
+    // Auto-save on input
+    document.getElementById('questions').addEventListener('input', saveToStorage);
+    document.getElementById('answers').addEventListener('input', saveToStorage);
+    document.getElementById('delay').addEventListener('change', saveToStorage);
+    document.getElementById('repeat').addEventListener('change', saveToStorage);
+
+    // Load saved data on page load
+    loadFromStorage();
+</script>
+</body>
+</html>
