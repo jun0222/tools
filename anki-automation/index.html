@@ -705,7 +705,6 @@
         }
 
         const question = questions[currentIndex];
-        const answer = answers[currentIndex];
         const delay = parseInt(document.getElementById('delay').value);
 
         // Update display
@@ -714,8 +713,8 @@
             : (totalRounds > 1 ? `【${currentRound}/${totalRounds}周目】` : '');
         document.getElementById('progressInfo').textContent = `${roundInfo} 問題 ${currentIndex + 1} / ${questions.length}`;
         document.getElementById('questionDisplay').textContent = question;
-        document.getElementById('answerDisplay').textContent = answer;
         document.getElementById('answerDisplay').classList.remove('visible');
+        document.getElementById('answerDisplay').textContent = '';
         document.getElementById('countdown').textContent = delay;
         document.getElementById('countdown').classList.remove('waiting');
         document.getElementById('status').textContent = '問題を読み上げ中...';
@@ -750,6 +749,7 @@
 
         const answer = answers[currentIndex];
 
+        document.getElementById('answerDisplay').textContent = answer;
         document.getElementById('answerDisplay').classList.add('visible');
         document.getElementById('status').textContent = '答えを読み上げ中...';
         document.getElementById('countdown').textContent = '✓';
