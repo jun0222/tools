@@ -648,7 +648,7 @@
         // Update display
         const roundInfo = totalRounds === 0
             ? `【${currentRound}周目】`
-            : (totalRounds > 1 ? `【${currentRound}/${totalRounds}周目】` : '');
+            : `【${currentRound}/${totalRounds}周目】`;
         document.getElementById('progressInfo').textContent = `${roundInfo} 問題 ${currentIndex + 1} / ${questions.length}`;
         document.getElementById('questionDisplay').textContent = question;
         document.getElementById('answerDisplay').classList.remove('visible');
