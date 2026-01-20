@@ -379,6 +379,34 @@
             white-space: nowrap;
         }
 
+        .queue-item.skipped {
+            opacity: 0.5;
+            background: var(--cream);
+        }
+
+        .queue-item.skipped .queue-question {
+            text-decoration: line-through;
+        }
+
+        .skip-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--ink-light);
+            white-space: nowrap;
+        }
+
+        .skip-checkbox input {
+            cursor: pointer;
+            accent-color: var(--green);
+        }
+
+        .queue-item.current .skip-checkbox {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -564,6 +592,7 @@
     let isPlaying = false;
     let countdownInterval = null;
     let speechSynthesis = window.speechSynthesis;
+    let skippedQuestions = []; // スキップする問題のインデックス
 
     function parseInput() {
         const questionsText = document.getElementById('questions').value.trim();
@@ -614,11 +643,24 @@
     function updateQueueDisplay() {
         const queueList = document.getElementById('queueList');
         queueList.innerHTML = questions.map((q, i) => `
-        <div class="queue-item ${i === currentIndex ? 'current' : ''} ${i < currentIndex ? 'done' : ''}">
+        <div class="queue-item ${i === currentIndex ? 'current' : ''} ${i < currentIndex ? 'done' : ''} ${skippedQuestions.includes(i) ? 'skipped' : ''}">
           <span class="queue-number">${i + 1}</span>
           <span class="queue-question">${q}</span>
+          <label class="skip-checkbox" onclick="event.stopPropagation()">
+            <input type="checkbox" ${skippedQuestions.includes(i) ? 'checked' : ''} onchange="toggleSkip(${i})">
+            <span class="skip-label">覚えた</span>
+          </label>
         </div>
       `).join('');
+    }
+
+    function toggleSkip(index) {
+        if (skippedQuestions.includes(index)) {
+            skippedQuestions = skippedQuestions.filter(i => i !== index);
+        } else {
+            skippedQuestions.push(index);
+        }
+        updateQueueDisplay();
     }
 
     function startQuiz() {
@@ -628,6 +670,7 @@
         currentRound = 1;
         totalRounds = parseInt(document.getElementById('repeat').value);
         isPlaying = true;
+        skippedQuestions = [];
 
         document.getElementById('inputCard').style.display = 'none';
         document.getElementById('playerCard').classList.add('active');
@@ -639,6 +682,13 @@
     function playQuestion() {
         if (!isPlaying || currentIndex >= questions.length) {
             finishQuiz();
+            return;
+        }
+
+        // スキップされた問題は飛ばす
+        if (skippedQuestions.includes(currentIndex)) {
+            currentIndex++;
+            playQuestion();
             return;
         }
 
