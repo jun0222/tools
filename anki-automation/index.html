@@ -567,7 +567,16 @@
                 </svg>
                 LLM用プロンプトをコピー
             </button>
-            <span class="copy-hint">問題作成をAIに依頼する際に使えます</span>
+            <button class="btn-copy" onclick="pasteFromSpreadsheet()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="3" y1="15" x2="21" y2="15"></line>
+                    <line x1="12" y1="3" x2="12" y2="21"></line>
+                </svg>
+                スプシから貼り付け
+            </button>
+            <span class="copy-hint">問題作成をAIに依頼 / スプシからタブ区切りで貼り付け</span>
         </div>
 
         <div class="input-group">
@@ -762,6 +771,58 @@
                 `;
             }, 2000);
         });
+    }
+
+    async function pasteFromSpreadsheet() {
+        try {
+            const text = await navigator.clipboard.readText();
+            const lines = text.trim().split('\n');
+
+            // タブ区切りかどうかチェック
+            const hasTab = lines.some(line => line.includes('\t'));
+            if (!hasTab) {
+                alert('タブ区切りのデータが見つかりませんでした。\nスプレッドシートから「問題 [TAB] 答え」の形式でコピーしてください。');
+                return;
+            }
+
+            const questionsList = [];
+            const answersList = [];
+
+            lines.forEach(line => {
+                const parts = line.split('\t');
+                if (parts.length >= 2) {
+                    questionsList.push(parts[0].trim());
+                    answersList.push(parts[1].trim());
+                }
+            });
+
+            if (questionsList.length === 0) {
+                alert('有効なデータが見つかりませんでした。');
+                return;
+            }
+
+            document.getElementById('questions').value = questionsList.join('\n');
+            document.getElementById('answers').value = answersList.join('\n');
+            saveToStorage();
+
+            // 成功表示
+            const btns = document.querySelectorAll('.btn-copy');
+            const btn = btns[1]; // 2番目のボタン
+            btn.classList.add('copied');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                ${questionsList.length}問 貼り付け完了
+            `;
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        } catch (e) {
+            alert('クリップボードの読み取りに失敗しました。\nブラウザの権限設定を確認してください。');
+        }
     }
 
     function speak(text, onEnd) {
