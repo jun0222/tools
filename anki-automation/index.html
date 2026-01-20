@@ -171,6 +171,48 @@
             accent-color: var(--accent);
         }
 
+        .prompt-copy {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border);
+            flex-wrap: wrap;
+        }
+
+        .btn-copy {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 10px 16px;
+            background: var(--warm-white);
+            color: var(--ink);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            border-color: var(--ink-light);
+            background: var(--cream);
+        }
+
+        .btn-copy.copied {
+            border-color: var(--green);
+            background: var(--green-soft);
+            color: white;
+        }
+
+        .copy-hint {
+            font-size: 0.8rem;
+            color: var(--ink-light);
+        }
+
         .controls {
             display: flex;
             gap: 12px;
@@ -517,6 +559,17 @@
     </header>
 
     <div class="card" id="inputCard">
+        <div class="prompt-copy">
+            <button class="btn-copy" onclick="copyPrompt()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                LLM用プロンプトをコピー
+            </button>
+            <span class="copy-hint">問題作成をAIに依頼する際に使えます</span>
+        </div>
+
         <div class="input-group">
             <label>
                 問題文
@@ -663,6 +716,41 @@
         }
 
         return true;
+    }
+
+    function copyPrompt() {
+        const prompt = `以下の形式で問題を作成してください。
+
+【問題文】（1行に1問）
+日本の首都は（　　）である。
+光合成に必要な気体は（　　）である。
+
+【答え】（問題と同じ順番で、1行に1つ）
+東京
+二酸化炭素
+
+上記のフォーマットで、[ここにトピックを入力]についての問題を10問作成してください。`;
+
+        navigator.clipboard.writeText(prompt).then(() => {
+            const btn = document.querySelector('.btn-copy');
+            btn.classList.add('copied');
+            btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                コピーしました
+            `;
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    </svg>
+                    LLM用プロンプトをコピー
+                `;
+            }, 2000);
+        });
     }
 
     function speak(text, onEnd) {
