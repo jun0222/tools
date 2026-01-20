@@ -148,6 +148,29 @@
             color: #b5ae9e;
         }
 
+        .options-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .option-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--ink);
+        }
+
+        .option-checkbox input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
         .controls {
             display: flex;
             gap: 12px;
@@ -516,6 +539,17 @@
 鎌倉"></textarea>
         </div>
 
+        <div class="options-group">
+            <label class="option-checkbox">
+                <input type="checkbox" id="reverseMode">
+                <span>逆モード（答え→問題）</span>
+            </label>
+            <label class="option-checkbox">
+                <input type="checkbox" id="shuffleMode">
+                <span>シャッフル</span>
+            </label>
+        </div>
+
         <div class="controls">
             <button class="btn-primary" id="startBtn" onclick="startQuiz()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -593,6 +627,18 @@
     let countdownInterval = null;
     let speechSynthesis = window.speechSynthesis;
     let skippedQuestions = []; // スキップする問題のインデックス
+    let playOrder = []; // 再生順序（シャッフル用）
+    let isReverseMode = false; // 逆モード
+
+    // シャッフル関数（Fisher-Yates）
+    function shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
 
     function parseInput() {
         const questionsText = document.getElementById('questions').value.trim();
@@ -642,16 +688,19 @@
 
     function updateQueueDisplay() {
         const queueList = document.getElementById('queueList');
-        queueList.innerHTML = questions.map((q, i) => `
-        <div class="queue-item ${i === currentIndex ? 'current' : ''} ${i < currentIndex ? 'done' : ''} ${skippedQuestions.includes(i) ? 'skipped' : ''}">
-          <span class="queue-number">${i + 1}</span>
-          <span class="queue-question">${q}</span>
-          <label class="skip-checkbox" onclick="event.stopPropagation()">
-            <input type="checkbox" ${skippedQuestions.includes(i) ? 'checked' : ''} onchange="toggleSkip(${i})">
-            <span class="skip-label">覚えた</span>
-          </label>
-        </div>
-      `).join('');
+        queueList.innerHTML = playOrder.map((actualIndex, i) => {
+            const displayText = isReverseMode ? answers[actualIndex] : questions[actualIndex];
+            return `
+            <div class="queue-item ${i === currentIndex ? 'current' : ''} ${i < currentIndex ? 'done' : ''} ${skippedQuestions.includes(actualIndex) ? 'skipped' : ''}">
+              <span class="queue-number">${i + 1}</span>
+              <span class="queue-question">${displayText}</span>
+              <label class="skip-checkbox" onclick="event.stopPropagation()">
+                <input type="checkbox" ${skippedQuestions.includes(actualIndex) ? 'checked' : ''} onchange="toggleSkip(${actualIndex})">
+                <span class="skip-label">覚えた</span>
+              </label>
+            </div>
+          `;
+        }).join('');
     }
 
     function toggleSkip(index) {
@@ -671,6 +720,14 @@
         totalRounds = parseInt(document.getElementById('repeat').value);
         isPlaying = true;
         skippedQuestions = [];
+        isReverseMode = document.getElementById('reverseMode').checked;
+        const isShuffleMode = document.getElementById('shuffleMode').checked;
+
+        // 再生順序を設定
+        playOrder = Array.from({ length: questions.length }, (_, i) => i);
+        if (isShuffleMode) {
+            playOrder = shuffleArray(playOrder);
+        }
 
         document.getElementById('inputCard').style.display = 'none';
         document.getElementById('playerCard').classList.add('active');
@@ -680,27 +737,30 @@
     }
 
     function playQuestion() {
-        if (!isPlaying || currentIndex >= questions.length) {
+        if (!isPlaying || currentIndex >= playOrder.length) {
             finishQuiz();
             return;
         }
 
+        const actualIndex = playOrder[currentIndex];
+
         // スキップされた問題は飛ばす
-        if (skippedQuestions.includes(currentIndex)) {
+        if (skippedQuestions.includes(actualIndex)) {
             currentIndex++;
             playQuestion();
             return;
         }
 
-        const question = questions[currentIndex];
+        // 逆モードの場合は問題と答えを入れ替え
+        const questionText = isReverseMode ? answers[actualIndex] : questions[actualIndex];
         const delay = parseInt(document.getElementById('delay').value);
 
         // Update display
         const roundInfo = totalRounds === 0
             ? `【${currentRound}周目】`
             : `【${currentRound}/${totalRounds}周目】`;
-        document.getElementById('progressInfo').textContent = `${roundInfo} 問題 ${currentIndex + 1} / ${questions.length}`;
-        document.getElementById('questionDisplay').textContent = question;
+        document.getElementById('progressInfo').textContent = `${roundInfo} 問題 ${currentIndex + 1} / ${playOrder.length}`;
+        document.getElementById('questionDisplay').textContent = questionText;
         document.getElementById('answerDisplay').classList.remove('visible');
         document.getElementById('answerDisplay').textContent = '';
         document.getElementById('countdown').textContent = delay;
@@ -710,7 +770,7 @@
         updateQueueDisplay();
 
         // Speak question
-        speak(question, () => {
+        speak(questionText, () => {
             if (!isPlaying) return;
 
             // Start countdown
@@ -735,14 +795,16 @@
     function speakAnswer() {
         if (!isPlaying) return;
 
-        const answer = answers[currentIndex];
+        const actualIndex = playOrder[currentIndex];
+        // 逆モードの場合は問題文が答え
+        const answerText = isReverseMode ? questions[actualIndex] : answers[actualIndex];
 
-        document.getElementById('answerDisplay').textContent = answer;
+        document.getElementById('answerDisplay').textContent = answerText;
         document.getElementById('answerDisplay').classList.add('visible');
         document.getElementById('status').textContent = '答えを読み上げ中...';
         document.getElementById('countdown').textContent = '✓';
 
-        speak(`答えは、${answer}`, () => {
+        speak(`答えは、${answerText}`, () => {
             if (!isPlaying) return;
 
             // Short pause before next question
@@ -770,6 +832,11 @@
             // Start next round
             currentRound++;
             currentIndex = 0;
+
+            // シャッフルモードの場合は再シャッフル
+            if (document.getElementById('shuffleMode').checked) {
+                playOrder = shuffleArray(playOrder);
+            }
 
             const roundText = totalRounds === 0
                 ? `${currentRound}周目を始めます`
@@ -839,7 +906,9 @@
             questions: document.getElementById('questions').value,
             answers: document.getElementById('answers').value,
             delay: document.getElementById('delay').value,
-            repeat: document.getElementById('repeat').value
+            repeat: document.getElementById('repeat').value,
+            reverseMode: document.getElementById('reverseMode').checked,
+            shuffleMode: document.getElementById('shuffleMode').checked
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
@@ -853,6 +922,8 @@
                 if (data.answers) document.getElementById('answers').value = data.answers;
                 if (data.delay) document.getElementById('delay').value = data.delay;
                 if (data.repeat) document.getElementById('repeat').value = data.repeat;
+                if (data.reverseMode) document.getElementById('reverseMode').checked = data.reverseMode;
+                if (data.shuffleMode) document.getElementById('shuffleMode').checked = data.shuffleMode;
             } catch (e) {
                 console.log('Failed to load saved data');
             }
@@ -864,6 +935,8 @@
     document.getElementById('answers').addEventListener('input', saveToStorage);
     document.getElementById('delay').addEventListener('change', saveToStorage);
     document.getElementById('repeat').addEventListener('change', saveToStorage);
+    document.getElementById('reverseMode').addEventListener('change', saveToStorage);
+    document.getElementById('shuffleMode').addEventListener('change', saveToStorage);
 
     // Load saved data on page load
     loadFromStorage();
