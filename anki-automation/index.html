@@ -632,6 +632,17 @@
                     <option value="0">∞ 無限</option>
                 </select>
             </div>
+            <div class="speed-control">
+                <label for="speechRate">読み上げ速度：</label>
+                <select id="speechRate">
+                    <option value="0.6">0.6x</option>
+                    <option value="0.8">0.8x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.2">1.2x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -758,7 +769,7 @@
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
-        utterance.rate = 0.9;
+        utterance.rate = parseFloat(document.getElementById('speechRate').value);
         utterance.pitch = 1;
 
         // Try to get a Japanese voice
@@ -996,7 +1007,8 @@
             delay: document.getElementById('delay').value,
             repeat: document.getElementById('repeat').value,
             reverseMode: document.getElementById('reverseMode').checked,
-            shuffleMode: document.getElementById('shuffleMode').checked
+            shuffleMode: document.getElementById('shuffleMode').checked,
+            speechRate: document.getElementById('speechRate').value
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
@@ -1012,6 +1024,7 @@
                 if (data.repeat) document.getElementById('repeat').value = data.repeat;
                 if (data.reverseMode) document.getElementById('reverseMode').checked = data.reverseMode;
                 if (data.shuffleMode) document.getElementById('shuffleMode').checked = data.shuffleMode;
+                if (data.speechRate) document.getElementById('speechRate').value = data.speechRate;
             } catch (e) {
                 console.log('Failed to load saved data');
             }
@@ -1025,6 +1038,7 @@
     document.getElementById('repeat').addEventListener('change', saveToStorage);
     document.getElementById('reverseMode').addEventListener('change', saveToStorage);
     document.getElementById('shuffleMode').addEventListener('change', saveToStorage);
+    document.getElementById('speechRate').addEventListener('change', saveToStorage);
 
     // Load saved data on page load
     loadFromStorage();
