@@ -419,6 +419,11 @@
             font-size: 0.9rem;
             border: 1px solid var(--border);
             transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .queue-item:hover:not(.current) {
+            background: var(--cream);
         }
 
         .queue-item.current {
@@ -851,7 +856,7 @@
         queueList.innerHTML = playOrder.map((actualIndex, i) => {
             const displayText = isReverseMode ? answers[actualIndex] : questions[actualIndex];
             return `
-            <div class="queue-item ${i === currentIndex ? 'current' : ''} ${i < currentIndex ? 'done' : ''} ${skippedQuestions.includes(actualIndex) ? 'skipped' : ''}">
+            <div class="queue-item ${i === currentIndex ? 'current' : ''} ${i < currentIndex ? 'done' : ''} ${skippedQuestions.includes(actualIndex) ? 'skipped' : ''}" onclick="toggleSkip(${actualIndex})">
               <span class="queue-number">${i + 1}</span>
               <span class="queue-question">${displayText}</span>
               <label class="skip-checkbox" onclick="event.stopPropagation()">
