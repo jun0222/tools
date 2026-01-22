@@ -491,6 +491,70 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
+        /* Preview List */
+        .preview-section {
+            margin-bottom: 24px;
+        }
+
+        .preview-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .preview-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--warm-white);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            align-items: center;
+        }
+
+        .preview-item:hover {
+            background: #fee;
+            border-color: var(--accent-soft);
+        }
+
+        .preview-number {
+            font-weight: 700;
+            color: var(--ink-light);
+            min-width: 24px;
+        }
+
+        .preview-question {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .preview-answer {
+            color: var(--green);
+            font-weight: 500;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .preview-delete {
+            color: var(--accent);
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .preview-item:hover .preview-delete {
+            opacity: 1;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -618,6 +682,11 @@
 東京
 二酸化炭素
 鎌倉"></textarea>
+        </div>
+
+        <div class="preview-section" id="previewSection" style="display: none;">
+            <label>問題プレビュー <span class="hint">（クリックで削除）</span></label>
+            <div class="preview-list" id="previewList"></div>
         </div>
 
         <div class="options-group">
@@ -833,6 +902,7 @@
             document.getElementById('questions').value = questionsList.join('\n');
             document.getElementById('answers').value = answersList.join('\n');
             saveToStorage();
+            updatePreview();
 
             // 成功表示
             const btns = document.querySelectorAll('.btn-copy');
@@ -1155,9 +1225,63 @@
         }
     }
 
+    // Preview functionality
+    function updatePreview() {
+        const questionsText = document.getElementById('questions').value.trim();
+        const answersText = document.getElementById('answers').value.trim();
+        const previewSection = document.getElementById('previewSection');
+        const previewList = document.getElementById('previewList');
+
+        if (!questionsText && !answersText) {
+            previewSection.style.display = 'none';
+            return;
+        }
+
+        const qs = questionsText.split('\n').filter(q => q.trim());
+        const as = answersText.split('\n').filter(a => a.trim());
+
+        if (qs.length === 0) {
+            previewSection.style.display = 'none';
+            return;
+        }
+
+        previewSection.style.display = 'block';
+        previewList.innerHTML = qs.map((q, i) => `
+            <div class="preview-item" onclick="deleteQuestion(${i})">
+                <span class="preview-number">${i + 1}</span>
+                <span class="preview-question">${q}</span>
+                <span class="preview-answer">${as[i] || '（答えなし）'}</span>
+                <span class="preview-delete">削除</span>
+            </div>
+        `).join('');
+    }
+
+    function deleteQuestion(index) {
+        const questionsText = document.getElementById('questions').value.trim();
+        const answersText = document.getElementById('answers').value.trim();
+
+        const qs = questionsText.split('\n');
+        const as = answersText.split('\n');
+
+        qs.splice(index, 1);
+        as.splice(index, 1);
+
+        document.getElementById('questions').value = qs.join('\n');
+        document.getElementById('answers').value = as.join('\n');
+
+        saveToStorage();
+        updatePreview();
+    }
+
     // Auto-save on input
-    document.getElementById('questions').addEventListener('input', saveToStorage);
-    document.getElementById('answers').addEventListener('input', saveToStorage);
+    document.getElementById('questions').addEventListener('input', () => {
+        saveToStorage();
+        updatePreview();
+    });
+    document.getElementById('answers').addEventListener('input', () => {
+        saveToStorage();
+        updatePreview();
+    });
     document.getElementById('delay').addEventListener('change', saveToStorage);
     document.getElementById('repeat').addEventListener('change', saveToStorage);
     document.getElementById('reverseMode').addEventListener('change', saveToStorage);
@@ -1166,6 +1290,7 @@
 
     // Load saved data on page load
     loadFromStorage();
+    updatePreview();
 </script>
 </body>
 </html>
