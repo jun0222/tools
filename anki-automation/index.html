@@ -973,7 +973,15 @@
         const roundInfo = totalRounds === 0
             ? `【${currentRound}周目】`
             : `【${currentRound}/${totalRounds}周目】`;
-        document.getElementById('progressInfo').textContent = `${roundInfo} 問題 ${currentIndex + 1} / ${playOrder.length}`;
+        const remainingCount = playOrder.length - skippedQuestions.length;
+        // 現在までにスキップされていない問題が何番目か計算
+        let currentNumber = 0;
+        for (let i = 0; i <= currentIndex; i++) {
+            if (!skippedQuestions.includes(playOrder[i])) {
+                currentNumber++;
+            }
+        }
+        document.getElementById('progressInfo').textContent = `${roundInfo} 問題 ${currentNumber} / ${remainingCount}`;
         document.getElementById('questionDisplay').textContent = questionText;
         document.getElementById('answerDisplay').classList.remove('visible');
         document.getElementById('answerDisplay').textContent = '';
@@ -1019,7 +1027,7 @@
         document.getElementById('status').textContent = '答えを読み上げ中...';
         document.getElementById('countdown').textContent = '✓';
 
-        speak(`答えは、${answerText}`, () => {
+        speak(answerText, () => {
             if (!isPlaying) return;
 
             // Short pause before next question
