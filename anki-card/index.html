@@ -211,12 +211,28 @@
             animation: swipeRight 0.3s ease-out forwards;
         }
 
+        .flashcard.flipped.swipe-left {
+            animation: swipeLeftFlipped 0.3s ease-out forwards;
+        }
+
+        .flashcard.flipped.swipe-right {
+            animation: swipeRightFlipped 0.3s ease-out forwards;
+        }
+
         @keyframes swipeLeft {
             to { transform: translateX(-120%) rotate(-10deg); opacity: 0; }
         }
 
         @keyframes swipeRight {
             to { transform: translateX(120%) rotate(10deg); opacity: 0; }
+        }
+
+        @keyframes swipeLeftFlipped {
+            to { transform: translateX(-120%) rotateY(180deg) rotate(-10deg); opacity: 0; }
+        }
+
+        @keyframes swipeRightFlipped {
+            to { transform: translateX(120%) rotateY(180deg) rotate(10deg); opacity: 0; }
         }
 
         .card-face {
