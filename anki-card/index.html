@@ -105,6 +105,32 @@
             opacity: 0.9;
         }
 
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .paste-start-btn {
+            width: 100%;
+            padding: 18px;
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.15s, background 0.15s;
+        }
+
+        .paste-start-btn:active {
+            transform: scale(0.98);
+            background: rgba(232, 93, 76, 0.1);
+        }
+
         /* カードモード */
         .card-mode {
             height: 100%;
@@ -333,7 +359,10 @@
 EV証明書の保証するもの	ドメインの保持　企業の実在性　企業の実態
 EV証明書は主にどこで利用	銀行など　商取引"></textarea>
     <p class="input-hint">タブ区切りで入力 → 自動保存</p>
-    <button class="start-btn" onclick="startCards()">はじめる</button>
+    <div class="btn-group">
+        <button class="paste-start-btn" onclick="pasteAndStart()">貼り付けてはじめる</button>
+        <button class="start-btn" onclick="startCards()">はじめる</button>
+    </div>
 </div>
 
 <!-- カードモード -->
@@ -432,6 +461,20 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
         showCardMode();
     }
 
+    async function pasteAndStart() {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+                document.getElementById('cardInput').value = text;
+                startCards();
+            } else {
+                alert('クリップボードにテキストがありません');
+            }
+        } catch (err) {
+            alert('クリップボードへのアクセスが許可されていません');
+        }
+    }
+
     function showCardMode() {
         document.getElementById('inputMode').classList.add('hidden');
         document.getElementById('cardMode').classList.add('active');
@@ -514,20 +557,23 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
         const deltaX = touchEndX - touchStartX;
         const deltaY = touchEndY - touchStartY;
 
+        // スワイプ判定（横方向50px以上）
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
             if (deltaX < 0) {
                 nextCard();
             } else {
                 prevCard();
             }
-        } else if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
+        // タップ判定（30px以内に緩和）
+        } else if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30) {
             flipCard();
         }
     }, { passive: true });
 
-    // クリック（PC用）
-    document.getElementById('flashcard').addEventListener('click', (e) => {
-        if (e.pointerType !== 'touch') {
+    // クリック（PC用 - タッチデバイスはtouchendで処理）
+    document.getElementById('flashcard').addEventListener('click', () => {
+        // タッチデバイスでない場合のみ
+        if (!('ontouchstart' in window)) {
             flipCard();
         }
     });
