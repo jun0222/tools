@@ -167,7 +167,12 @@
             font-weight: 400;
         }
 
-        .edit-btn {
+        .header-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-btn, .shuffle-btn {
             padding: 8px 16px;
             background: transparent;
             border: 1px solid #444;
@@ -176,6 +181,10 @@
             font-family: inherit;
             font-size: 0.8rem;
             cursor: pointer;
+        }
+
+        .shuffle-btn:active {
+            background: rgba(255,255,255,0.1);
         }
 
         /* カードエリア */
@@ -386,7 +395,10 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
 <div class="card-mode" id="cardMode">
     <header class="header">
         <span class="counter"><strong id="currentNum">1</strong> / <span id="totalNum">0</span></span>
-        <button class="edit-btn" onclick="showInput()">編集</button>
+        <div class="header-btns">
+            <button class="shuffle-btn" onclick="shuffleCards()">シャッフル</button>
+            <button class="edit-btn" onclick="showInput()">編集</button>
+        </div>
     </header>
 
     <div class="card-area" id="cardArea">
@@ -490,6 +502,17 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
         } catch (err) {
             alert('クリップボードへのアクセスが許可されていません');
         }
+    }
+
+    function shuffleCards() {
+        // Fisher-Yatesシャッフル
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        currentIndex = 0;
+        isFlipped = false;
+        renderCard();
     }
 
     function showCardMode() {
