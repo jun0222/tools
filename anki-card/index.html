@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>暗記カード</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500&family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a1a;
+            --card-front: #faf8f5;
+            --card-back: #2d2d2d;
+            --text-dark: #1a1a1a;
+            --text-light: #faf8f5;
+            --accent: #e85d4c;
+            --muted: #888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            background: var(--bg);
+            color: var(--text-light);
+            touch-action: pan-y;
+        }
+
+        /* 入力モード */
+        .input-mode {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        .input-mode h1 {
+            font-family: 'Shippori Mincho', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            text-align: center;
+            margin-bottom: 16px;
+            letter-spacing: 0.1em;
+        }
+
+        .input-mode textarea {
+            flex: 1;
+            width: 100%;
+            background: #252525;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-family: inherit;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--text-light);
+            resize: none;
+        }
+
+        .input-mode textarea:focus {
+            outline: none;
+        }
+
+        .input-mode textarea::placeholder {
+            color: #555;
+        }
+
+        .input-hint {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin: 12px 0;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+
+        .start-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* カードモード */
+        .card-mode {
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        .card-mode.active {
+            display: flex;
+        }
+
+        .input-mode.hidden {
+            display: none;
+        }
+
+        /* ヘッダー */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+        }
+
+        .counter {
+            font-family: 'Shippori Mincho', serif;
+            font-size: 1.1rem;
+            color: var(--muted);
+        }
+
+        .counter strong {
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        .edit-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #444;
+            border-radius: 20px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* カードエリア */
+        .card-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+        .flashcard {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 3 / 4;
+            max-height: 70vh;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard.swipe-left {
+            animation: swipeLeft 0.3s ease-out forwards;
+        }
+
+        .flashcard.swipe-right {
+            animation: swipeRight 0.3s ease-out forwards;
+        }
+
+        @keyframes swipeLeft {
+            to { transform: translateX(-120%) rotate(-10deg); opacity: 0; }
+        }
+
+        @keyframes swipeRight {
+            to { transform: translateX(120%) rotate(10deg); opacity: 0; }
+        }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 24px;
+            text-align: center;
+        }
+
+        .card-front {
+            background: var(--card-front);
+            color: var(--text-dark);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .card-back {
+            background: var(--card-back);
+            color: var(--text-light);
+            transform: rotateY(180deg);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .card-label {
+            position: absolute;
+            top: 24px;
+            left: 28px;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .card-front .card-label {
+            color: var(--accent);
+        }
+
+        .card-back .card-label {
+            color: var(--accent);
+        }
+
+        .card-content {
+            font-family: 'Shippori Mincho', serif;
+            font-size: clamp(1.1rem, 5vw, 1.5rem);
+            line-height: 1.9;
+            letter-spacing: 0.03em;
+        }
+
+        .tap-hint {
+            position: absolute;
+            bottom: 24px;
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+        }
+
+        /* フッター */
+        .footer {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .swipe-hint {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            color: var(--muted);
+            font-size: 0.75rem;
+        }
+
+        .swipe-hint span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .swipe-hint svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* 完了画面 */
+        .complete-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .complete-screen.active {
+            display: flex;
+        }
+
+        .complete-icon {
+            font-size: 4rem;
+            margin-bottom: 24px;
+        }
+
+        .complete-title {
+            font-family: 'Shippori Mincho', serif;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .complete-sub {
+            color: var(--muted);
+            margin-bottom: 40px;
+        }
+
+        .restart-btn {
+            padding: 16px 40px;
+            background: transparent;
+            border: 1px solid #444;
+            border-radius: 30px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<!-- 入力モード -->
+<div class="input-mode" id="inputMode">
+    <h1>暗記カード</h1>
+    <textarea id="cardInput" placeholder="問題[Tab]答え
+
+例：
+EV証明書の保証するもの	ドメインの保持　企業の実在性　企業の実態
+EV証明書は主にどこで利用	銀行など　商取引"></textarea>
+    <p class="input-hint">タブ区切りで入力 → 自動保存</p>
+    <button class="start-btn" onclick="startCards()">はじめる</button>
+</div>
+
+<!-- カードモード -->
+<div class="card-mode" id="cardMode">
+    <header class="header">
+        <span class="counter"><strong id="currentNum">1</strong> / <span id="totalNum">0</span></span>
+        <button class="edit-btn" onclick="showInput()">編集</button>
+    </header>
+
+    <div class="card-area" id="cardArea">
+        <div class="flashcard" id="flashcard">
+            <div class="card-face card-front">
+                <span class="card-label">問</span>
+                <div class="card-content" id="questionText"></div>
+                <span class="tap-hint">タップでめくる</span>
+            </div>
+            <div class="card-face card-back">
+                <span class="card-label">答</span>
+                <div class="card-content" id="answerText"></div>
+                <span class="tap-hint">スワイプで次へ</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="swipe-hint">
+                <span>
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                    前へ
+                </span>
+            <span>
+                    次へ
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
+        </div>
+    </footer>
+
+    <!-- 完了画面 -->
+    <div class="complete-screen" id="completeScreen">
+        <div class="complete-icon">✓</div>
+        <div class="complete-title">おつかれさま！</div>
+        <div class="complete-sub">全<span id="completeTotal">0</span>枚 完了</div>
+        <button class="restart-btn" onclick="restart()">もう一度</button>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'flashcards_v2';
+    let cards = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', () => {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            const data = JSON.parse(stored);
+            cards = data.cards || [];
+            if (cards.length > 0) {
+                document.getElementById('cardInput').value = cards.map(c => `${c.q}\t${c.a}`).join('\n');
+            }
+        }
+    });
+
+    function parseInput(text) {
+        return text.trim().split('\n')
+            .map(line => {
+                const parts = line.split('\t');
+                if (parts.length >= 2) {
+                    return { q: parts[0].trim(), a: parts[1].trim() };
+                }
+                return null;
+            })
+            .filter(Boolean);
+    }
+
+    function save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards }));
+    }
+
+    function startCards() {
+        const input = document.getElementById('cardInput').value;
+        const parsed = parseInput(input);
+
+        if (parsed.length === 0) {
+            alert('タブ区切りで「問題[Tab]答え」を入力してください');
+            return;
+        }
+
+        cards = parsed;
+        currentIndex = 0;
+        isFlipped = false;
+        save();
+        showCardMode();
+    }
+
+    function showCardMode() {
+        document.getElementById('inputMode').classList.add('hidden');
+        document.getElementById('cardMode').classList.add('active');
+        document.getElementById('completeScreen').classList.remove('active');
+        document.getElementById('cardArea').style.display = 'flex';
+        renderCard();
+    }
+
+    function showInput() {
+        document.getElementById('inputMode').classList.remove('hidden');
+        document.getElementById('cardMode').classList.remove('active');
+    }
+
+    function renderCard() {
+        const card = cards[currentIndex];
+        document.getElementById('questionText').textContent = card.q;
+        document.getElementById('answerText').textContent = card.a;
+        document.getElementById('currentNum').textContent = currentIndex + 1;
+        document.getElementById('totalNum').textContent = cards.length;
+
+        const flashcard = document.getElementById('flashcard');
+        flashcard.classList.remove('flipped', 'swipe-left', 'swipe-right');
+        flashcard.style.transform = '';
+        flashcard.style.opacity = '';
+        isFlipped = false;
+    }
+
+    function flipCard() {
+        isFlipped = !isFlipped;
+        document.getElementById('flashcard').classList.toggle('flipped', isFlipped);
+    }
+
+    function nextCard() {
+        if (currentIndex < cards.length - 1) {
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('swipe-left');
+            setTimeout(() => {
+                currentIndex++;
+                renderCard();
+            }, 250);
+        } else {
+            showComplete();
+        }
+    }
+
+    function prevCard() {
+        if (currentIndex > 0) {
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('swipe-right');
+            setTimeout(() => {
+                currentIndex--;
+                renderCard();
+            }, 250);
+        }
+    }
+
+    function showComplete() {
+        document.getElementById('cardArea').style.display = 'none';
+        document.getElementById('completeTotal').textContent = cards.length;
+        document.getElementById('completeScreen').classList.add('active');
+    }
+
+    function restart() {
+        currentIndex = 0;
+        isFlipped = false;
+        showCardMode();
+    }
+
+    // タッチ操作
+    const cardArea = document.getElementById('cardArea');
+
+    cardArea.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    cardArea.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+            if (deltaX < 0) {
+                nextCard();
+            } else {
+                prevCard();
+            }
+        } else if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
+            flipCard();
+        }
+    }, { passive: true });
+
+    // クリック（PC用）
+    document.getElementById('flashcard').addEventListener('click', (e) => {
+        if (e.pointerType !== 'touch') {
+            flipCard();
+        }
+    });
+
+    // キーボード（PC用）
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'TEXTAREA') return;
+        if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            flipCard();
+        } else if (e.key === 'ArrowRight') {
+            nextCard();
+        } else if (e.key === 'ArrowLeft') {
+            prevCard();
+        }
+    });
+</script>
+</body>
+</html>
