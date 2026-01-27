@@ -8,196 +8,553 @@
       content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"
     />
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
+        height: 100vh;
+        display: flex;
       }
 
-      .container {
+      /* サイドバー */
+      .sidebar {
+        width: 250px;
+        background: #2d3748;
+        color: #fff;
         display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-top: 5vh;
         flex-direction: column;
+        border-right: 1px solid #4a5568;
+      }
+
+      .sidebar-header {
+        padding: 12px;
+        border-bottom: 1px solid #4a5568;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .sidebar-header h3 {
+        margin: 0;
+        font-size: 14px;
+        color: #a0aec0;
+      }
+
+      .sidebar-actions {
+        display: flex;
+        gap: 4px;
+      }
+
+      .sidebar-btn {
+        background: transparent;
+        border: none;
+        color: #a0aec0;
+        cursor: pointer;
+        padding: 4px 8px;
+        font-size: 16px;
+        border-radius: 4px;
+      }
+
+      .sidebar-btn:hover {
+        background: #4a5568;
+        color: #fff;
+      }
+
+      .file-tree {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 0;
+      }
+
+      .file-item {
+        padding: 8px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #e2e8f0;
+      }
+
+      .file-item:hover {
+        background: #4a5568;
+      }
+
+      .file-item.active {
+        background: #4a5568;
+        border-left: 3px solid #63b3ed;
+      }
+
+      .file-item .file-icon {
+        font-size: 12px;
+      }
+
+      .file-item .file-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-item .file-actions {
+        display: none;
+        gap: 4px;
+      }
+
+      .file-item:hover .file-actions {
+        display: flex;
+      }
+
+      .file-action-btn {
+        background: transparent;
+        border: none;
+        color: #a0aec0;
+        cursor: pointer;
+        padding: 2px 4px;
+        font-size: 12px;
+      }
+
+      .file-action-btn:hover {
+        color: #fff;
+      }
+
+      .file-action-btn.delete:hover {
+        color: #fc8181;
+      }
+
+      /* メインエリア */
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+      }
+
+      .editor-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
       }
 
       #editor {
-        width: 80%;
-        height: 70vh;
+        flex: 1;
+        width: 100%;
         font-size: 18px;
         border: 1px solid #ccc;
         padding: 10px;
         background-color: #fff;
         color: #333;
-      }
-
-      #editor.dark-mode {
-        background-color: #333;
-        color: #fff;
+        resize: none;
       }
 
       #count {
-        font-size: 32px;
+        font-size: 16px;
         color: #666;
-        margin-top: 5px;
+        margin-top: 10px;
+        text-align: right;
       }
 
-      button {
-        background-color: #fff;
-        color: #333;
+      .toolbar {
+        display: flex;
+        gap: 4px;
+        margin-top: 10px;
+      }
+
+      .stylish-button {
+        background-color: #4a5568;
+        border: none;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-align: center;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.3s ease-in-out;
+      }
+
+      .stylish-button:hover {
+        background-color: #2d3748;
+      }
+
+      .stylish-button:active {
+        background-color: #1a202c;
+        transform: translateY(2px);
+      }
+
+      /* モーダル */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+      }
+
+      .modal.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: #fff;
+        padding: 24px;
+        border-radius: 8px;
+        min-width: 300px;
+      }
+
+      .modal-content h4 {
+        margin: 0 0 16px 0;
+      }
+
+      .modal-content input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
         border: 1px solid #ccc;
-        padding: 5px 10px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .modal-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
         cursor: pointer;
         font-size: 14px;
       }
 
-      button.dark-mode {
-        background-color: #333;
+      .modal-btn.primary {
+        background: #4a5568;
         color: #fff;
-        border-color: #fff;
+      }
+
+      .modal-btn.secondary {
+        background: #e2e8f0;
+        color: #333;
+      }
+
+      /* 空の状態 */
+      .empty-state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #a0aec0;
+      }
+
+      .empty-state p {
+        margin: 8px 0;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <textarea id="editor"></textarea>
-      <div id="count"></div>
-      <div style="display: flex">
-        <button id="export-btn" class="stylish-button">DL</button>
-        <button id="insert-todo" class="stylish-button">- []</button>
-        <button id="insert-dash" class="stylish-button">-</button>
-        <button id="insert-spaces" class="stylish-button"></button>
+    <!-- サイドバー -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h3>FILES</h3>
+        <div class="sidebar-actions">
+          <button class="sidebar-btn" onclick="createNewFile()" title="新規ファイル">+</button>
+        </div>
+      </div>
+      <div class="file-tree" id="fileTree"></div>
+    </div>
+
+    <!-- メインエリア -->
+    <div class="main">
+      <div class="editor-container" id="editorContainer">
+        <div class="empty-state" id="emptyState">
+          <p>ファイルを選択するか、新規作成してください</p>
+          <button class="stylish-button" onclick="createNewFile()">+ 新規ファイル</button>
+        </div>
+        <textarea id="editor" style="display: none;"></textarea>
+        <div id="count" style="display: none;"></div>
+        <div class="toolbar" id="toolbar" style="display: none;">
+          <button id="export-btn" class="stylish-button">DL</button>
+          <button id="insert-todo" class="stylish-button">- []</button>
+          <button id="insert-dash" class="stylish-button">-</button>
+          <button id="insert-spaces" class="stylish-button">&nbsp;&nbsp;</button>
+        </div>
       </div>
     </div>
+
+    <!-- 新規ファイルモーダル -->
+    <div class="modal" id="newFileModal">
+      <div class="modal-content">
+        <h4>新規ファイル</h4>
+        <input type="text" id="newFileName" placeholder="ファイル名.txt">
+        <div class="modal-actions">
+          <button class="modal-btn secondary" onclick="closeModal('newFileModal')">キャンセル</button>
+          <button class="modal-btn primary" onclick="confirmNewFile()">作成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- リネームモーダル -->
+    <div class="modal" id="renameModal">
+      <div class="modal-content">
+        <h4>名前を変更</h4>
+        <input type="text" id="renameInput" placeholder="新しいファイル名">
+        <div class="modal-actions">
+          <button class="modal-btn secondary" onclick="closeModal('renameModal')">キャンセル</button>
+          <button class="modal-btn primary" onclick="confirmRename()">変更</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY = 'editor_files_v1';
+      let files = {}; // { filename: content }
+      let currentFile = null;
+
+      // 初期化
+      window.addEventListener('load', function() {
+        loadFiles();
+        renderFileTree();
+
+        const editor = document.getElementById('editor');
+        const count = document.getElementById('count');
+
+        // エディタ入力時
+        editor.addEventListener('input', function() {
+          if (currentFile) {
+            files[currentFile] = editor.value;
+            saveFiles();
+            updateCount();
+          }
+        });
+
+        // Ctrl+S 無効化
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+          }
+        });
+
+        // 旧データの移行
+        const oldText = localStorage.getItem('text');
+        if (oldText && Object.keys(files).length === 0) {
+          const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+          files[`${timestamp}.txt`] = oldText;
+          saveFiles();
+          renderFileTree();
+        }
+      });
+
+      function loadFiles() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          files = JSON.parse(stored);
+        }
+      }
+
+      function saveFiles() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+      }
+
+      function renderFileTree() {
+        const tree = document.getElementById('fileTree');
+        const fileNames = Object.keys(files).sort();
+
+        if (fileNames.length === 0) {
+          tree.innerHTML = '<div class="file-item" style="color: #a0aec0; cursor: default;">ファイルがありません</div>';
+          return;
+        }
+
+        tree.innerHTML = fileNames.map(name => `
+          <div class="file-item ${currentFile === name ? 'active' : ''}" onclick="openFile('${escapeHtml(name)}')">
+            <span class="file-icon">📄</span>
+            <span class="file-name">${escapeHtml(name)}</span>
+            <div class="file-actions">
+              <button class="file-action-btn" onclick="event.stopPropagation(); renameFile('${escapeHtml(name)}')" title="名前変更">✏️</button>
+              <button class="file-action-btn delete" onclick="event.stopPropagation(); deleteFile('${escapeHtml(name)}')" title="削除">🗑</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, char => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[char]));
+      }
+
+      function openFile(name) {
+        currentFile = name;
+        const editor = document.getElementById('editor');
+        const count = document.getElementById('count');
+        const toolbar = document.getElementById('toolbar');
+        const emptyState = document.getElementById('emptyState');
+
+        editor.style.display = 'block';
+        count.style.display = 'block';
+        toolbar.style.display = 'flex';
+        emptyState.style.display = 'none';
+
+        editor.value = files[name] || '';
+        updateCount();
+        renderFileTree();
+        editor.focus();
+      }
+
+      function updateCount() {
+        const editor = document.getElementById('editor');
+        const count = document.getElementById('count');
+        count.innerHTML = editor.value.length + ' characters';
+      }
+
+      function createNewFile() {
+        document.getElementById('newFileName').value = '';
+        document.getElementById('newFileModal').classList.add('active');
+        document.getElementById('newFileName').focus();
+      }
+
+      function confirmNewFile() {
+        const name = document.getElementById('newFileName').value.trim();
+        if (!name) {
+          alert('ファイル名を入力してください');
+          return;
+        }
+        if (files[name]) {
+          alert('同名のファイルが既に存在します');
+          return;
+        }
+        files[name] = '';
+        saveFiles();
+        renderFileTree();
+        openFile(name);
+        closeModal('newFileModal');
+      }
+
+      function renameFile(oldName) {
+        document.getElementById('renameInput').value = oldName;
+        document.getElementById('renameInput').dataset.oldName = oldName;
+        document.getElementById('renameModal').classList.add('active');
+        document.getElementById('renameInput').focus();
+        document.getElementById('renameInput').select();
+      }
+
+      function confirmRename() {
+        const input = document.getElementById('renameInput');
+        const oldName = input.dataset.oldName;
+        const newName = input.value.trim();
+
+        if (!newName) {
+          alert('ファイル名を入力してください');
+          return;
+        }
+        if (newName !== oldName && files[newName]) {
+          alert('同名のファイルが既に存在します');
+          return;
+        }
+
+        const content = files[oldName];
+        delete files[oldName];
+        files[newName] = content;
+
+        if (currentFile === oldName) {
+          currentFile = newName;
+        }
+
+        saveFiles();
+        renderFileTree();
+        closeModal('renameModal');
+      }
+
+      function deleteFile(name) {
+        if (!confirm(`"${name}" を削除しますか？`)) return;
+
+        delete files[name];
+        saveFiles();
+
+        if (currentFile === name) {
+          currentFile = null;
+          document.getElementById('editor').style.display = 'none';
+          document.getElementById('count').style.display = 'none';
+          document.getElementById('toolbar').style.display = 'none';
+          document.getElementById('emptyState').style.display = 'flex';
+        }
+
+        renderFileTree();
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+      }
+
+      // モーダルでEnterキー
+      document.getElementById('newFileName').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') confirmNewFile();
+        if (e.key === 'Escape') closeModal('newFileModal');
+      });
+
+      document.getElementById('renameInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') confirmRename();
+        if (e.key === 'Escape') closeModal('renameModal');
+      });
+
+      // ダウンロード
+      document.getElementById('export-btn').addEventListener('click', () => {
+        if (!currentFile) return;
+        const fileName = prompt('ファイル名を入力してください:', currentFile);
+        if (fileName) {
+          const textData = files[currentFile];
+          const blob = new Blob([textData], { type: 'text/plain;charset=utf-8' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      });
+
+      // テキスト挿入
+      function insertTextAtCursor(textArea, text) {
+        const startPos = textArea.selectionStart;
+        const endPos = textArea.selectionEnd;
+        textArea.value =
+          textArea.value.substring(0, startPos) +
+          text +
+          textArea.value.substring(endPos);
+        textArea.selectionStart = startPos + text.length;
+        textArea.selectionEnd = startPos + text.length;
+        textArea.focus();
+
+        // 保存
+        if (currentFile) {
+          files[currentFile] = textArea.value;
+          saveFiles();
+          updateCount();
+        }
+      }
+
+      document.getElementById('insert-todo').addEventListener('click', () => {
+        insertTextAtCursor(document.getElementById('editor'), '- [ ] ');
+      });
+
+      document.getElementById('insert-dash').addEventListener('click', () => {
+        insertTextAtCursor(document.getElementById('editor'), '- ');
+      });
+
+      document.getElementById('insert-spaces').addEventListener('click', () => {
+        insertTextAtCursor(document.getElementById('editor'), '  ');
+      });
+    </script>
   </body>
 </html>
-
-<script>
-  window.addEventListener("load", function () {
-    var editor = document.getElementById("editor");
-    var count = document.getElementById("count");
-
-    editor.addEventListener("input", function () {
-      var text = editor.value;
-      var length = text.length;
-      count.innerHTML = length + " characters";
-      localStorage.setItem("text", text);
-    });
-
-    var savedText = localStorage.getItem("text");
-    if (savedText) {
-      editor.value = savedText;
-      count.innerHTML = savedText.length + " characters";
-    }
-
-    // キーボードショートカットの無効化
-    document.addEventListener("keydown", function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-        e.preventDefault();
-        // alert("テキストは自動で保存されます");
-      }
-      // タブキーでスペース2つを挿入
-      // if (e.key === "Tab") {
-      //   e.preventDefault();
-      //   insertTextAtCursor(editor, "  ");
-      // }
-    });
-
-    // エンターキーでToDoリストの項目を自動挿入
-    // editor.addEventListener("keydown", function (e) {
-    //   // エンターキーで `- [ ]` または `- ` を自動挿入
-    //   if (e.key === "Enter") {
-    //     const currentLine = editor.value
-    //       .substring(0, editor.selectionStart)
-    //       .split("\n")
-    //       .pop();
-    //     if (currentLine.startsWith("- [ ] ")) {
-    //       e.preventDefault(); // エンターキーのデフォルト動作をキャンセル
-    //       insertTextAtCursor(editor, "\n- [ ] ");
-    //     } else if (currentLine.startsWith("- ")) {
-    //       e.preventDefault(); // エンターキーのデフォルト動作をキャンセル
-    //       insertTextAtCursor(editor, "\n- ");
-    //     }
-    //   }
-    // });
-  });
-
-  // ファイルダウンロードの処理を変更
-  document.getElementById("export-btn").addEventListener("click", () => {
-    // 現在の日付をYYYYMMDDHHMMSS形式のタイムスタンプに変換
-    const now = new Date();
-    const timestamp = now.toISOString().replace(/[-:T]/g, "").slice(0, 14);
-
-    const fileName = prompt(
-      "ファイル名を入力してください:",
-      `${timestamp}.txt`
-    );
-    if (fileName) {
-      const textData = localStorage.getItem("text");
-      const blob = new Blob([textData], { type: "text/plain;charset=utf-8" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  });
-
-  function insertTextAtCursor(textArea, text) {
-    const startPos = textArea.selectionStart;
-    const endPos = textArea.selectionEnd;
-    textArea.value =
-      textArea.value.substring(0, startPos) +
-      text +
-      textArea.value.substring(endPos, textArea.value.length);
-    textArea.selectionStart = startPos + text.length;
-    textArea.selectionEnd = startPos + text.length;
-    textArea.focus();
-  }
-
-  document.getElementById("insert-todo").addEventListener("click", () => {
-    insertTextAtCursor(editor, "- [ ] ");
-  });
-
-  document.getElementById("insert-dash").addEventListener("click", () => {
-    insertTextAtCursor(editor, "- ");
-  });
-
-  document.getElementById("insert-spaces").addEventListener("click", () => {
-    insertTextAtCursor(editor, "  "); // 半角スペース2つ
-  });
-</script>
-
-<style>
-  /* ボタンの基本スタイル */
-  .stylish-button {
-    background-color: #4a5568;
-    border: none;
-    color: #ffffff;
-    padding: 12px 24px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.3s ease-in-out;
-  }
-
-  /* ホバー時のスタイル */
-  .stylish-button:hover {
-    background-color: #2d3748;
-    color: #ffffff;
-  }
-
-  /* アクティブ時のスタイル */
-  .stylish-button:active {
-    background-color: #1a202c;
-    box-shadow: 0 5px #0d1117;
-    transform: translateY(4px);
-  }
-</style>
