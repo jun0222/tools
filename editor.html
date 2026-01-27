@@ -28,6 +28,7 @@
         display: flex;
         flex-direction: column;
         border-right: 1px solid #4a5568;
+        flex-shrink: 0;
       }
 
       .sidebar-header {
@@ -62,6 +63,10 @@
       .sidebar-btn:hover {
         background: #4a5568;
         color: #fff;
+      }
+
+      .sidebar-close {
+        display: none;
       }
 
       .file-tree {
@@ -126,12 +131,52 @@
         color: #fc8181;
       }
 
+      /* オーバーレイ */
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 40;
+      }
+
       /* メインエリア */
       .main {
         flex: 1;
         display: flex;
         flex-direction: column;
         background: #fff;
+        min-width: 0;
+      }
+
+      /* モバイルヘッダー */
+      .mobile-header {
+        display: none;
+        padding: 12px 16px;
+        background: #2d3748;
+        color: #fff;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .menu-btn {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px;
+      }
+
+      .current-file-name {
+        flex: 1;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .editor-container {
@@ -139,6 +184,7 @@
         display: flex;
         flex-direction: column;
         padding: 20px;
+        min-height: 0;
       }
 
       #editor {
@@ -163,6 +209,7 @@
         display: flex;
         gap: 4px;
         margin-top: 10px;
+        flex-wrap: wrap;
       }
 
       .stylish-button {
@@ -209,6 +256,7 @@
         padding: 24px;
         border-radius: 8px;
         min-width: 300px;
+        max-width: 90vw;
       }
 
       .modal-content h4 {
@@ -261,15 +309,65 @@
       .empty-state p {
         margin: 8px 0;
       }
+
+      /* スマホ対応 */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          z-index: 50;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+        }
+
+        .sidebar.open {
+          transform: translateX(0);
+        }
+
+        .sidebar-close {
+          display: block;
+        }
+
+        .overlay.active {
+          display: block;
+        }
+
+        .mobile-header {
+          display: flex;
+        }
+
+        .editor-container {
+          padding: 12px;
+        }
+
+        .stylish-button {
+          padding: 10px 16px;
+          font-size: 14px;
+        }
+
+        #editor {
+          font-size: 16px;
+        }
+
+        .file-item .file-actions {
+          display: flex;
+        }
+      }
     </style>
   </head>
   <body>
+    <!-- オーバーレイ -->
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
     <!-- サイドバー -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h3>FILES</h3>
         <div class="sidebar-actions">
           <button class="sidebar-btn" onclick="createNewFile()" title="新規ファイル">+</button>
+          <button class="sidebar-btn sidebar-close" onclick="closeSidebar()" title="閉じる">×</button>
         </div>
       </div>
       <div class="file-tree" id="fileTree"></div>
@@ -277,6 +375,13 @@
 
     <!-- メインエリア -->
     <div class="main">
+      <!-- モバイルヘッダー -->
+      <div class="mobile-header">
+        <button class="menu-btn" onclick="openSidebar()">☰</button>
+        <span class="current-file-name" id="currentFileName">ファイル未選択</span>
+        <button class="menu-btn" onclick="createNewFile()">+</button>
+      </div>
+
       <div class="editor-container" id="editorContainer">
         <div class="empty-state" id="emptyState">
           <p>ファイルを選択するか、新規作成してください</p>
@@ -319,7 +424,7 @@
 
     <script>
       const STORAGE_KEY = 'editor_files_v1';
-      let files = {}; // { filename: content }
+      let files = {};
       let currentFile = null;
 
       // 初期化
@@ -328,9 +433,7 @@
         renderFileTree();
 
         const editor = document.getElementById('editor');
-        const count = document.getElementById('count');
 
-        // エディタ入力時
         editor.addEventListener('input', function() {
           if (currentFile) {
             files[currentFile] = editor.value;
@@ -339,7 +442,6 @@
           }
         });
 
-        // Ctrl+S 無効化
         document.addEventListener('keydown', function(e) {
           if ((e.ctrlKey || e.metaKey) && e.key === 's') {
             e.preventDefault();
@@ -397,9 +499,9 @@
       function openFile(name) {
         currentFile = name;
         const editor = document.getElementById('editor');
-        const count = document.getElementById('count');
         const toolbar = document.getElementById('toolbar');
         const emptyState = document.getElementById('emptyState');
+        const count = document.getElementById('count');
 
         editor.style.display = 'block';
         count.style.display = 'block';
@@ -408,7 +510,9 @@
 
         editor.value = files[name] || '';
         updateCount();
+        updateCurrentFileName();
         renderFileTree();
+        closeSidebar();
         editor.focus();
       }
 
@@ -416,6 +520,21 @@
         const editor = document.getElementById('editor');
         const count = document.getElementById('count');
         count.innerHTML = editor.value.length + ' characters';
+      }
+
+      function updateCurrentFileName() {
+        document.getElementById('currentFileName').textContent = currentFile || 'ファイル未選択';
+      }
+
+      // サイドバー開閉
+      function openSidebar() {
+        document.getElementById('sidebar').classList.add('open');
+        document.getElementById('overlay').classList.add('active');
+      }
+
+      function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('active');
       }
 
       function createNewFile() {
@@ -469,6 +588,7 @@
 
         if (currentFile === oldName) {
           currentFile = newName;
+          updateCurrentFileName();
         }
 
         saveFiles();
@@ -488,6 +608,7 @@
           document.getElementById('count').style.display = 'none';
           document.getElementById('toolbar').style.display = 'none';
           document.getElementById('emptyState').style.display = 'flex';
+          updateCurrentFileName();
         }
 
         renderFileTree();
@@ -497,7 +618,6 @@
         document.getElementById(id).classList.remove('active');
       }
 
-      // モーダルでEnterキー
       document.getElementById('newFileName').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') confirmNewFile();
         if (e.key === 'Escape') closeModal('newFileModal');
@@ -508,7 +628,6 @@
         if (e.key === 'Escape') closeModal('renameModal');
       });
 
-      // ダウンロード
       document.getElementById('export-btn').addEventListener('click', () => {
         if (!currentFile) return;
         const fileName = prompt('ファイル名を入力してください:', currentFile);
@@ -524,7 +643,6 @@
         }
       });
 
-      // テキスト挿入
       function insertTextAtCursor(textArea, text) {
         const startPos = textArea.selectionStart;
         const endPos = textArea.selectionEnd;
@@ -536,7 +654,6 @@
         textArea.selectionEnd = startPos + text.length;
         textArea.focus();
 
-        // 保存
         if (currentFile) {
           files[currentFile] = textArea.value;
           saveFiles();
