@@ -16,6 +16,7 @@
             --text-light: #faf8f5;
             --accent: #e85d4c;
             --muted: #888;
+            --learned: #4caf50;
         }
 
         * {
@@ -85,6 +86,12 @@
             margin: 12px 0;
         }
 
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
         .start-btn {
             width: 100%;
             padding: 18px;
@@ -97,18 +104,6 @@
             font-weight: 500;
             letter-spacing: 0.05em;
             cursor: pointer;
-            transition: transform 0.15s, opacity 0.15s;
-        }
-
-        .start-btn:active {
-            transform: scale(0.98);
-            opacity: 0.9;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
         }
 
         .paste-start-btn {
@@ -123,12 +118,6 @@
             font-weight: 500;
             letter-spacing: 0.05em;
             cursor: pointer;
-            transition: transform 0.15s, opacity 0.15s, background 0.15s;
-        }
-
-        .paste-start-btn:active {
-            transform: scale(0.98);
-            background: rgba(232, 93, 76, 0.1);
         }
 
         /* カードモード */
@@ -167,14 +156,19 @@
             font-weight: 400;
         }
 
-        .edit-btn {
-            padding: 8px 16px;
+        .header-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            padding: 8px 12px;
             background: transparent;
             border: 1px solid #444;
             border-radius: 20px;
             color: var(--muted);
             font-family: inherit;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
         }
 
@@ -195,7 +189,6 @@
             max-height: 70vh;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
         }
 
@@ -203,37 +196,9 @@
             transform: rotateY(180deg);
         }
 
-        .flashcard.swipe-left {
-            animation: swipeLeft 0.3s ease-out forwards;
-        }
-
-        .flashcard.swipe-right {
-            animation: swipeRight 0.3s ease-out forwards;
-        }
-
-        /* 裏返し状態用：rotateY(180deg)を維持しつつ、方向を逆に */
-        .flashcard.flipped.swipe-left {
-            animation: swipeLeftFlipped 0.3s ease-out forwards;
-        }
-
-        .flashcard.flipped.swipe-right {
-            animation: swipeRightFlipped 0.3s ease-out forwards;
-        }
-
-        @keyframes swipeLeft {
-            to { transform: translateX(-120%) rotate(-10deg); opacity: 0; }
-        }
-
-        @keyframes swipeRight {
-            to { transform: translateX(120%) rotate(10deg); opacity: 0; }
-        }
-
-        @keyframes swipeLeftFlipped {
-            to { transform: rotateY(180deg) translateX(120%) rotate(10deg); opacity: 0; }
-        }
-
-        @keyframes swipeRightFlipped {
-            to { transform: rotateY(180deg) translateX(-120%) rotate(-10deg); opacity: 0; }
+        .flashcard.learned {
+            box-shadow: 0 0 0 4px var(--learned);
+            border-radius: 24px;
         }
 
         .card-face {
@@ -269,14 +234,20 @@
             font-size: 0.7rem;
             letter-spacing: 0.15em;
             text-transform: uppercase;
-        }
-
-        .card-front .card-label {
             color: var(--accent);
         }
 
-        .card-back .card-label {
-            color: var(--accent);
+        .learned-badge {
+            position: absolute;
+            top: 24px;
+            right: 28px;
+            font-size: 0.7rem;
+            color: var(--learned);
+            display: none;
+        }
+
+        .flashcard.learned .learned-badge {
+            display: block;
         }
 
         .card-content {
@@ -296,31 +267,46 @@
 
         /* フッター */
         .footer {
-            padding: 20px;
-            text-align: center;
+            padding: 16px 20px;
         }
 
-        .swipe-hint {
+        .nav-btns {
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 32px;
-            color: var(--muted);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .nav-btn {
+            padding: 12px 20px;
+            background: #333;
+            border: none;
+            border-radius: 30px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+        }
+
+        .learned-btn {
+            background: var(--learned);
+            color: white;
+        }
+
+        .learned-btn.active {
+            background: #333;
+            color: var(--learned);
+            border: 2px solid var(--learned);
+        }
+
+        .progress-info {
+            text-align: center;
             font-size: 0.75rem;
-        }
-
-        .swipe-hint span {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .swipe-hint svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
+            color: var(--muted);
         }
 
         /* 完了画面 */
@@ -386,34 +372,36 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
 <div class="card-mode" id="cardMode">
     <header class="header">
         <span class="counter"><strong id="currentNum">1</strong> / <span id="totalNum">0</span></span>
-        <button class="edit-btn" onclick="showInput()">編集</button>
+        <div class="header-btns">
+            <button class="header-btn" onclick="shuffleCards()">シャッフル</button>
+            <button class="header-btn" onclick="showInput()">編集</button>
+        </div>
     </header>
 
     <div class="card-area" id="cardArea">
         <div class="flashcard" id="flashcard">
             <div class="card-face card-front">
                 <span class="card-label">問</span>
+                <span class="learned-badge">覚えた</span>
                 <div class="card-content" id="questionText"></div>
                 <span class="tap-hint">タップでめくる</span>
             </div>
             <div class="card-face card-back">
                 <span class="card-label">答</span>
+                <span class="learned-badge">覚えた</span>
                 <div class="card-content" id="answerText"></div>
-                <span class="tap-hint">スワイプで次へ</span>
             </div>
         </div>
     </div>
 
     <footer class="footer">
-        <div class="swipe-hint">
-                <span>
-                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-                    前へ
-                </span>
-            <span>
-                    次へ
-                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-                </span>
+        <div class="nav-btns">
+            <button class="nav-btn" id="prevBtn" onclick="prevCard()">← 前</button>
+            <button class="nav-btn learned-btn" id="learnedBtn" onclick="toggleLearned()">覚えた</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextCard()">次 →</button>
+        </div>
+        <div class="progress-info">
+            覚えた: <span id="learnedCount">0</span>枚
         </div>
     </footer>
 
@@ -421,13 +409,13 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
     <div class="complete-screen" id="completeScreen">
         <div class="complete-icon">✓</div>
         <div class="complete-title">おつかれさま！</div>
-        <div class="complete-sub">全<span id="completeTotal">0</span>枚 完了</div>
+        <div class="complete-sub">覚えた: <span id="completeLearnedCount">0</span> / <span id="completeTotal">0</span>枚</div>
         <button class="restart-btn" onclick="restart()">もう一度</button>
     </div>
 </div>
 
 <script>
-    const STORAGE_KEY = 'flashcards_v2';
+    const STORAGE_KEY = 'flashcards_v3';
     let cards = [];
     let currentIndex = 0;
     let isFlipped = false;
@@ -451,7 +439,7 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
             .map(line => {
                 const parts = line.split('\t');
                 if (parts.length >= 2) {
-                    return { q: parts[0].trim(), a: parts[1].trim() };
+                    return { q: parts[0].trim(), a: parts[1].trim(), learned: false };
                 }
                 return null;
             })
@@ -492,11 +480,39 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
         }
     }
 
+    function findFirstUnlearned() {
+        for (let i = 0; i < cards.length; i++) {
+            if (!cards[i].learned) return i;
+        }
+        return -1;
+    }
+
+    function shuffleCards() {
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        const first = findFirstUnlearned();
+        if (first === -1) {
+            showComplete();
+            return;
+        }
+        currentIndex = first;
+        isFlipped = false;
+        renderCard();
+    }
+
     function showCardMode() {
         document.getElementById('inputMode').classList.add('hidden');
         document.getElementById('cardMode').classList.add('active');
         document.getElementById('completeScreen').classList.remove('active');
         document.getElementById('cardArea').style.display = 'flex';
+        const first = findFirstUnlearned();
+        if (first === -1) {
+            showComplete();
+            return;
+        }
+        currentIndex = first;
         renderCard();
     }
 
@@ -509,14 +525,27 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
         const card = cards[currentIndex];
         document.getElementById('questionText').textContent = card.q;
         document.getElementById('answerText').textContent = card.a;
-        document.getElementById('currentNum').textContent = currentIndex + 1;
-        document.getElementById('totalNum').textContent = cards.length;
+
+        // 未学習カードの中での番号を計算
+        const unlearnedCards = cards.filter(c => !c.learned);
+        const currentUnlearnedIndex = unlearnedCards.indexOf(card) + 1;
+        document.getElementById('currentNum').textContent = currentUnlearnedIndex;
+        document.getElementById('totalNum').textContent = unlearnedCards.length;
 
         const flashcard = document.getElementById('flashcard');
-        flashcard.classList.remove('flipped', 'swipe-left', 'swipe-right');
-        flashcard.style.transform = '';
-        flashcard.style.opacity = '';
+        flashcard.classList.remove('flipped');
+        flashcard.classList.toggle('learned', card.learned);
         isFlipped = false;
+
+        document.getElementById('prevBtn').disabled = findPrevUnlearned(currentIndex) === -1;
+        document.getElementById('learnedBtn').classList.toggle('active', card.learned);
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const learnedCount = cards.filter(c => c.learned).length;
+        document.getElementById('learnedCount').textContent = learnedCount;
     }
 
     function flipCard() {
@@ -524,38 +553,73 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
         document.getElementById('flashcard').classList.toggle('flipped', isFlipped);
     }
 
-    function nextCard() {
-        if (currentIndex < cards.length - 1) {
-            const flashcard = document.getElementById('flashcard');
-            flashcard.classList.add('swipe-left');
-            setTimeout(() => {
-                currentIndex++;
+    function toggleLearned() {
+        cards[currentIndex].learned = !cards[currentIndex].learned;
+        save();
+
+        if (cards[currentIndex].learned) {
+            // 覚えたらすぐ次へ
+            const next = findNextUnlearned(currentIndex);
+            if (next !== -1) {
+                currentIndex = next;
                 renderCard();
-            }, 250);
+            } else {
+                // 次がなければ前を探す
+                const prev = findPrevUnlearned(currentIndex);
+                if (prev !== -1) {
+                    currentIndex = prev;
+                    renderCard();
+                } else {
+                    showComplete();
+                }
+            }
+        } else {
+            // 覚えた解除したらそのまま表示更新
+            renderCard();
+        }
+    }
+
+    function findNextUnlearned(fromIndex) {
+        for (let i = fromIndex + 1; i < cards.length; i++) {
+            if (!cards[i].learned) return i;
+        }
+        return -1;
+    }
+
+    function findPrevUnlearned(fromIndex) {
+        for (let i = fromIndex - 1; i >= 0; i--) {
+            if (!cards[i].learned) return i;
+        }
+        return -1;
+    }
+
+    function nextCard() {
+        const next = findNextUnlearned(currentIndex);
+        if (next !== -1) {
+            currentIndex = next;
+            renderCard();
         } else {
             showComplete();
         }
     }
 
     function prevCard() {
-        if (currentIndex > 0) {
-            const flashcard = document.getElementById('flashcard');
-            flashcard.classList.add('swipe-right');
-            setTimeout(() => {
-                currentIndex--;
-                renderCard();
-            }, 250);
+        const prev = findPrevUnlearned(currentIndex);
+        if (prev !== -1) {
+            currentIndex = prev;
+            renderCard();
         }
     }
 
     function showComplete() {
         document.getElementById('cardArea').style.display = 'none';
+        const learnedCount = cards.filter(c => c.learned).length;
+        document.getElementById('completeLearnedCount').textContent = learnedCount;
         document.getElementById('completeTotal').textContent = cards.length;
         document.getElementById('completeScreen').classList.add('active');
     }
 
     function restart() {
-        currentIndex = 0;
         isFlipped = false;
         showCardMode();
     }
@@ -574,22 +638,19 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
         const deltaX = touchEndX - touchStartX;
         const deltaY = touchEndY - touchStartY;
 
-        // スワイプ判定（横方向50px以上）
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
             if (deltaX < 0) {
                 nextCard();
             } else {
                 prevCard();
             }
-        // タップ判定（30px以内に緩和）
         } else if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30) {
             flipCard();
         }
     }, { passive: true });
 
-    // クリック（PC用 - タッチデバイスはtouchendで処理）
+    // クリック（PC用）
     document.getElementById('flashcard').addEventListener('click', () => {
-        // タッチデバイスでない場合のみ
         if (!('ontouchstart' in window)) {
             flipCard();
         }
@@ -605,6 +666,8 @@ EV証明書は主にどこで利用	銀行など　商取引"></textarea>
             nextCard();
         } else if (e.key === 'ArrowLeft') {
             prevCard();
+        } else if (e.key === 'l' || e.key === 'L') {
+            toggleLearned();
         }
     });
 </script>
