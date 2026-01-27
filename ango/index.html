@@ -1,66 +1,248 @@
-<!-- TODO: このツールをrails backendにも入れたい -->
 <!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>日本語暗号化ツール</title>
     <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        line-height: 1.6;
+      * {
+        box-sizing: border-box;
       }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+        background: #f5f5f5;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #555;
+        font-size: 0.9rem;
+      }
+
       textarea {
         width: 100%;
         height: 150px;
-        margin-bottom: 10px;
-        font-size: 1em;
+        margin-bottom: 16px;
+        font-size: 16px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        resize: vertical;
+        font-family: inherit;
       }
+
+      textarea:focus {
+        outline: none;
+        border-color: #4a5568;
+      }
+
       input[type="password"] {
         width: 100%;
-        padding: 5px;
-        font-size: 1em;
-        margin-bottom: 10px;
+        padding: 12px;
+        font-size: 16px;
+        margin-bottom: 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
       }
+
+      input[type="password"]:focus {
+        outline: none;
+        border-color: #4a5568;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
       button {
-        padding: 10px 20px;
-        margin-right: 10px;
-        font-size: 1em;
+        flex: 1;
+        padding: 14px 20px;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+
+      .btn-encrypt {
+        background: #4a5568;
+        color: #fff;
+      }
+
+      .btn-encrypt:hover {
+        background: #2d3748;
+      }
+
+      .btn-decrypt {
+        background: #38a169;
+        color: #fff;
+      }
+
+      .btn-decrypt:hover {
+        background: #2f855a;
+      }
+
+      /* 復号化結果エリア */
+      .result-area {
+        display: none;
+        margin-top: 20px;
+        background: #fff;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .result-area.active {
+        display: block;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .result-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: #333;
+      }
+
+      .close-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: #888;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        flex: none;
+      }
+
+      .close-btn:hover {
+        color: #333;
+      }
+
+      .result-textarea {
+        width: 100%;
+        height: 200px;
+        padding: 12px;
+        font-size: 16px;
+        line-height: 1.8;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #333;
+        resize: vertical;
+        font-family: inherit;
+      }
+
+      /* 通知 */
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 100;
+      }
+
+      .toast.show {
+        opacity: 1;
+      }
+
+      /* スマホ対応 */
+      @media (max-width: 480px) {
+        body {
+          padding: 16px;
+        }
+
+        h1 {
+          font-size: 1.3rem;
+        }
+
+        .btn-group {
+          flex-direction: column;
+        }
+
+        button {
+          padding: 16px;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>日本語暗号化ツール</h1>
+    <div class="container">
+      <h1>暗号化ツール</h1>
 
-    <label for="text">文章:</label>
-    <textarea id="text" placeholder="ここに文章を入力してください"></textarea>
+      <label for="text">文章:</label>
+      <textarea id="text" placeholder="ここに文章を入力してください"></textarea>
 
-    <label for="password">パスワード:</label>
-    <input
-      type="password"
-      id="password"
-      placeholder="パスワードを入力してください"
-    />
+      <label for="password">パスワード:</label>
+      <input
+        type="password"
+        id="password"
+        placeholder="パスワードを入力してください"
+      />
 
-    <div>
-      <button id="encryptButton">暗号化</button>
-      <button id="decryptButton">復号化（DL）</button>
-      <!-- <button id="exportButton">TXTエクスポート</button> -->
+      <div class="btn-group">
+        <button class="btn-encrypt" id="encryptButton">暗号化</button>
+        <button class="btn-decrypt" id="decryptButton">復号化</button>
+      </div>
+
+      <!-- 復号化結果エリア -->
+      <div class="result-area" id="resultArea">
+        <div class="result-header">
+          <h3>復号化結果</h3>
+          <button class="close-btn" onclick="closeResult()">&times;</button>
+        </div>
+        <textarea class="result-textarea" id="resultText" readonly></textarea>
+      </div>
     </div>
 
+    <!-- トースト通知 -->
+    <div class="toast" id="toast"></div>
+
     <script>
-      // パスワードからシフト値を計算（各文字のコードの合計をmodで調整）
+      // パスワードからシフト値を計算
       function calculateShift(password) {
         let shift = 0;
         for (let i = 0; i < password.length; i++) {
           shift += password.charCodeAt(i);
         }
-        // 値が大きくなりすぎないようにmodで調整（例：1000で割った余り）
         return shift % 1000;
       }
 
-      // 暗号化：各文字コードにシフト値を加算
+      // 暗号化
       function encrypt(text, password) {
         const shift = calculateShift(password);
         let result = "";
@@ -72,7 +254,7 @@
         return result;
       }
 
-      // 復号化：各文字コードからシフト値を減算
+      // 復号化
       function decrypt(text, password) {
         const shift = calculateShift(password);
         let result = "";
@@ -84,65 +266,80 @@
         return result;
       }
 
-      // ローカルストレージへの保存
-      function saveToLocalStorage(text) {
-        localStorage.setItem("encryptedText", text);
+      // トースト表示
+      function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2000);
       }
 
-      // ローカルストレージからの読み込み（必要に応じて利用）
-      function loadFromLocalStorage() {
-        return localStorage.getItem("encryptedText");
+      // クリップボードにコピー
+      async function copyToClipboard(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (err) {
+          return false;
+        }
       }
 
-      // テキストをTXTファイルとしてエクスポート
-      function exportTextAsFile(text, filename) {
-        const blob = new Blob([text], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
+      // 結果エリアを閉じる
+      function closeResult() {
+        document.getElementById('resultArea').classList.remove('active');
       }
 
-      // 暗号化ボタンのクリックイベント設定
-      document
-        .getElementById("encryptButton")
-        .addEventListener("click", function () {
-          const text = document.getElementById("text").value;
-          const password = document.getElementById("password").value;
-          if (password === "") {
-            alert("パスワードを入力してください。");
-            return;
-          }
-          const encrypted = encrypt(text, password);
-          document.getElementById("text").value = encrypted;
-          saveToLocalStorage(encrypted);
-          alert("暗号化しました。");
-        });
+      // 暗号化ボタン
+      document.getElementById("encryptButton").addEventListener("click", async function () {
+        const text = document.getElementById("text").value;
+        const password = document.getElementById("password").value;
 
-      // 復号化ボタンのクリックイベント設定（復号化した文字列を直接ダウンロード）
-      document
-        .getElementById("decryptButton")
-        .addEventListener("click", function () {
-          const text = document.getElementById("text").value;
-          const password = document.getElementById("password").value;
-          if (password === "") {
-            alert("パスワードを入力してください。");
-            return;
-          }
-          const decrypted = decrypt(text, password);
-          exportTextAsFile(decrypted, "decrypted.txt");
-          alert("複合化したファイルをダウンロードしました。");
-        });
+        if (password === "") {
+          showToast("パスワードを入力してください");
+          return;
+        }
 
-      // TXTエクスポートボタンのクリックイベント設定
-      document
-        .getElementById("exportButton")
-        .addEventListener("click", function () {
-          const text = document.getElementById("text").value;
-          exportTextAsFile(text, "encrypted.txt");
-        });
+        if (text === "") {
+          showToast("文章を入力してください");
+          return;
+        }
+
+        const encrypted = encrypt(text, password);
+        document.getElementById("text").value = encrypted;
+
+        // クリップボードにコピー
+        const copied = await copyToClipboard(encrypted);
+        if (copied) {
+          showToast("暗号化してコピーしました");
+        } else {
+          showToast("暗号化しました（コピー失敗）");
+        }
+      });
+
+      // 復号化ボタン
+      document.getElementById("decryptButton").addEventListener("click", function () {
+        const text = document.getElementById("text").value;
+        const password = document.getElementById("password").value;
+
+        if (password === "") {
+          showToast("パスワードを入力してください");
+          return;
+        }
+
+        if (text === "") {
+          showToast("文章を入力してください");
+          return;
+        }
+
+        const decrypted = decrypt(text, password);
+
+        // 結果を表示
+        document.getElementById("resultText").value = decrypted;
+        document.getElementById("resultArea").classList.add("active");
+        showToast("復号化しました");
+      });
     </script>
   </body>
 </html>
