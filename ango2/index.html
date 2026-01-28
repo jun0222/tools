@@ -44,15 +44,11 @@
       font-family: inherit;
       min-height: 120px;
       padding: 10px;
-      padding-top: 32px;
+      padding-top: 28px;
     }
 
     .compose-textarea:focus {
       border-color: #999;
-    }
-
-    .compose-textarea::placeholder {
-      color: #999;
     }
 
     .textarea-buttons {
@@ -64,31 +60,17 @@
     }
 
     .icon-btn {
-      width: 20px;
-      height: 20px;
       border: 1px solid #ddd;
       background: #fafafa;
       color: #888;
       cursor: pointer;
       font-size: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
+      padding: 2px 6px;
     }
 
     .icon-btn:hover {
       background: #eee;
-      border-color: #bbb;
       color: #555;
-    }
-
-    .dot-counter {
-      margin-top: 4px;
-      font-size: 8px;
-      color: #ddd;
-      letter-spacing: 0px;
-      min-height: 10px;
     }
   </style>
 </head>
@@ -96,130 +78,69 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useRef } = React;
 
-    // 固定の暗号キー（ango2専用）
     const SECRET_KEY = 'ango2_secret_key_2024';
 
-    // 暗号化
     function encrypt(text) {
       let shift = 0;
-      for (let i = 0; i < SECRET_KEY.length; i++) {
-        shift += SECRET_KEY.charCodeAt(i);
-      }
+      for (let i = 0; i < SECRET_KEY.length; i++) shift += SECRET_KEY.charCodeAt(i);
       shift = shift % 1000;
-
       let result = '';
-      for (let i = 0; i < text.length; i++) {
-        let code = text.charCodeAt(i);
-        let newCode = code + shift;
-        result += String.fromCharCode(newCode);
-      }
+      for (let i = 0; i < text.length; i++) result += String.fromCharCode(text.charCodeAt(i) + shift);
       return result;
     }
 
-    // 復号化
     function decrypt(text) {
       let shift = 0;
-      for (let i = 0; i < SECRET_KEY.length; i++) {
-        shift += SECRET_KEY.charCodeAt(i);
-      }
+      for (let i = 0; i < SECRET_KEY.length; i++) shift += SECRET_KEY.charCodeAt(i);
       shift = shift % 1000;
-
       let result = '';
-      for (let i = 0; i < text.length; i++) {
-        let code = text.charCodeAt(i);
-        let originalCode = code - shift;
-        result += String.fromCharCode(originalCode);
-      }
+      for (let i = 0; i < text.length; i++) result += String.fromCharCode(text.charCodeAt(i) - shift);
       return result;
     }
 
     function App() {
-      const [messages, setMessages] = useState([]);
       const [input, setInput] = useState('');
       const textareaRef = useRef(null);
 
-      // 初期化
-      useEffect(() => {
-        const stored = localStorage.getItem('ango2_messages');
-        if (stored) {
-          setMessages(JSON.parse(stored));
-        }
-      }, []);
-
-      // 保存
-      useEffect(() => {
-        localStorage.setItem('ango2_messages', JSON.stringify(messages));
-      }, [messages]);
-
-      // 投稿 (Shift+Enter)
-      const handlePost = () => {
+      // 復号: テキストエリアの内容を復号
+      const handleDecrypt = () => {
         if (!input.trim()) return;
+        setInput(decrypt(input));
+      };
 
-        const encrypted = encrypt(input.trim());
-        const newMessage = {
-          id: Date.now(),
-          encrypted: encrypted
-        };
+      // 暗号化: テキストエリアの内容を暗号化してテキストエリアに
+      const handleEncrypt = () => {
+        if (!input.trim()) return;
+        setInput(encrypt(input));
+      };
 
-        setMessages([newMessage, ...messages]);
-        setInput('');
+      // コピー: テキストエリアの内容をコピー
+      const handleCopy = async () => {
+        if (!input.trim()) return;
+        try { await navigator.clipboard.writeText(input); } catch (err) {}
       };
 
       // クリア
-      const handleClear = () => {
-        setMessages([]);
-      };
-
-      // 全体コピー（暗号文を---区切りで）
-      const handleCopyAll = async () => {
-        if (messages.length === 0) return;
-        const text = messages.map(m => m.encrypted).join('\n---\n');
-        try {
-          await navigator.clipboard.writeText(text);
-        } catch (err) {}
-      };
-
-      // クリップボードから復号
-      const handleDecryptClipboard = async () => {
-        try {
-          const clipboardText = await navigator.clipboard.readText();
-          if (!clipboardText.trim()) return;
-
-          const parts = clipboardText.split('\n---\n');
-          const decrypted = parts.map(part => decrypt(part.trim())).join('\n---\n');
-
-          await navigator.clipboard.writeText(decrypted);
-        } catch (err) {}
-      };
-
-      // キーボードイベント
-      const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && e.shiftKey) {
-          e.preventDefault();
-          handlePost();
-        }
-      };
+      const handleClear = () => setInput('');
 
       return (
         <div className="container">
           <div className="textarea-wrapper">
             <div className="textarea-buttons">
-              <button className="icon-btn" onClick={handleCopyAll} title="コピー">□</button>
-              <button className="icon-btn" onClick={handleDecryptClipboard} title="復号">-</button>
-              <button className="icon-btn" onClick={handleClear} title="クリア">×</button>
+              <button className="icon-btn" onClick={handleDecrypt}>F</button>
+              <button className="icon-btn" onClick={handleEncrypt}>A</button>
+              <button className="icon-btn" onClick={handleCopy}>copy</button>
+              <button className="icon-btn" onClick={handleClear}>clear</button>
             </div>
             <textarea
               ref={textareaRef}
               className="compose-textarea"
-              placeholder=""
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
             />
           </div>
-          <div className="dot-counter">{'.'.repeat(messages.length)}</div>
         </div>
       );
     }
