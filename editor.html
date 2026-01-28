@@ -391,9 +391,13 @@
         <div id="count" style="display: none;"></div>
         <div class="toolbar" id="toolbar" style="display: none;">
           <button id="export-btn" class="stylish-button">DL</button>
+          <button id="copy-btn" class="stylish-button">copy</button>
+          <button id="insert-title" class="stylish-button">#</button>
+          <button id="insert-line" class="stylish-button">---</button>
           <button id="insert-todo" class="stylish-button">- []</button>
           <button id="insert-dash" class="stylish-button">-</button>
           <button id="insert-spaces" class="stylish-button">&nbsp;&nbsp;</button>
+          <button id="delete-indent" class="stylish-button">←</button>
         </div>
       </div>
     </div>
@@ -671,6 +675,44 @@
 
       document.getElementById('insert-spaces').addEventListener('click', () => {
         insertTextAtCursor(document.getElementById('editor'), '  ');
+      });
+
+      // コピー
+      document.getElementById('copy-btn').addEventListener('click', async () => {
+        const editor = document.getElementById('editor');
+        try {
+          await navigator.clipboard.writeText(editor.value);
+        } catch (err) {}
+      });
+
+      // タイトル (#)
+      document.getElementById('insert-title').addEventListener('click', () => {
+        insertTextAtCursor(document.getElementById('editor'), '# ');
+      });
+
+      // 区切り線 (---)
+      document.getElementById('insert-line').addEventListener('click', () => {
+        insertTextAtCursor(document.getElementById('editor'), '\n---\n');
+      });
+
+      // インデント削除
+      document.getElementById('delete-indent').addEventListener('click', () => {
+        const editor = document.getElementById('editor');
+        const start = editor.selectionStart;
+        const lineStart = editor.value.lastIndexOf('\n', start - 1) + 1;
+        const lineText = editor.value.substring(lineStart, start);
+
+        // 行頭のスペース2つを削除
+        if (lineText.startsWith('  ')) {
+          editor.value = editor.value.substring(0, lineStart) + editor.value.substring(lineStart + 2);
+          editor.selectionStart = editor.selectionEnd = Math.max(lineStart, start - 2);
+          editor.focus();
+          if (currentFile) {
+            files[currentFile] = editor.value;
+            saveFiles();
+            updateCount();
+          }
+        }
       });
     </script>
   </body>
