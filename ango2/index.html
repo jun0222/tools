@@ -42,7 +42,7 @@
       resize: vertical;
       outline: none;
       font-family: inherit;
-      min-height: 120px;
+      min-height: 80vh;
       padding: 10px;
       padding-top: 28px;
     }
@@ -65,7 +65,7 @@
       color: #888;
       cursor: pointer;
       font-size: 11px;
-      padding: 2px 6px;
+      padding: 4px 8px;
     }
 
     .icon-btn:hover {
@@ -129,8 +129,8 @@
         <div className="container">
           <div className="textarea-wrapper">
             <div className="textarea-buttons">
-              <button className="icon-btn" onClick={handleDecrypt}>F</button>
-              <button className="icon-btn" onClick={handleEncrypt}>A</button>
+              <button className="icon-btn" onClick={handleDecrypt}>←</button>
+              <button className="icon-btn" onClick={handleEncrypt}>→</button>
               <button className="icon-btn" onClick={handleCopy}>copy</button>
               <button className="icon-btn" onClick={handleClear}>clear</button>
             </div>
