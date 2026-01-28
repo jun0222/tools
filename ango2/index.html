@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>ango2 - 暗号メッセージ</title>
+  <title>ango2</title>
   <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -17,204 +17,78 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
-      background: #15202b;
-      color: #fff;
+      background: #fff;
+      color: #333;
       min-height: 100vh;
     }
 
     .container {
-      max-width: 600px;
+      max-width: 500px;
       margin: 0 auto;
-      padding: 16px;
+      padding: 20px;
     }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #38444d;
-      margin-bottom: 16px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 1.3rem;
-      color: #fff;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .header-btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-copy {
-      background: #1d9bf0;
-      color: #fff;
-    }
-
-    .btn-copy:hover {
-      background: #1a8cd8;
-    }
-
-    .btn-decrypt {
-      background: #00ba7c;
-      color: #fff;
-    }
-
-    .btn-decrypt:hover {
-      background: #00a06a;
-    }
-
-    /* 投稿フォーム */
-    .compose-area {
-      background: #192734;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
+    .textarea-wrapper {
+      position: relative;
     }
 
     .compose-textarea {
       width: 100%;
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 16px;
+      background: #fff;
+      border: 1px solid #ccc;
+      color: #333;
+      font-size: 14px;
       line-height: 1.5;
-      resize: none;
+      resize: vertical;
       outline: none;
       font-family: inherit;
-      min-height: 80px;
+      min-height: 120px;
+      padding: 10px;
+      padding-top: 32px;
+    }
+
+    .compose-textarea:focus {
+      border-color: #999;
     }
 
     .compose-textarea::placeholder {
-      color: #8899a6;
+      color: #999;
     }
 
-    .compose-footer {
+    .textarea-buttons {
+      position: absolute;
+      top: 4px;
+      right: 4px;
       display: flex;
-      justify-content: flex-end;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid #38444d;
+      gap: 2px;
     }
 
-    .post-btn {
-      padding: 10px 20px;
-      background: #1d9bf0;
-      color: #fff;
-      border: none;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      font-weight: 600;
+    .icon-btn {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      color: #888;
       cursor: pointer;
-    }
-
-    .post-btn:hover {
-      background: #1a8cd8;
-    }
-
-    .post-btn:disabled {
-      background: #1d9bf0;
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* メッセージ一覧 */
-    .messages {
+      font-size: 11px;
       display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .message-item {
-      padding: 16px;
-      border-bottom: 1px solid #38444d;
-    }
-
-    .message-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      justify-content: center;
+      padding: 0;
     }
 
-    .message-time {
-      font-size: 0.8rem;
-      color: #8899a6;
+    .icon-btn:hover {
+      background: #eee;
+      border-color: #bbb;
+      color: #555;
     }
 
-    .message-delete {
-      background: transparent;
-      border: none;
-      color: #8899a6;
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 4px;
-    }
-
-    .message-delete:hover {
-      color: #f4212e;
-    }
-
-    .message-content {
-      font-size: 15px;
-      line-height: 1.5;
-      word-break: break-all;
-      color: #e7e9ea;
-    }
-
-    /* 空の状態 */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #8899a6;
-    }
-
-    /* トースト */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1d9bf0;
-      color: #fff;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 100;
-    }
-
-    .toast.show {
-      opacity: 1;
-    }
-
-    /* スマホ対応 */
-    @media (max-width: 480px) {
-      .container {
-        padding: 12px;
-      }
-
-      header h1 {
-        font-size: 1.1rem;
-      }
-
-      .header-btn {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-      }
+    .dot-counter {
+      margin-top: 4px;
+      font-size: 8px;
+      color: #ddd;
+      letter-spacing: 0px;
+      min-height: 10px;
     }
   </style>
 </head>
@@ -261,26 +135,9 @@
       return result;
     }
 
-    // 日時フォーマット
-    function formatTime(timestamp) {
-      const date = new Date(timestamp);
-      const now = new Date();
-      const diff = now - date;
-
-      if (diff < 60000) return '今';
-      if (diff < 3600000) return Math.floor(diff / 60000) + '分前';
-      if (diff < 86400000) return Math.floor(diff / 3600000) + '時間前';
-
-      return date.toLocaleDateString('ja-JP', {
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-
     function App() {
       const [messages, setMessages] = useState([]);
       const [input, setInput] = useState('');
-      const [toast, setToast] = useState('');
       const textareaRef = useRef(null);
 
       // 初期化
@@ -296,136 +153,73 @@
         localStorage.setItem('ango2_messages', JSON.stringify(messages));
       }, [messages]);
 
-      // トースト表示
-      const showToast = (msg) => {
-        setToast(msg);
-        setTimeout(() => setToast(''), 2000);
-      };
-
-      // 投稿
+      // 投稿 (Shift+Enter)
       const handlePost = () => {
         if (!input.trim()) return;
 
         const encrypted = encrypt(input.trim());
         const newMessage = {
           id: Date.now(),
-          encrypted: encrypted,
-          timestamp: Date.now()
+          encrypted: encrypted
         };
 
         setMessages([newMessage, ...messages]);
         setInput('');
-        showToast('投稿しました');
       };
 
-      // 削除
-      const handleDelete = (id) => {
-        setMessages(messages.filter(m => m.id !== id));
-        showToast('削除しました');
+      // クリア
+      const handleClear = () => {
+        setMessages([]);
       };
 
       // 全体コピー（暗号文を---区切りで）
       const handleCopyAll = async () => {
-        if (messages.length === 0) {
-          showToast('メッセージがありません');
-          return;
-        }
-
+        if (messages.length === 0) return;
         const text = messages.map(m => m.encrypted).join('\n---\n');
-
         try {
           await navigator.clipboard.writeText(text);
-          showToast('暗号文をコピーしました');
-        } catch (err) {
-          showToast('コピーに失敗しました');
-        }
+        } catch (err) {}
       };
 
       // クリップボードから復号
       const handleDecryptClipboard = async () => {
         try {
           const clipboardText = await navigator.clipboard.readText();
-          if (!clipboardText.trim()) {
-            showToast('クリップボードが空です');
-            return;
-          }
+          if (!clipboardText.trim()) return;
 
-          // ---で分割して各パートを復号
           const parts = clipboardText.split('\n---\n');
           const decrypted = parts.map(part => decrypt(part.trim())).join('\n---\n');
 
           await navigator.clipboard.writeText(decrypted);
-          showToast('復号してコピーしました');
-        } catch (err) {
-          showToast('クリップボードへのアクセスに失敗しました');
-        }
+        } catch (err) {}
       };
 
-      // textarea自動リサイズ
-      const handleInputChange = (e) => {
-        setInput(e.target.value);
-        e.target.style.height = 'auto';
-        e.target.style.height = e.target.scrollHeight + 'px';
+      // キーボードイベント
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && e.shiftKey) {
+          e.preventDefault();
+          handlePost();
+        }
       };
 
       return (
         <div className="container">
-          <header>
-            <h1>ango2</h1>
-            <div className="header-actions">
-              <button className="header-btn btn-copy" onClick={handleCopyAll}>
-                コピー
-              </button>
-              <button className="header-btn btn-decrypt" onClick={handleDecryptClipboard}>
-                復号
-              </button>
+          <div className="textarea-wrapper">
+            <div className="textarea-buttons">
+              <button className="icon-btn" onClick={handleCopyAll} title="コピー">□</button>
+              <button className="icon-btn" onClick={handleDecryptClipboard} title="復号">-</button>
+              <button className="icon-btn" onClick={handleClear} title="クリア">×</button>
             </div>
-          </header>
-
-          <div className="compose-area">
             <textarea
               ref={textareaRef}
               className="compose-textarea"
-              placeholder="いまどうしてる？"
+              placeholder=""
               value={input}
-              onChange={handleInputChange}
-              rows={3}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
-            <div className="compose-footer">
-              <button
-                className="post-btn"
-                onClick={handlePost}
-                disabled={!input.trim()}
-              >
-                投稿
-              </button>
-            </div>
           </div>
-
-          <div className="messages">
-            {messages.length === 0 ? (
-              <div className="empty-state">
-                <p>まだ投稿がありません</p>
-              </div>
-            ) : (
-              messages.map(msg => (
-                <div key={msg.id} className="message-item">
-                  <div className="message-header">
-                    <span className="message-time">{formatTime(msg.timestamp)}</span>
-                    <button
-                      className="message-delete"
-                      onClick={() => handleDelete(msg.id)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="message-content">{msg.encrypted}</div>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
+          <div className="dot-counter">{'.'.repeat(messages.length)}</div>
         </div>
       );
     }
