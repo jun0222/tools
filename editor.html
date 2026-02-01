@@ -393,6 +393,8 @@
           <button id="export-btn" class="stylish-button">DL</button>
           <button id="copy-btn" class="stylish-button">copy</button>
           <button id="insert-title" class="stylish-button">#</button>
+          <button id="insert-title2" class="stylish-button">##</button>
+          <button id="insert-title3" class="stylish-button">###</button>
           <button id="insert-line" class="stylish-button">---</button>
           <button id="insert-todo" class="stylish-button">- []</button>
           <button id="insert-dash" class="stylish-button">-</button>
@@ -685,9 +687,15 @@
         } catch (err) {}
       });
 
-      // タイトル (#)
+      // タイトル (#, ##, ###)
       document.getElementById('insert-title').addEventListener('click', () => {
         insertTextAtCursor(document.getElementById('editor'), '# ');
+      });
+      document.getElementById('insert-title2').addEventListener('click', () => {
+        insertTextAtCursor(document.getElementById('editor'), '## ');
+      });
+      document.getElementById('insert-title3').addEventListener('click', () => {
+        insertTextAtCursor(document.getElementById('editor'), '### ');
       });
 
       // 区切り線 (---)
