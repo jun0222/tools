@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Viewer</title>
+    <link rel="icon" href="../img/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #1a1a1a;
+            --accent-yellow: #ffde03;
+            --accent-red: #ff2e63;
+            --accent-blue: #08d9d6;
+            --accent-green: #9dff00;
+            --accent-purple: #6c5ce7;
+            --text-dark: #1a1a1a;
+            --text-light: #f5f0e6;
+            --border-weight: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                );
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        header {
+            padding: 2rem;
+            border-bottom: var(--border-weight) solid var(--text-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(1.5rem, 6vw, 3rem);
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::before {
+            content: 'MERMAID';
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            color: var(--accent-purple);
+            z-index: -1;
+        }
+
+        .logo-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.3rem 0.8rem;
+            display: inline-block;
+            transform: rotate(-2deg);
+            margin-left: 1rem;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            opacity: 0.7;
+            max-width: 300px;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 120px);
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .editor-panel {
+            padding: 1.5rem;
+            border-right: var(--border-weight) solid var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .control-group {
+            border: var(--border-weight) solid var(--text-dark);
+            background: white;
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-label {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-content {
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 300px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            padding: 1rem;
+            border: 3px solid var(--text-dark);
+            background: var(--bg-primary);
+            outline: none;
+            resize: none;
+            line-height: 1.6;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            background: #fffef5;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .template-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .template-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.5rem 0.8rem;
+            border: 2px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .template-btn:hover {
+            background: var(--accent-yellow);
+            transform: translate(-2px, -2px);
+            box-shadow: 3px 3px 0 var(--text-dark);
+        }
+
+        .preview-panel {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            background:
+                repeating-linear-gradient(
+                    45deg,
+                    #e8e3d9,
+                    #e8e3d9 10px,
+                    #f5f0e6 10px,
+                    #f5f0e6 20px
+                );
+            position: relative;
+        }
+
+        .preview-container {
+            flex: 1;
+            border: var(--border-weight) solid var(--text-dark);
+            background: white;
+            position: relative;
+            box-shadow: 8px 8px 0 var(--text-dark);
+            overflow: auto;
+        }
+
+        .preview-label {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            background: var(--accent-purple);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            transform: rotate(-3deg);
+            z-index: 10;
+        }
+
+        #mermaid-output {
+            padding: 2rem;
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mermaid-output svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .error-message {
+            color: var(--accent-red);
+            font-size: 0.85rem;
+            padding: 1rem;
+            background: #fff0f3;
+            border: 2px solid var(--accent-red);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.8rem 1.5rem;
+            border: var(--border-weight) solid var(--text-dark);
+            background: var(--accent-green);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .btn-primary:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 0 var(--text-dark);
+        }
+
+        .btn-primary:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            padding: 0.8rem 1.2rem;
+            border: 3px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            transform: translate(-2px, -2px);
+            box-shadow: 3px 3px 0 var(--text-dark);
+        }
+
+        footer {
+            padding: 1rem 2rem;
+            border-top: var(--border-weight) solid var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .footer-badge {
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+        }
+
+        /* Animation */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-group {
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        .preview-container {
+            animation: slideIn 0.6s ease-out 0.2s backwards;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 1rem 2rem;
+            font-family: 'DM Mono', monospace;
+            border: 3px solid var(--accent-green);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+
+<header>
+    <div class="header-content">
+        <div>
+            <span class="logo">MERMAID</span>
+            <span class="logo-sub">VIEWER</span>
+        </div>
+        <p class="tagline">テキストから美しいダイアグラムを生成</p>
+    </div>
+</header>
+
+<main>
+    <div class="editor-panel">
+        <div class="control-group">
+            <label class="control-label">
+                <span>Mermaid Code</span>
+            </label>
+            <div class="control-content">
+                <div class="template-buttons">
+                    <button class="template-btn" data-template="flowchart">Flowchart</button>
+                    <button class="template-btn" data-template="sequence">Sequence</button>
+                    <button class="template-btn" data-template="class">Class</button>
+                    <button class="template-btn" data-template="er">ER Diagram</button>
+                    <button class="template-btn" data-template="gantt">Gantt</button>
+                    <button class="template-btn" data-template="pie">Pie Chart</button>
+                </div>
+                <textarea id="mermaid-input" placeholder="Mermaidコードを入力...">flowchart TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[Ship it!]</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-panel">
+        <div class="preview-container">
+            <span class="preview-label">Preview</span>
+            <div id="mermaid-output"></div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn-primary" id="download-svg">
+                SVG
+            </button>
+            <button class="btn-primary" id="download-png">
+                PNG
+            </button>
+            <button class="btn-secondary" id="copy-btn">
+                クリップボードにコピー
+            </button>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <span>Diagram as Code</span>
+    <span class="footer-badge">VISUALIZE</span>
+</footer>
+
+<div class="toast" id="toast">コピーしました！</div>
+
+<script>
+    const input = document.getElementById('mermaid-input');
+    const output = document.getElementById('mermaid-output');
+    const templateBtns = document.querySelectorAll('.template-btn');
+    const downloadSvgBtn = document.getElementById('download-svg');
+    const downloadPngBtn = document.getElementById('download-png');
+    const copyBtn = document.getElementById('copy-btn');
+    const toast = document.getElementById('toast');
+
+    const templates = {
+        flowchart: `flowchart TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[Ship it!]`,
+        sequence: `sequenceDiagram
+    participant User
+    participant System
+    participant Database
+
+    User->>System: Request data
+    System->>Database: Query
+    Database-->>System: Results
+    System-->>User: Response`,
+        class: `classDiagram
+    class Animal {
+        +String name
+        +int age
+        +makeSound()
+    }
+    class Dog {
+        +String breed
+        +bark()
+    }
+    class Cat {
+        +String color
+        +meow()
+    }
+    Animal <|-- Dog
+    Animal <|-- Cat`,
+        er: `erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ LINE_ITEM : contains
+    PRODUCT ||--o{ LINE_ITEM : "ordered in"
+    USER {
+        int id PK
+        string name
+        string email
+    }
+    ORDER {
+        int id PK
+        date created_at
+    }`,
+        gantt: `gantt
+    title Project Schedule
+    dateFormat YYYY-MM-DD
+    section Planning
+        Requirements    :a1, 2024-01-01, 7d
+        Design          :a2, after a1, 5d
+    section Development
+        Implementation  :a3, after a2, 14d
+        Testing         :a4, after a3, 7d
+    section Launch
+        Deploy          :a5, after a4, 2d`,
+        pie: `pie showData
+    title Browser Market Share
+    "Chrome" : 65
+    "Safari" : 19
+    "Firefox" : 10
+    "Edge" : 4
+    "Other" : 2`
+    };
+
+    // Initialize mermaid
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default',
+        securityLevel: 'loose',
+        fontFamily: 'DM Mono, monospace'
+    });
+
+    let renderTimeout;
+
+    async function renderDiagram() {
+        const code = input.value.trim();
+        if (!code) {
+            output.innerHTML = '<p style="color: #888; text-align: center;">Mermaidコードを入力してください</p>';
+            return;
+        }
+
+        try {
+            // Clear previous content
+            output.innerHTML = '';
+
+            // Generate unique ID
+            const id = 'mermaid-' + Date.now();
+
+            // Render
+            const { svg } = await mermaid.render(id, code);
+            output.innerHTML = svg;
+        } catch (error) {
+            output.innerHTML = `<div class="error-message">
+                <strong>Error:</strong> ${error.message || 'Invalid Mermaid syntax'}
+            </div>`;
+        }
+    }
+
+    // Debounced render
+    input.addEventListener('input', () => {
+        clearTimeout(renderTimeout);
+        renderTimeout = setTimeout(renderDiagram, 500);
+    });
+
+    // Template buttons
+    templateBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const template = btn.dataset.template;
+            if (templates[template]) {
+                input.value = templates[template];
+                renderDiagram();
+            }
+        });
+    });
+
+    // Download SVG
+    downloadSvgBtn.addEventListener('click', () => {
+        const svg = output.querySelector('svg');
+        if (!svg) {
+            showToast('ダイアグラムがありません');
+            return;
+        }
+
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.download = `mermaid-${Date.now()}.svg`;
+        link.href = url;
+        link.click();
+
+        URL.revokeObjectURL(url);
+    });
+
+    // Download PNG
+    downloadPngBtn.addEventListener('click', async () => {
+        const svg = output.querySelector('svg');
+        if (!svg) {
+            showToast('ダイアグラムがありません');
+            return;
+        }
+
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = () => {
+            canvas.width = img.width * 2;
+            canvas.height = img.height * 2;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const link = document.createElement('a');
+            link.download = `mermaid-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        };
+
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    });
+
+    // Copy to clipboard
+    copyBtn.addEventListener('click', async () => {
+        const svg = output.querySelector('svg');
+        if (!svg) {
+            showToast('ダイアグラムがありません');
+            return;
+        }
+
+        try {
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = async () => {
+                canvas.width = img.width * 2;
+                canvas.height = img.height * 2;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(async (blob) => {
+                    try {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                        showToast('コピーしました！');
+                    } catch (err) {
+                        showToast('コピーに失敗しました');
+                    }
+                }, 'image/png');
+            };
+
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        } catch (err) {
+            showToast('コピーに失敗しました');
+        }
+    });
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Initial render
+    renderDiagram();
+</script>
+</body>
+</html>
