@@ -250,14 +250,10 @@
         #mermaid-output {
             padding: 2rem;
             min-height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         #mermaid-output svg {
-            max-width: 100%;
-            height: auto;
+            display: block;
         }
 
         .error-message {
@@ -404,11 +400,30 @@
                     <button class="template-btn" data-template="pie">Pie Chart</button>
                 </div>
                 <textarea id="mermaid-input" placeholder="Mermaidコードを入力...">flowchart TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> B
-    C --> E[Ship it!]</textarea>
+    subgraph Frontend
+        A[User] --> B[React App]
+        B --> C[Redux Store]
+        C --> D[API Client]
+    end
+
+    subgraph Backend
+        E[API Gateway] --> F[Auth Service]
+        E --> G[User Service]
+        E --> H[Order Service]
+        F --> I[(Redis Cache)]
+        G --> J[(PostgreSQL)]
+        H --> J
+        H --> K[Payment Service]
+    end
+
+    subgraph External
+        K --> L[Stripe API]
+        M[Email Service] --> N[SendGrid]
+    end
+
+    D --> E
+    G --> M
+    H --> M</textarea>
             </div>
         </div>
     </div>
@@ -450,66 +465,237 @@
 
     const templates = {
         flowchart: `flowchart TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> B
-    C --> E[Ship it!]`,
-        sequence: `sequenceDiagram
-    participant User
-    participant System
-    participant Database
+    subgraph Frontend
+        A[User] --> B[React App]
+        B --> C[Redux Store]
+        C --> D[API Client]
+    end
 
-    User->>System: Request data
-    System->>Database: Query
-    Database-->>System: Results
-    System-->>User: Response`,
+    subgraph Backend
+        E[API Gateway] --> F[Auth Service]
+        E --> G[User Service]
+        E --> H[Order Service]
+        F --> I[(Redis Cache)]
+        G --> J[(PostgreSQL)]
+        H --> J
+        H --> K[Payment Service]
+    end
+
+    subgraph External
+        K --> L[Stripe API]
+        M[Email Service] --> N[SendGrid]
+    end
+
+    D --> E
+    G --> M
+    H --> M`,
+        sequence: `sequenceDiagram
+    autonumber
+    participant U as User
+    participant F as Frontend
+    participant A as API Gateway
+    participant Auth as Auth Service
+    participant DB as Database
+    participant Cache as Redis
+    participant Email as Email Service
+
+    U->>F: Login Request
+    F->>A: POST /auth/login
+    A->>Auth: Validate Credentials
+    Auth->>DB: Query User
+    DB-->>Auth: User Data
+    Auth->>Auth: Generate JWT
+    Auth->>Cache: Store Session
+    Auth-->>A: JWT Token
+    A-->>F: 200 OK + Token
+    F->>F: Store Token
+    F-->>U: Login Success
+
+    Note over U,Email: User makes a purchase
+
+    U->>F: Add to Cart
+    F->>A: POST /cart/items
+    A->>DB: Update Cart
+    DB-->>A: Confirmation
+    A-->>F: 200 OK
+    F-->>U: Item Added
+
+    U->>F: Checkout
+    F->>A: POST /orders
+    A->>DB: Create Order
+    A->>Email: Send Confirmation
+    Email-->>U: Order Email`,
         class: `classDiagram
-    class Animal {
-        +String name
-        +int age
-        +makeSound()
+    class Application {
+        +Router router
+        +Database db
+        +start()
+        +stop()
     }
-    class Dog {
-        +String breed
-        +bark()
+
+    class Router {
+        -routes Map
+        +get(path, handler)
+        +post(path, handler)
+        +use(middleware)
     }
-    class Cat {
-        +String color
-        +meow()
+
+    class Controller {
+        <<abstract>>
+        #service Service
+        +handle(req, res)*
     }
-    Animal <|-- Dog
-    Animal <|-- Cat`,
+
+    class UserController {
+        +getUser(req, res)
+        +createUser(req, res)
+        +updateUser(req, res)
+        +deleteUser(req, res)
+    }
+
+    class Service {
+        <<interface>>
+        +find(id)
+        +findAll()
+        +create(data)
+        +update(id, data)
+        +delete(id)
+    }
+
+    class UserService {
+        -repository UserRepository
+        +find(id)
+        +findAll()
+        +create(data)
+        +update(id, data)
+        +delete(id)
+    }
+
+    class Repository {
+        <<interface>>
+        +findById(id)
+        +save(entity)
+    }
+
+    class UserRepository {
+        -db Database
+        +findById(id)
+        +save(entity)
+    }
+
+    Application --> Router
+    Application --> Controller
+    Controller <|-- UserController
+    Controller --> Service
+    Service <|.. UserService
+    UserService --> Repository
+    Repository <|.. UserRepository`,
         er: `erDiagram
     USER ||--o{ ORDER : places
-    ORDER ||--|{ LINE_ITEM : contains
-    PRODUCT ||--o{ LINE_ITEM : "ordered in"
+    USER ||--o{ REVIEW : writes
+    USER ||--o{ ADDRESS : has
     USER {
         int id PK
-        string name
-        string email
+        string email UK
+        string password_hash
+        string first_name
+        string last_name
+        datetime created_at
+        datetime updated_at
     }
+
+    ORDER ||--|{ ORDER_ITEM : contains
+    ORDER ||--o| PAYMENT : has
+    ORDER ||--o| SHIPPING : has
     ORDER {
         int id PK
-        date created_at
+        int user_id FK
+        string status
+        decimal total_amount
+        datetime order_date
+        int shipping_address_id FK
+    }
+
+    PRODUCT ||--o{ ORDER_ITEM : "ordered in"
+    PRODUCT ||--o{ REVIEW : receives
+    PRODUCT }o--|| CATEGORY : "belongs to"
+    PRODUCT {
+        int id PK
+        string name
+        text description
+        decimal price
+        int stock_quantity
+        int category_id FK
+    }
+
+    CATEGORY {
+        int id PK
+        string name
+        int parent_id FK
+    }
+
+    ORDER_ITEM {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int quantity
+        decimal unit_price
+    }
+
+    PAYMENT {
+        int id PK
+        int order_id FK
+        string method
+        string status
+        decimal amount
+        datetime paid_at
     }`,
         gantt: `gantt
-    title Project Schedule
+    title E-Commerce Platform Development
     dateFormat YYYY-MM-DD
-    section Planning
-        Requirements    :a1, 2024-01-01, 7d
-        Design          :a2, after a1, 5d
+
+    section Discovery
+        Market Research          :a1, 2024-01-01, 14d
+        Competitor Analysis      :a2, 2024-01-08, 10d
+        Requirements Gathering   :a3, after a1, 7d
+        Technical Feasibility    :a4, after a2, 5d
+
+    section Design
+        System Architecture      :b1, after a3, 10d
+        Database Design          :b2, after b1, 7d
+        API Design               :b3, after b1, 7d
+        UI/UX Design             :b4, after a3, 21d
+        Design Review            :milestone, b5, after b4, 0d
+
     section Development
-        Implementation  :a3, after a2, 14d
-        Testing         :a4, after a3, 7d
+        Backend Setup            :c1, after b2, 5d
+        User Authentication      :c2, after c1, 10d
+        Product Catalog          :c3, after c1, 14d
+        Shopping Cart            :c4, after c2, 10d
+        Checkout & Payment       :c5, after c4, 14d
+        Order Management         :c6, after c5, 10d
+        Frontend Development     :c7, after b4, 30d
+        Admin Dashboard          :c8, after c6, 14d
+
+    section Testing
+        Unit Testing             :d1, after c3, 21d
+        Integration Testing      :d2, after c6, 14d
+        UAT                      :d3, after d2, 10d
+        Performance Testing      :d4, after d2, 7d
+
     section Launch
-        Deploy          :a5, after a4, 2d`,
+        Staging Deployment       :e1, after d3, 3d
+        Production Deployment    :e2, after e1, 2d
+        Monitoring Setup         :e3, after e2, 3d
+        Go Live                  :milestone, e4, after e3, 0d`,
         pie: `pie showData
-    title Browser Market Share
-    "Chrome" : 65
-    "Safari" : 19
-    "Firefox" : 10
-    "Edge" : 4
+    title Project Time Allocation
+    "Development" : 40
+    "Testing & QA" : 20
+    "Design" : 15
+    "Planning" : 10
+    "Documentation" : 8
+    "Meetings" : 5
     "Other" : 2`
     };
 
