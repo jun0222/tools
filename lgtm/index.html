@@ -749,7 +749,33 @@
         setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    // Initial draw
+    // ランダム初期化
+    function initializeRandom() {
+        // ランダムにスタイルを選択
+        const styleArray = Array.from(styleBtns);
+        const randomStyleBtn = styleArray[Math.floor(Math.random() * styleArray.length)];
+        styleBtns.forEach(b => b.classList.remove('active'));
+        randomStyleBtn.classList.add('active');
+        currentStyle = randomStyleBtn.dataset.style;
+
+        // ランダムなカラーコードを生成
+        const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        colorBtns.forEach(b => b.classList.remove('active'));
+        document.querySelector('.custom-color').classList.add('active');
+        customColorInput.value = randomColor;
+        currentBg = randomColor;
+
+        // 輝度に基づいてコントラストカラーを計算
+        const hex = randomColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        currentFg = luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+    }
+
+    // Initial random selection and draw
+    initializeRandom();
     drawCanvas();
 
     // Redraw when fonts are loaded
