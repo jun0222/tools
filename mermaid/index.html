@@ -229,7 +229,7 @@
             background: white;
             position: relative;
             box-shadow: 8px 8px 0 var(--text-dark);
-            overflow: auto;
+            overflow: hidden;
         }
 
         .preview-label {
@@ -247,9 +247,58 @@
             z-index: 10;
         }
 
+        .zoom-controls {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.3rem;
+            z-index: 10;
+            background: white;
+            padding: 0.3rem;
+            border: 2px solid var(--text-dark);
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--text-dark);
+            background: white;
+            font-family: 'DM Mono', monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .zoom-btn:hover {
+            background: var(--accent-yellow);
+        }
+
+        .zoom-level {
+            min-width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 2px solid var(--text-dark);
+            background: var(--bg-primary);
+        }
+
         #mermaid-output {
             padding: 2rem;
             min-height: 100%;
+            cursor: grab;
+            transform-origin: 0 0;
+            transition: none;
+        }
+
+        #mermaid-output.dragging {
+            cursor: grabbing;
         }
 
         #mermaid-output svg {
@@ -429,9 +478,15 @@
     </div>
 
     <div class="preview-panel">
-        <div class="preview-container">
+        <div class="preview-container" id="preview-container">
             <span class="preview-label">Preview</span>
             <div id="mermaid-output"></div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoom-out">−</button>
+                <span class="zoom-level" id="zoom-level">100%</span>
+                <button class="zoom-btn" id="zoom-in">+</button>
+                <button class="zoom-btn" id="zoom-reset">↺</button>
+            </div>
         </div>
         <div class="action-buttons">
             <button class="btn-primary" id="download-svg">
@@ -457,11 +512,87 @@
 <script>
     const input = document.getElementById('mermaid-input');
     const output = document.getElementById('mermaid-output');
+    const previewContainer = document.getElementById('preview-container');
     const templateBtns = document.querySelectorAll('.template-btn');
     const downloadSvgBtn = document.getElementById('download-svg');
     const downloadPngBtn = document.getElementById('download-png');
     const copyBtn = document.getElementById('copy-btn');
     const toast = document.getElementById('toast');
+    const zoomInBtn = document.getElementById('zoom-in');
+    const zoomOutBtn = document.getElementById('zoom-out');
+    const zoomResetBtn = document.getElementById('zoom-reset');
+    const zoomLevelDisplay = document.getElementById('zoom-level');
+
+    // Zoom & Pan state
+    let scale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX, startY;
+
+    function updateTransform() {
+        output.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        zoomLevelDisplay.textContent = Math.round(scale * 100) + '%';
+    }
+
+    function resetView() {
+        scale = 1;
+        panX = 0;
+        panY = 0;
+        updateTransform();
+    }
+
+    // Zoom controls
+    zoomInBtn.addEventListener('click', () => {
+        scale = Math.min(scale * 1.2, 5);
+        updateTransform();
+    });
+
+    zoomOutBtn.addEventListener('click', () => {
+        scale = Math.max(scale / 1.2, 0.1);
+        updateTransform();
+    });
+
+    zoomResetBtn.addEventListener('click', resetView);
+
+    // Mouse wheel zoom
+    previewContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = previewContainer.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        const newScale = Math.min(Math.max(scale * delta, 0.1), 5);
+
+        // Zoom toward mouse position
+        const scaleChange = newScale / scale;
+        panX = mouseX - (mouseX - panX) * scaleChange;
+        panY = mouseY - (mouseY - panY) * scaleChange;
+        scale = newScale;
+
+        updateTransform();
+    });
+
+    // Pan with mouse drag
+    output.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+        output.classList.add('dragging');
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        panX = e.clientX - startX;
+        panY = e.clientY - startY;
+        updateTransform();
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        output.classList.remove('dragging');
+    });
 
     const templates = {
         flowchart: `flowchart TD
@@ -726,6 +857,7 @@
             // Render
             const { svg } = await mermaid.render(id, code);
             output.innerHTML = svg;
+            resetView();
         } catch (error) {
             output.innerHTML = `<div class="error-message">
                 <strong>Error:</strong> ${error.message || 'Invalid Mermaid syntax'}
