@@ -208,6 +208,48 @@
             box-shadow: 3px 3px 0 var(--text-dark);
         }
 
+        .snippets-section {
+            border-top: 2px dashed var(--text-dark);
+            padding-top: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .snippets-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .snippets-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .snippet-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #ccc;
+            background: #f8f8f8;
+            cursor: pointer;
+            transition: all 0.1s;
+            border-radius: 2px;
+        }
+
+        .snippet-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: var(--text-dark);
+        }
+
+        .snippet-btn.copied {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
         .preview-panel {
             padding: 1.5rem;
             display: flex;
@@ -448,6 +490,42 @@
                     <button class="template-btn" data-template="gantt">Gantt</button>
                     <button class="template-btn" data-template="pie">Pie Chart</button>
                 </div>
+
+                <div class="snippets-section">
+                    <div class="snippets-label">Snippets (click to copy)</div>
+                    <div class="snippets-grid" id="snippets-grid">
+                        <!-- Flowchart -->
+                        <button class="snippet-btn" data-snippet="A --> B">--></button>
+                        <button class="snippet-btn" data-snippet="A -->|text| B">-->|text|</button>
+                        <button class="snippet-btn" data-snippet="A --- B">---</button>
+                        <button class="snippet-btn" data-snippet="A -.-> B">-.-></button>
+                        <button class="snippet-btn" data-snippet="A ==> B">==></button>
+                        <button class="snippet-btn" data-snippet="[Rectangle]">[Box]</button>
+                        <button class="snippet-btn" data-snippet="(Rounded)">(Round)</button>
+                        <button class="snippet-btn" data-snippet="{Diamond}">{Decision}</button>
+                        <button class="snippet-btn" data-snippet="[(Database)]">[(DB)]</button>
+                        <button class="snippet-btn" data-snippet="((Circle))">((Circle))</button>
+                        <button class="snippet-btn" data-snippet="[[Subroutine]]">[[Sub]]</button>
+                        <button class="snippet-btn" data-snippet="subgraph Name&#10;    &#10;end">subgraph</button>
+                        <!-- Sequence -->
+                        <button class="snippet-btn" data-snippet="->>">->> sync</button>
+                        <button class="snippet-btn" data-snippet="-->>">-->> reply</button>
+                        <button class="snippet-btn" data-snippet="-)">-) async</button>
+                        <button class="snippet-btn" data-snippet="Note over A,B: text">Note over</button>
+                        <button class="snippet-btn" data-snippet="loop Description&#10;    &#10;end">loop</button>
+                        <button class="snippet-btn" data-snippet="alt Condition&#10;    &#10;else Other&#10;    &#10;end">alt/else</button>
+                        <button class="snippet-btn" data-snippet="participant A as Alias">participant</button>
+                        <!-- Class -->
+                        <button class="snippet-btn" data-snippet="class Name {&#10;    +method()&#10;}">class {}</button>
+                        <button class="snippet-btn" data-snippet="A <|-- B"><|-- extend</button>
+                        <button class="snippet-btn" data-snippet="A *-- B">*-- compose</button>
+                        <button class="snippet-btn" data-snippet="A o-- B">o-- aggregate</button>
+                        <!-- ER -->
+                        <button class="snippet-btn" data-snippet="A ||--o{ B : has">||--o{ 1:N</button>
+                        <button class="snippet-btn" data-snippet="A ||--|| B : is">||--|| 1:1</button>
+                        <button class="snippet-btn" data-snippet="A }o--o{ B : many">}o--o{ N:N</button>
+                    </div>
+                </div>
                 <textarea id="mermaid-input" placeholder="Mermaidコードを入力...">flowchart TD
     subgraph Frontend
         A[User] --> B[React App]
@@ -592,6 +670,22 @@
     document.addEventListener('mouseup', () => {
         isDragging = false;
         output.classList.remove('dragging');
+    });
+
+    // Snippets
+    const snippetBtns = document.querySelectorAll('.snippet-btn');
+    snippetBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const snippet = btn.dataset.snippet;
+            try {
+                await navigator.clipboard.writeText(snippet);
+                btn.classList.add('copied');
+                setTimeout(() => btn.classList.remove('copied'), 500);
+                showToast('Copied: ' + snippet.split('\n')[0]);
+            } catch (err) {
+                showToast('Copy failed');
+            }
+        });
     });
 
     const templates = {
