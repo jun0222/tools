@@ -280,35 +280,35 @@
                         <option value="UK">UK</option>
                         <option value="CN">CN</option>
                     </select>
-                    <input type="number" id="sizeInput" step="0.5" value="27" placeholder="27">
+                    <input type="number" id="sizeInput" step="0.5" value="28" placeholder="28">
                 </div>
             </div>
 
             <div class="results" id="results">
                 <div class="result-item" data-system="JP">
                     <div class="result-label">JP</div>
-                    <div class="result-value" id="result-jp">27</div>
+                    <div class="result-value" id="result-jp">28</div>
                     <div class="result-unit">cm</div>
                 </div>
                 <div class="result-item" data-system="EU">
                     <div class="result-label">EU</div>
-                    <div class="result-value" id="result-eu">43</div>
+                    <div class="result-value" id="result-eu">44</div>
                 </div>
                 <div class="result-item" data-system="US">
                     <div class="result-label">US</div>
-                    <div class="result-value" id="result-us">9.5</div>
+                    <div class="result-value" id="result-us">11</div>
                 </div>
                 <div class="result-item" data-system="UK">
                     <div class="result-label">UK</div>
-                    <div class="result-value" id="result-uk">8.5</div>
+                    <div class="result-value" id="result-uk">10</div>
                 </div>
                 <div class="result-item" data-system="CN">
                     <div class="result-label">CN</div>
-                    <div class="result-value" id="result-cn">43</div>
+                    <div class="result-value" id="result-cn">46</div>
                 </div>
                 <div class="result-item" data-system="MM">
                     <div class="result-label">MM</div>
-                    <div class="result-value" id="result-mm">270</div>
+                    <div class="result-value" id="result-mm">280</div>
                     <div class="result-unit">mm</div>
                 </div>
             </div>
@@ -343,14 +343,14 @@
         const v = parseFloat(value);
         if (isNaN(v)) return null;
 
-        const offset = gender === 'women' ? 1 : 0;
-
+        // Men: JP28 = EU44, UK10, US11, CN46
+        // Women: US/UK typically 1.5 size smaller display
         switch (system) {
             case 'JP': return v;
-            case 'EU': return (v - 10) / 1.5;
-            case 'US': return gender === 'men' ? v + 17.5 : v + 16;
-            case 'UK': return v + 18.5;
-            case 'CN': return (v - 10) / 1.5;
+            case 'EU': return v - 16;
+            case 'US': return gender === 'men' ? v + 17 : v + 18.5;
+            case 'UK': return v + 18;
+            case 'CN': return v - 18;
             case 'MM': return v / 10;
             default: return v;
         }
@@ -363,10 +363,10 @@
 
         return {
             JP: round(jp),
-            EU: Math.round(jp * 1.5 + 10),
-            US: gender === 'men' ? round(jp - 17.5) : round(jp - 16),
-            UK: round(jp - 18.5),
-            CN: Math.round(jp * 1.5 + 10),
+            EU: Math.round(jp + 16),
+            US: gender === 'men' ? round(jp - 17) : round(jp - 18.5),
+            UK: round(jp - 18),
+            CN: Math.round(jp + 18),
             MM: Math.round(jp * 10)
         };
     }
