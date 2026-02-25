@@ -87,7 +87,14 @@
       for (let i = 0; i < SECRET_KEY.length; i++) shift += SECRET_KEY.charCodeAt(i);
       shift = shift % 1000;
       let result = '';
-      for (let i = 0; i < text.length; i++) result += String.fromCharCode(text.charCodeAt(i) + shift);
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '\n') {
+          result += char;
+        } else {
+          result += String.fromCharCode(text.charCodeAt(i) + shift);
+        }
+      }
       return result;
     }
 
@@ -96,7 +103,14 @@
       for (let i = 0; i < SECRET_KEY.length; i++) shift += SECRET_KEY.charCodeAt(i);
       shift = shift % 1000;
       let result = '';
-      for (let i = 0; i < text.length; i++) result += String.fromCharCode(text.charCodeAt(i) - shift);
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '\n') {
+          result += char;
+        } else {
+          result += String.fromCharCode(text.charCodeAt(i) - shift);
+        }
+      }
       return result;
     }
 
