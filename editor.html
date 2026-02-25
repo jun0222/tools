@@ -398,7 +398,7 @@
           <button id="insert-line" class="stylish-button">---</button>
           <button id="insert-todo" class="stylish-button">- []</button>
           <button id="insert-dash" class="stylish-button">-</button>
-          <button id="insert-spaces" class="stylish-button">&nbsp;&nbsp;</button>
+          <button id="insert-spaces" class="stylish-button">→</button>
           <button id="delete-indent" class="stylish-button">←</button>
         </div>
       </div>
@@ -676,7 +676,19 @@
       });
 
       document.getElementById('insert-spaces').addEventListener('click', () => {
-        insertTextAtCursor(document.getElementById('editor'), '  ');
+        const editor = document.getElementById('editor');
+        const start = editor.selectionStart;
+        const lineStart = editor.value.lastIndexOf('\n', start - 1) + 1;
+
+        // 行頭にスペース2つを追加
+        editor.value = editor.value.substring(0, lineStart) + '  ' + editor.value.substring(lineStart);
+        editor.selectionStart = editor.selectionEnd = start + 2;
+        editor.focus();
+        if (currentFile) {
+          files[currentFile] = editor.value;
+          saveFiles();
+          updateCount();
+        }
       });
 
       // コピー
