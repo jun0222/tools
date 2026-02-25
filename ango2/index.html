@@ -125,10 +125,33 @@
       // クリア
       const handleClear = () => setInput('');
 
+      // カーソル位置にテキストを挿入
+      const insertAtCursor = (textToInsert) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newText = input.substring(0, start) + textToInsert + input.substring(end);
+        setInput(newText);
+        // カーソル位置を挿入後に移動
+        setTimeout(() => {
+          textarea.focus();
+          textarea.selectionStart = textarea.selectionEnd = start + textToInsert.length;
+        }, 0);
+      };
+
+      // リスト挿入
+      const handleInsertList = () => insertAtCursor('- ');
+
+      // チェックボックス挿入
+      const handleInsertCheckbox = () => insertAtCursor('- [ ] ');
+
       return (
         <div className="container">
           <div className="textarea-wrapper">
             <div className="textarea-buttons">
+              <button className="icon-btn" onClick={handleInsertList}>-</button>
+              <button className="icon-btn" onClick={handleInsertCheckbox}>☐</button>
               <button className="icon-btn" onClick={handleDecrypt}>←</button>
               <button className="icon-btn" onClick={handleEncrypt}>→</button>
               <button className="icon-btn" onClick={handleCopy}>copy</button>
