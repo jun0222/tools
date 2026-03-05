@@ -1,220 +1,491 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>日報</title>
     <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-      .toast {
-        visibility: hidden;
-        min-width: 250px;
-        margin-left: -125px;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 2px;
-        padding: 16px;
-        position: fixed;
-        z-index: 1;
-        left: 50%;
-        bottom: 30px;
-        font-size: 17px;
-      }
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #1a1a1a;
+            --accent-yellow: #ffde03;
+            --accent-red: #ff2e63;
+            --accent-blue: #08d9d6;
+            --accent-green: #9dff00;
+            --accent-purple: #6c5ce7;
+            --text-dark: #1a1a1a;
+            --text-light: #f5f0e6;
+            --border-weight: 4px;
+        }
 
-      .toast.show {
-        visibility: visible;
-        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        animation: fadein 0.5s, fadeout 0.5s 2.5s;
-      }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-      @-webkit-keyframes fadein {
-        from {
-          bottom: 0;
-          opacity: 0;
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                );
         }
-        to {
-          bottom: 30px;
-          opacity: 1;
-        }
-      }
 
-      @keyframes fadein {
-        from {
-          bottom: 0;
-          opacity: 0;
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
-        to {
-          bottom: 30px;
-          opacity: 1;
-        }
-      }
 
-      @-webkit-keyframes fadeout {
-        from {
-          bottom: 30px;
-          opacity: 1;
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: var(--border-weight) solid var(--text-dark);
+            position: relative;
         }
-        to {
-          bottom: 0;
-          opacity: 0;
-        }
-      }
 
-      @keyframes fadeout {
-        from {
-          bottom: 30px;
-          opacity: 1;
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
         }
-        to {
-          bottom: 0;
-          opacity: 0;
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            position: relative;
+            display: inline-block;
         }
-      }
+
+        .logo::before {
+            content: '日報';
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            color: var(--accent-blue);
+            z-index: -1;
+        }
+
+        .logo-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.3rem 0.8rem;
+            display: inline-block;
+            transform: rotate(-2deg);
+            margin-left: 0.8rem;
+        }
+
+        .save-status {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            border: 2px solid var(--text-dark);
+            background: white;
+        }
+
+        .save-status.saving {
+            background: var(--accent-yellow);
+        }
+
+        .save-status.saved {
+            background: var(--accent-green);
+        }
+
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .control-group {
+            border: var(--border-weight) solid var(--text-dark);
+            background: white;
+            position: relative;
+            margin-bottom: 1.5rem;
+            box-shadow: 6px 6px 0 var(--text-dark);
+        }
+
+        .control-label {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-label-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            background: var(--accent-purple);
+            padding: 0.2rem 0.5rem;
+            color: white;
+        }
+
+        .control-content {
+            padding: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.95rem;
+            padding: 1rem;
+            border: 3px solid var(--text-dark);
+            background: var(--bg-primary);
+            outline: none;
+            resize: none;
+            line-height: 1.6;
+            transition: all 0.2s;
+            min-height: 120px;
+            overflow: hidden;
+        }
+
+        textarea:focus {
+            background: #fffef5;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .settings-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .setting-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        select {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            padding: 0.5rem 0.8rem;
+            border: 3px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus {
+            background: var(--accent-yellow);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.8rem 1.5rem;
+            border: var(--border-weight) solid var(--text-dark);
+            background: var(--accent-green);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .btn-primary:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 0 var(--text-dark);
+        }
+
+        .btn-primary:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        .btn-primary.blue {
+            background: var(--accent-blue);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 1rem 2rem;
+            font-family: 'DM Mono', monospace;
+            border: 3px solid var(--accent-green);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-group {
+            animation: slideIn 0.4s ease-out backwards;
+        }
+
+        .control-group:nth-child(1) { animation-delay: 0.1s; }
+        .control-group:nth-child(2) { animation-delay: 0.2s; }
+        .control-group:nth-child(3) { animation-delay: 0.3s; }
     </style>
-  </head>
-  <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-2xl">
-      <h1 class="text-2xl font-bold text-gray-800 mb-4">日報</h1>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div id="root"></div>
 
-      <label for="date-format" class="block text-gray-700 font-medium mb-2"
-        >日付形式</label
-      >
-      <select
-        id="date-format"
-        class="block w-full p-2 mb-6 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="short">11/11</option>
-        <option value="long">11月11日(月)</option>
-      </select>
+<script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
 
-      <div class="mb-6">
-        <label for="message1" class="block text-gray-700 font-medium mb-2"
-          >始業</label
-        >
-        <div class="relative">
-          <textarea
-            id="message1"
-            rows="4"
-            placeholder="メッセージ1を入力"
-            class="block w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          ></textarea>
-          <button
-            id="copy-message1"
-            class="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 focus:ring-2 focus:ring-blue-300"
-          >
-            コピー
-          </button>
-        </div>
-      </div>
+    const STORAGE_KEY = 'latestReport';
 
-      <div class="mb-6">
-        <label for="message2" class="block text-gray-700 font-medium mb-2"
-          >終業</label
-        >
-        <div class="relative">
-          <textarea
-            id="message2"
-            rows="4"
-            placeholder="メッセージ2を入力"
-            class="block w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          ></textarea>
-          <button
-            id="copy-message2"
-            class="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 focus:ring-2 focus:ring-blue-300"
-          >
-            コピー
-          </button>
-        </div>
-      </div>
+    function App() {
+        const [message1, setMessage1] = useState('');
+        const [message2, setMessage2] = useState('');
+        const [dateFormat, setDateFormat] = useState('short');
+        const [saveStatus, setSaveStatus] = useState('saved');
+        const [toast, setToast] = useState({ show: false, message: '' });
 
-      <button
-        id="save"
-        class="w-full bg-green-500 text-white py-3 rounded-lg shadow hover:bg-green-600 focus:ring-2 focus:ring-green-300 font-semibold"
-      >
-        保存
-      </button>
-    </div>
+        const textarea1Ref = useRef(null);
+        const textarea2Ref = useRef(null);
+        const saveTimeoutRef = useRef(null);
 
-    <div id="toast" class="toast">Copied to clipboard</div>
+        // Load from localStorage on mount
+        useEffect(() => {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    setMessage1(data.message1 || '');
+                    setMessage2(data.message2 || '');
+                } catch (e) {
+                    console.error('Failed to parse stored data', e);
+                }
+            }
+        }, []);
 
-    <script>
-      const message1Input = document.getElementById("message1");
-      const message2Input = document.getElementById("message2");
-      const saveButton = document.getElementById("save");
-      const copyMessage1Button = document.getElementById("copy-message1");
-      const copyMessage2Button = document.getElementById("copy-message2");
-      const dateFormatSelect = document.getElementById("date-format");
-      const toast = document.getElementById("toast");
+        // Auto-resize textareas
+        const autoResize = useCallback((textarea) => {
+            if (textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = textarea.scrollHeight + 'px';
+            }
+        }, []);
 
-      // 今日の日付を取得
-      const getFormattedDate = (format) => {
-        const today = new Date();
-        const optionsShort = { month: "2-digit", day: "2-digit" };
-        const optionsLong = {
-          month: "numeric",
-          day: "numeric",
-          weekday: "short",
+        useEffect(() => {
+            autoResize(textarea1Ref.current);
+            autoResize(textarea2Ref.current);
+        }, [message1, message2, autoResize]);
+
+        // Auto-save with debounce
+        const saveToStorage = useCallback(() => {
+            const date = getFormattedDate(dateFormat);
+            const data = { date, message1, message2 };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            setSaveStatus('saved');
+        }, [message1, message2, dateFormat]);
+
+        useEffect(() => {
+            setSaveStatus('saving');
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+            saveTimeoutRef.current = setTimeout(() => {
+                saveToStorage();
+            }, 500);
+
+            return () => {
+                if (saveTimeoutRef.current) {
+                    clearTimeout(saveTimeoutRef.current);
+                }
+            };
+        }, [message1, message2, saveToStorage]);
+
+        // Get formatted date
+        const getFormattedDate = (format) => {
+            const today = new Date();
+            if (format === 'short') {
+                return today.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+            } else {
+                return today.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' });
+            }
         };
-        return format === "short"
-          ? today.toLocaleDateString("ja-JP", optionsShort).replace(/\//g, "/")
-          : today.toLocaleDateString("ja-JP", optionsLong);
-      };
 
-      // ローカルストレージからメッセージをロード
-      const loadMessages = () => {
-        const storedData =
-          JSON.parse(localStorage.getItem("latestReport")) || {};
-        message1Input.value = storedData.message1 || "";
-        message2Input.value = storedData.message2 || "";
-      };
+        // Show toast
+        const showToast = (message) => {
+            setToast({ show: true, message });
+            setTimeout(() => setToast({ show: false, message: '' }), 2000);
+        };
 
-      // 保存ボタンのクリックイベント
-      saveButton.onclick = () => {
-        const date = getFormattedDate(dateFormatSelect.value);
-        const message1 = message1Input.value;
-        const message2 = message2Input.value;
+        // Copy handlers
+        const handleCopy = async (type) => {
+            const date = getFormattedDate(dateFormat);
+            const text = type === 'message1'
+                ? `${date} ${message1}`
+                : `${date} ${message2}`;
 
-        if (!message1 || !message2) {
-          alert("全てのフィールドを入力してください。");
-          return;
-        }
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast(type === 'message1' ? '始業メッセージをコピーしました' : '終業メッセージをコピーしました');
+            } catch (err) {
+                showToast('コピーに失敗しました');
+            }
+        };
 
-        const newReport = { date, message1, message2 };
-        localStorage.setItem("latestReport", JSON.stringify(newReport));
+        return (
+            <>
+                <header>
+                    <div className="header-content">
+                        <div>
+                            <span className="logo">日報</span>
+                            <span className="logo-sub">NIPPO</span>
+                        </div>
+                        <span className={`save-status ${saveStatus}`}>
+                            {saveStatus === 'saving' ? '保存中...' : '保存済み'}
+                        </span>
+                    </div>
+                </header>
 
-        alert("最新のメッセージを保存しました。");
-      };
+                <main>
+                    <div className="control-group">
+                        <div className="control-label">
+                            <span>Settings</span>
+                        </div>
+                        <div className="control-content">
+                            <div className="settings-row">
+                                <div className="setting-item">
+                                    <span className="setting-label">日付形式:</span>
+                                    <select
+                                        value={dateFormat}
+                                        onChange={(e) => setDateFormat(e.target.value)}
+                                    >
+                                        <option value="short">11/11</option>
+                                        <option value="long">11月11日(月)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-      // トースト表示
-      const showToast = (message) => {
-        toast.textContent = message;
-        toast.className = "toast show";
-        setTimeout(() => {
-          toast.className = toast.className.replace("show", "");
-        }, 3000);
-      };
+                    <div className="control-group">
+                        <div className="control-label">
+                            <span>始業</span>
+                            <span className="control-label-badge">MORNING</span>
+                        </div>
+                        <div className="control-content">
+                            <textarea
+                                ref={textarea1Ref}
+                                value={message1}
+                                onChange={(e) => setMessage1(e.target.value)}
+                                placeholder="始業メッセージを入力..."
+                            />
+                            <div className="action-buttons" style={{ marginTop: '1rem' }}>
+                                <button
+                                    className="btn-primary blue"
+                                    onClick={() => handleCopy('message1')}
+                                >
+                                    コピー
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-      // コピー機能
-      copyMessage1Button.onclick = () => {
-        const date = getFormattedDate(dateFormatSelect.value);
-        const textToCopy = `${date} ${message1Input.value}`;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          showToast("始業メッセージをコピーしました。");
-        });
-      };
+                    <div className="control-group">
+                        <div className="control-label">
+                            <span>終業</span>
+                            <span className="control-label-badge">EVENING</span>
+                        </div>
+                        <div className="control-content">
+                            <textarea
+                                ref={textarea2Ref}
+                                value={message2}
+                                onChange={(e) => setMessage2(e.target.value)}
+                                placeholder="終業メッセージを入力..."
+                            />
+                            <div className="action-buttons" style={{ marginTop: '1rem' }}>
+                                <button
+                                    className="btn-primary"
+                                    onClick={() => handleCopy('message2')}
+                                >
+                                    コピー
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
 
-      copyMessage2Button.onclick = () => {
-        const date = getFormattedDate(dateFormatSelect.value);
-        const textToCopy = `${date} ${message2Input.value}`;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          showToast("終業メッセージをコピーしました。");
-        });
-      };
+                <div className={`toast ${toast.show ? 'show' : ''}`}>
+                    {toast.message}
+                </div>
+            </>
+        );
+    }
 
-      // 初期ロード
-      loadMessages();
-    </script>
-  </body>
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
 </html>
