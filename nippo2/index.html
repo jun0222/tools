@@ -516,6 +516,53 @@
             setEditingId(null);
         };
 
+        // Copy report (grouped by status)
+        const handleCopyReport = async () => {
+            if (todos.length === 0) {
+                showToast('Todoがありません');
+                return;
+            }
+
+            const statusOrder = ['done', 'in-progress', 'pending', 'cancelled', null];
+            const statusLabels = {
+                'done': 'Done',
+                'in-progress': 'In Progress',
+                'pending': 'Pending',
+                'cancelled': 'Cancelled',
+                null: 'No Status',
+            };
+
+            const grouped = {};
+            for (const status of statusOrder) {
+                const items = todos.filter(t => t.status === status);
+                if (items.length > 0) {
+                    grouped[status] = items;
+                }
+            }
+
+            let report = '';
+            for (const status of statusOrder) {
+                if (grouped[status]) {
+                    report += `【${statusLabels[status]}】\n`;
+                    for (const todo of grouped[status]) {
+                        let line = `- ${todo.summary || '(概要なし)'}`;
+                        if (todo.url) {
+                            line += ` (${todo.url})`;
+                        }
+                        report += line + '\n';
+                    }
+                    report += '\n';
+                }
+            }
+
+            try {
+                await navigator.clipboard.writeText(report.trim());
+                showToast('報告用テキストをコピーしました');
+            } catch (err) {
+                showToast('コピーに失敗しました');
+            }
+        };
+
         // Export CSV
         const handleExport = () => {
             const headers = ['summary', 'status', 'url'];
@@ -627,6 +674,12 @@
                                 className="file-input"
                                 onChange={handleImport}
                             />
+                            <button
+                                className="btn small"
+                                onClick={handleCopyReport}
+                            >
+                                Report Copy
+                            </button>
                             <button
                                 className="btn yellow small"
                                 onClick={() => fileInputRef.current?.click()}
