@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo Manager</title>
+    <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #1a1a1a;
+            --accent-yellow: #ffde03;
+            --accent-red: #ff2e63;
+            --accent-blue: #08d9d6;
+            --accent-green: #9dff00;
+            --accent-purple: #6c5ce7;
+            --accent-orange: #ff9f43;
+            --text-dark: #1a1a1a;
+            --text-light: #f5f0e6;
+            --border-weight: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                );
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: var(--border-weight) solid var(--text-dark);
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::before {
+            content: 'TODO';
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            color: var(--accent-purple);
+            z-index: -1;
+        }
+
+        .logo-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.3rem 0.8rem;
+            display: inline-block;
+            transform: rotate(-2deg);
+            margin-left: 0.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .control-group {
+            border: var(--border-weight) solid var(--text-dark);
+            background: white;
+            position: relative;
+            margin-bottom: 1.5rem;
+            box-shadow: 6px 6px 0 var(--text-dark);
+        }
+
+        .control-label {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-label-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            background: var(--accent-purple);
+            padding: 0.2rem 0.5rem;
+            color: white;
+        }
+
+        .control-content {
+            padding: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 150px 1fr auto;
+            gap: 0.8rem;
+            align-items: end;
+        }
+
+        @media (max-width: 700px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .form-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+        }
+
+        input, select {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            padding: 0.6rem 0.8rem;
+            border: 3px solid var(--text-dark);
+            background: var(--bg-primary);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            background: #fffef5;
+            transform: translate(-2px, -2px);
+            box-shadow: 3px 3px 0 var(--text-dark);
+        }
+
+        .btn {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.6rem 1rem;
+            border: 3px solid var(--text-dark);
+            background: var(--accent-green);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 3px 3px 0 var(--text-dark);
+        }
+
+        .btn:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        .btn.blue { background: var(--accent-blue); }
+        .btn.yellow { background: var(--accent-yellow); }
+        .btn.red { background: var(--accent-red); color: white; }
+        .btn.purple { background: var(--accent-purple); color: white; }
+        .btn.small {
+            font-size: 0.65rem;
+            padding: 0.4rem 0.6rem;
+        }
+
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .todo-item {
+            border: 3px solid var(--text-dark);
+            background: white;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .todo-item:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .todo-item.editing {
+            background: #fffef5;
+            box-shadow: 4px 4px 0 var(--accent-yellow);
+        }
+
+        .todo-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+
+        .todo-summary {
+            font-size: 1rem;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .todo-summary.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .todo-meta {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .todo-status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border: 2px solid var(--text-dark);
+            text-transform: uppercase;
+        }
+
+        .todo-status.pending { background: var(--accent-yellow); }
+        .todo-status.in-progress { background: var(--accent-blue); }
+        .todo-status.done { background: var(--accent-green); }
+        .todo-status.cancelled { background: #ccc; }
+
+        .todo-url {
+            font-size: 0.75rem;
+            color: var(--accent-purple);
+            text-decoration: none;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .todo-url:hover {
+            text-decoration: underline;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .edit-form {
+            display: grid;
+            grid-template-columns: 1fr 150px 1fr;
+            gap: 0.6rem;
+            margin-bottom: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .edit-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .edit-form input, .edit-form select {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 1rem 2rem;
+            font-family: 'DM Mono', monospace;
+            border: 3px solid var(--accent-green);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-group {
+            animation: slideIn 0.4s ease-out backwards;
+        }
+
+        .control-group:nth-child(1) { animation-delay: 0.1s; }
+        .control-group:nth-child(2) { animation-delay: 0.2s; }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border: 2px solid var(--text-dark);
+            background: white;
+        }
+
+        .stat-count {
+            font-weight: bold;
+            margin-left: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const STORAGE_KEY = 'nippo2_todos';
+
+    const STATUS_OPTIONS = [
+        { value: '', label: '(なし)' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'in-progress', label: 'In Progress' },
+        { value: 'done', label: 'Done' },
+        { value: 'cancelled', label: 'Cancelled' },
+    ];
+
+    function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function App() {
+        const [todos, setTodos] = useState([]);
+        const [newSummary, setNewSummary] = useState('');
+        const [newStatus, setNewStatus] = useState('');
+        const [newUrl, setNewUrl] = useState('');
+        const [editingId, setEditingId] = useState(null);
+        const [editSummary, setEditSummary] = useState('');
+        const [editStatus, setEditStatus] = useState('');
+        const [editUrl, setEditUrl] = useState('');
+        const [toast, setToast] = useState({ show: false, message: '' });
+
+        const fileInputRef = useRef(null);
+
+        // Load from localStorage
+        useEffect(() => {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    setTodos(JSON.parse(stored));
+                } catch (e) {
+                    console.error('Failed to parse stored data', e);
+                }
+            }
+        }, []);
+
+        // Save to localStorage
+        useEffect(() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+        }, [todos]);
+
+        const showToast = (message) => {
+            setToast({ show: true, message });
+            setTimeout(() => setToast({ show: false, message: '' }), 2000);
+        };
+
+        // Add todo
+        const handleAdd = () => {
+            if (!newSummary.trim() && !newStatus && !newUrl.trim()) {
+                showToast('少なくとも1つの項目を入力してください');
+                return;
+            }
+
+            const todo = {
+                id: generateId(),
+                summary: newSummary.trim() || null,
+                status: newStatus || null,
+                url: newUrl.trim() || null,
+                createdAt: new Date().toISOString(),
+            };
+
+            setTodos([todo, ...todos]);
+            setNewSummary('');
+            setNewStatus('');
+            setNewUrl('');
+            showToast('追加しました');
+        };
+
+        // Delete todo
+        const handleDelete = (id) => {
+            setTodos(todos.filter(t => t.id !== id));
+            showToast('削除しました');
+        };
+
+        // Start editing
+        const startEdit = (todo) => {
+            setEditingId(todo.id);
+            setEditSummary(todo.summary || '');
+            setEditStatus(todo.status || '');
+            setEditUrl(todo.url || '');
+        };
+
+        // Save edit
+        const saveEdit = () => {
+            setTodos(todos.map(t => {
+                if (t.id === editingId) {
+                    return {
+                        ...t,
+                        summary: editSummary.trim() || null,
+                        status: editStatus || null,
+                        url: editUrl.trim() || null,
+                    };
+                }
+                return t;
+            }));
+            setEditingId(null);
+            showToast('更新しました');
+        };
+
+        // Cancel edit
+        const cancelEdit = () => {
+            setEditingId(null);
+        };
+
+        // Export CSV
+        const handleExport = () => {
+            const headers = ['summary', 'status', 'url'];
+            const csvContent = [
+                headers.join(','),
+                ...todos.map(t => [
+                    `"${(t.summary || '').replace(/"/g, '""')}"`,
+                    `"${t.status || ''}"`,
+                    `"${(t.url || '').replace(/"/g, '""')}"`,
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `todos-${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('CSVをエクスポートしました');
+        };
+
+        // Import CSV
+        const handleImport = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const text = event.target.result;
+                    const lines = text.split(/\r?\n/).filter(line => line.trim());
+
+                    // Skip header
+                    const dataLines = lines.slice(1);
+                    const imported = [];
+
+                    for (const line of dataLines) {
+                        // Parse CSV line (handle quoted values)
+                        const values = [];
+                        let current = '';
+                        let inQuotes = false;
+
+                        for (let i = 0; i < line.length; i++) {
+                            const char = line[i];
+                            if (char === '"') {
+                                if (inQuotes && line[i + 1] === '"') {
+                                    current += '"';
+                                    i++;
+                                } else {
+                                    inQuotes = !inQuotes;
+                                }
+                            } else if (char === ',' && !inQuotes) {
+                                values.push(current);
+                                current = '';
+                            } else {
+                                current += char;
+                            }
+                        }
+                        values.push(current);
+
+                        if (values.length >= 1) {
+                            imported.push({
+                                id: generateId(),
+                                summary: values[0]?.trim() || null,
+                                status: values[1]?.trim() || null,
+                                url: values[2]?.trim() || null,
+                                createdAt: new Date().toISOString(),
+                            });
+                        }
+                    }
+
+                    if (imported.length > 0) {
+                        setTodos([...imported, ...todos]);
+                        showToast(`${imported.length}件インポートしました`);
+                    } else {
+                        showToast('インポートするデータがありません');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast('CSVの解析に失敗しました');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        };
+
+        // Stats
+        const stats = {
+            total: todos.length,
+            pending: todos.filter(t => t.status === 'pending').length,
+            inProgress: todos.filter(t => t.status === 'in-progress').length,
+            done: todos.filter(t => t.status === 'done').length,
+        };
+
+        return (
+            <>
+                <header>
+                    <div className="header-content">
+                        <div>
+                            <span className="logo">TODO</span>
+                            <span className="logo-sub">MANAGER</span>
+                        </div>
+                        <div className="header-actions">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".csv"
+                                className="file-input"
+                                onChange={handleImport}
+                            />
+                            <button
+                                className="btn yellow small"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                Import CSV
+                            </button>
+                            <button
+                                className="btn purple small"
+                                onClick={handleExport}
+                            >
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <main>
+                    <div className="control-group">
+                        <div className="control-label">
+                            <span>New Todo</span>
+                            <span className="control-label-badge">ADD</span>
+                        </div>
+                        <div className="control-content">
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <span className="form-label">概要</span>
+                                    <input
+                                        type="text"
+                                        value={newSummary}
+                                        onChange={(e) => setNewSummary(e.target.value)}
+                                        placeholder="タスクの概要..."
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <span className="form-label">ステータス</span>
+                                    <select
+                                        value={newStatus}
+                                        onChange={(e) => setNewStatus(e.target.value)}
+                                    >
+                                        {STATUS_OPTIONS.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <span className="form-label">URL</span>
+                                    <input
+                                        type="url"
+                                        value={newUrl}
+                                        onChange={(e) => setNewUrl(e.target.value)}
+                                        placeholder="https://..."
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                                    />
+                                </div>
+                                <button className="btn" onClick={handleAdd}>
+                                    追加
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="control-group">
+                        <div className="control-label">
+                            <span>Todo List</span>
+                            <div className="stats">
+                                <span className="stat-item">Total:<span className="stat-count">{stats.total}</span></span>
+                                <span className="stat-item">Pending:<span className="stat-count">{stats.pending}</span></span>
+                                <span className="stat-item">Progress:<span className="stat-count">{stats.inProgress}</span></span>
+                                <span className="stat-item">Done:<span className="stat-count">{stats.done}</span></span>
+                            </div>
+                        </div>
+                        <div className="control-content">
+                            {todos.length === 0 ? (
+                                <div className="empty-state">
+                                    Todoがありません。上のフォームから追加してください。
+                                </div>
+                            ) : (
+                                <div className="todo-list">
+                                    {todos.map(todo => (
+                                        <div
+                                            key={todo.id}
+                                            className={`todo-item ${editingId === todo.id ? 'editing' : ''}`}
+                                        >
+                                            {editingId === todo.id ? (
+                                                <>
+                                                    <div className="todo-content">
+                                                        <div className="edit-form">
+                                                            <input
+                                                                type="text"
+                                                                value={editSummary}
+                                                                onChange={(e) => setEditSummary(e.target.value)}
+                                                                placeholder="概要..."
+                                                            />
+                                                            <select
+                                                                value={editStatus}
+                                                                onChange={(e) => setEditStatus(e.target.value)}
+                                                            >
+                                                                {STATUS_OPTIONS.map(opt => (
+                                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                                ))}
+                                                            </select>
+                                                            <input
+                                                                type="url"
+                                                                value={editUrl}
+                                                                onChange={(e) => setEditUrl(e.target.value)}
+                                                                placeholder="URL..."
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="todo-actions">
+                                                        <button className="btn small" onClick={saveEdit}>保存</button>
+                                                        <button className="btn small yellow" onClick={cancelEdit}>取消</button>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="todo-content">
+                                                        <div className={`todo-summary ${!todo.summary ? 'empty' : ''}`}>
+                                                            {todo.summary || '(概要なし)'}
+                                                        </div>
+                                                        <div className="todo-meta">
+                                                            {todo.status && (
+                                                                <span className={`todo-status ${todo.status}`}>
+                                                                    {STATUS_OPTIONS.find(o => o.value === todo.status)?.label || todo.status}
+                                                                </span>
+                                                            )}
+                                                            {todo.url && (
+                                                                <a
+                                                                    href={todo.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="todo-url"
+                                                                >
+                                                                    {todo.url}
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="todo-actions">
+                                                        <button className="btn small blue" onClick={() => startEdit(todo)}>編集</button>
+                                                        <button className="btn small red" onClick={() => handleDelete(todo.id)}>削除</button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </main>
+
+                <div className={`toast ${toast.show ? 'show' : ''}`}>
+                    {toast.message}
+                </div>
+            </>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
