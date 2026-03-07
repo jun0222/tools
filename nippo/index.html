@@ -331,13 +331,13 @@
             animation: fadeIn 0.2s ease-out;
         }
 
-        .timeline-container {
+        .gantt-container {
             margin-top: 1.5rem;
             padding-top: 1rem;
             border-top: 2px dashed #ddd;
         }
 
-        .timeline-label {
+        .gantt-label {
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -345,73 +345,93 @@
             margin-bottom: 0.8rem;
         }
 
-        .timeline {
-            position: relative;
-            height: 60px;
-            background: var(--bg-primary);
+        .gantt {
             border: 3px solid var(--text-dark);
-            margin-bottom: 0.5rem;
+            background: white;
         }
 
-        .timeline-track {
+        .gantt-header {
+            display: flex;
+            border-bottom: 2px solid var(--text-dark);
+            background: var(--bg-primary);
+        }
+
+        .gantt-hour {
+            flex: 1;
+            text-align: center;
+            font-size: 0.6rem;
+            padding: 0.3rem 0;
+            border-right: 1px solid #ddd;
+            color: #666;
+        }
+
+        .gantt-hour:last-child {
+            border-right: none;
+        }
+
+        .gantt-rows {
+            position: relative;
+            min-height: 30px;
+        }
+
+        .gantt-grid {
             position: absolute;
-            top: 50%;
+            top: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            background: var(--text-dark);
-            transform: translateY(-50%);
-        }
-
-        .timeline-hours {
+            bottom: 0;
             display: flex;
-            justify-content: space-between;
-            font-size: 0.65rem;
-            color: #666;
-            padding: 0 0.3rem;
         }
 
-        .timeline-marker {
+        .gantt-grid-col {
+            flex: 1;
+            border-right: 1px dashed #eee;
+        }
+
+        .gantt-grid-col:last-child {
+            border-right: none;
+        }
+
+        .gantt-row {
+            position: relative;
+            height: 28px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .gantt-row:last-child {
+            border-bottom: none;
+        }
+
+        .gantt-bar {
             position: absolute;
             top: 4px;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .timeline-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+            height: 20px;
             border: 2px solid var(--text-dark);
-            background: var(--accent-yellow);
-        }
-
-        .timeline-marker:nth-child(3n+1) .timeline-dot { background: var(--accent-blue); }
-        .timeline-marker:nth-child(3n+2) .timeline-dot { background: var(--accent-green); }
-        .timeline-marker:nth-child(3n) .timeline-dot { background: var(--accent-purple); }
-
-        .timeline-text {
-            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            padding: 0 0.4rem;
+            font-size: 0.65rem;
             font-weight: 500;
-            background: white;
-            padding: 0.1rem 0.3rem;
-            border: 1px solid var(--text-dark);
             white-space: nowrap;
-            max-width: 60px;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-top: 2px;
+            min-width: 20px;
         }
 
-        .timeline-time {
+        .gantt-bar:nth-child(6n+1) { background: var(--accent-blue); }
+        .gantt-bar:nth-child(6n+2) { background: var(--accent-green); }
+        .gantt-bar:nth-child(6n+3) { background: var(--accent-yellow); }
+        .gantt-bar:nth-child(6n+4) { background: var(--accent-purple); color: white; }
+        .gantt-bar:nth-child(6n+5) { background: #ff9f43; }
+        .gantt-bar:nth-child(6n) { background: var(--accent-red); color: white; }
+
+        .gantt-bar-time {
             font-size: 0.55rem;
-            color: #888;
+            opacity: 0.7;
+            margin-left: 0.3rem;
         }
 
-        .timeline-empty {
+        .gantt-empty {
             text-align: center;
             color: #999;
             font-size: 0.75rem;
@@ -432,89 +452,141 @@
     function parseTimeEntries(text) {
         const lines = text.split('\n');
         const entries = [];
-        // Match time at end of line: HH:MM or H:MM
-        const timeRegex = /(\d{1,2}):(\d{2})\s*$/;
+        // Match time range: HH:MM~HH:MM or HH:MM〜HH:MM or HH:MM-HH:MM
+        const timeRangeRegex = /(\d{1,2}):(\d{2})\s*[~〜\-]\s*(\d{1,2}):(\d{2})\s*$/;
+        // Match single time: HH:MM
+        const singleTimeRegex = /(\d{1,2}):(\d{2})\s*$/;
 
         for (const line of lines) {
-            const match = line.match(timeRegex);
-            if (match) {
-                const hours = parseInt(match[1], 10);
-                const minutes = parseInt(match[2], 10);
-                if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-                    // Extract label: text after ・ (up to 5 chars)
-                    let label = '';
-                    const bulletIndex = line.indexOf('・');
-                    if (bulletIndex !== -1) {
-                        const afterBullet = line.slice(bulletIndex + 1).trim();
-                        // Remove the time part and get first 5 chars
-                        const withoutTime = afterBullet.replace(timeRegex, '').trim();
-                        label = withoutTime.slice(0, 5);
-                    } else {
-                        // If no bullet, use start of line
-                        const withoutTime = line.replace(timeRegex, '').trim();
-                        label = withoutTime.slice(0, 5);
-                    }
-                    entries.push({
-                        hours,
-                        minutes,
-                        time: `${hours}:${String(minutes).padStart(2, '0')}`,
-                        label: label || '---',
-                    });
+            let startHours, startMinutes, endHours, endMinutes, hasEndTime = false;
+
+            const rangeMatch = line.match(timeRangeRegex);
+            if (rangeMatch) {
+                startHours = parseInt(rangeMatch[1], 10);
+                startMinutes = parseInt(rangeMatch[2], 10);
+                endHours = parseInt(rangeMatch[3], 10);
+                endMinutes = parseInt(rangeMatch[4], 10);
+                hasEndTime = true;
+            } else {
+                const singleMatch = line.match(singleTimeRegex);
+                if (singleMatch) {
+                    startHours = parseInt(singleMatch[1], 10);
+                    startMinutes = parseInt(singleMatch[2], 10);
                 }
+            }
+
+            if (startHours !== undefined && startHours >= 0 && startHours <= 23 && startMinutes >= 0 && startMinutes <= 59) {
+                // Extract label: text after ・ (up to 5 chars)
+                let label = '';
+                const bulletIndex = line.indexOf('・');
+                const timePattern = hasEndTime ? timeRangeRegex : singleTimeRegex;
+                if (bulletIndex !== -1) {
+                    const afterBullet = line.slice(bulletIndex + 1).trim();
+                    const withoutTime = afterBullet.replace(timePattern, '').trim();
+                    label = withoutTime.slice(0, 5);
+                } else {
+                    const withoutTime = line.replace(timePattern, '').trim();
+                    label = withoutTime.slice(0, 5);
+                }
+
+                const timeStr = hasEndTime
+                    ? `${startHours}:${String(startMinutes).padStart(2, '0')}~${endHours}:${String(endMinutes).padStart(2, '0')}`
+                    : `${startHours}:${String(startMinutes).padStart(2, '0')}`;
+
+                entries.push({
+                    hours: startHours,
+                    minutes: startMinutes,
+                    endHours: hasEndTime ? endHours : null,
+                    endMinutes: hasEndTime ? endMinutes : null,
+                    hasEndTime,
+                    time: timeStr,
+                    label: label || '---',
+                });
             }
         }
         return entries.sort((a, b) => a.hours * 60 + a.minutes - (b.hours * 60 + b.minutes));
     }
 
-    // Timeline component
-    function Timeline({ text }) {
+    // Gantt chart component
+    function Gantt({ text }) {
         const entries = useMemo(() => parseTimeEntries(text), [text]);
         const startHour = 6;
         const endHour = 24;
-        const totalMinutes = (endHour - startHour) * 60;
+        const totalHours = endHour - startHour;
+        const totalMinutes = totalHours * 60;
 
         const getPosition = (hours, minutes) => {
             const mins = (hours - startHour) * 60 + minutes;
             return Math.max(0, Math.min(100, (mins / totalMinutes) * 100));
         };
 
-        const hourMarkers = [];
-        for (let h = startHour; h <= endHour; h += 3) {
-            hourMarkers.push(h);
+        // Calculate bar width (use end time if specified, otherwise until next entry or default 1 hour)
+        const getWidth = (entry, index) => {
+            const currentMins = entry.hours * 60 + entry.minutes;
+            let endMins;
+
+            if (entry.hasEndTime) {
+                // Use specified end time
+                endMins = entry.endHours * 60 + entry.endMinutes;
+            } else if (index < entries.length - 1) {
+                // Until next entry
+                const next = entries[index + 1];
+                endMins = next.hours * 60 + next.minutes;
+            } else {
+                // Last entry without end time: 1 hour or until end of day
+                endMins = Math.min(currentMins + 60, endHour * 60);
+            }
+
+            const durationMins = endMins - currentMins;
+            return Math.max(2, (durationMins / totalMinutes) * 100);
+        };
+
+        const hours = [];
+        for (let h = startHour; h < endHour; h++) {
+            hours.push(h);
         }
 
         if (entries.length === 0) {
             return (
-                <div className="timeline-container">
-                    <div className="timeline-label">Timeline</div>
-                    <div className="timeline-empty">
-                        行末に時間 (例: 10:00) を入力するとタイムラインに表示されます
+                <div className="gantt-container">
+                    <div className="gantt-label">Gantt Chart</div>
+                    <div className="gantt-empty">
+                        行末に時間 (例: 10:00) を入力するとガントチャートに表示されます
                     </div>
                 </div>
             );
         }
 
         return (
-            <div className="timeline-container">
-                <div className="timeline-label">Timeline</div>
-                <div className="timeline">
-                    <div className="timeline-track" />
-                    {entries.map((entry, i) => (
-                        <div
-                            key={i}
-                            className="timeline-marker"
-                            style={{ left: `${getPosition(entry.hours, entry.minutes)}%` }}
-                        >
-                            <div className="timeline-dot" />
-                            <span className="timeline-text">{entry.label}</span>
-                            <span className="timeline-time">{entry.time}</span>
+            <div className="gantt-container">
+                <div className="gantt-label">Gantt Chart</div>
+                <div className="gantt">
+                    <div className="gantt-header">
+                        {hours.map(h => (
+                            <div key={h} className="gantt-hour">{h}</div>
+                        ))}
+                    </div>
+                    <div className="gantt-rows">
+                        <div className="gantt-grid">
+                            {hours.map(h => (
+                                <div key={h} className="gantt-grid-col" />
+                            ))}
                         </div>
-                    ))}
-                </div>
-                <div className="timeline-hours">
-                    {hourMarkers.map(h => (
-                        <span key={h}>{h}:00</span>
-                    ))}
+                        {entries.map((entry, i) => (
+                            <div key={i} className="gantt-row">
+                                <div
+                                    className="gantt-bar"
+                                    style={{
+                                        left: `${getPosition(entry.hours, entry.minutes)}%`,
+                                        width: `${getWidth(entry, i)}%`,
+                                    }}
+                                >
+                                    {entry.label}
+                                    <span className="gantt-bar-time">{entry.time}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -654,7 +726,7 @@
                                             onChange={(e) => setMessage1(e.target.value)}
                                             placeholder="始業メッセージを入力..."
                                         />
-                                        <Timeline text={message1} />
+                                        <Gantt text={message1} />
                                     </>
                                 ) : (
                                     <>
@@ -663,7 +735,7 @@
                                             onChange={(e) => setMessage2(e.target.value)}
                                             placeholder="終業メッセージを入力..."
                                         />
-                                        <Timeline text={message2} />
+                                        <Gantt text={message2} />
                                     </>
                                 )}
                             </div>
