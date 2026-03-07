@@ -330,6 +330,93 @@
         .tab-content {
             animation: fadeIn 0.2s ease-out;
         }
+
+        .timeline-container {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 2px dashed #ddd;
+        }
+
+        .timeline-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+            margin-bottom: 0.8rem;
+        }
+
+        .timeline {
+            position: relative;
+            height: 60px;
+            background: var(--bg-primary);
+            border: 3px solid var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-track {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--text-dark);
+            transform: translateY(-50%);
+        }
+
+        .timeline-hours {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: #666;
+            padding: 0 0.3rem;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            top: 4px;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--text-dark);
+            background: var(--accent-yellow);
+        }
+
+        .timeline-marker:nth-child(3n+1) .timeline-dot { background: var(--accent-blue); }
+        .timeline-marker:nth-child(3n+2) .timeline-dot { background: var(--accent-green); }
+        .timeline-marker:nth-child(3n) .timeline-dot { background: var(--accent-purple); }
+
+        .timeline-text {
+            font-size: 0.6rem;
+            font-weight: 500;
+            background: white;
+            padding: 0.1rem 0.3rem;
+            border: 1px solid var(--text-dark);
+            white-space: nowrap;
+            max-width: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .timeline-time {
+            font-size: 0.55rem;
+            color: #888;
+        }
+
+        .timeline-empty {
+            text-align: center;
+            color: #999;
+            font-size: 0.75rem;
+            padding: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -337,9 +424,101 @@
 <div id="root"></div>
 
 <script type="text/babel">
-    const { useState, useEffect, useRef, useCallback } = React;
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
     const STORAGE_KEY = 'latestReport';
+
+    // Parse time entries from text
+    function parseTimeEntries(text) {
+        const lines = text.split('\n');
+        const entries = [];
+        // Match time at end of line: HH:MM or H:MM
+        const timeRegex = /(\d{1,2}):(\d{2})\s*$/;
+
+        for (const line of lines) {
+            const match = line.match(timeRegex);
+            if (match) {
+                const hours = parseInt(match[1], 10);
+                const minutes = parseInt(match[2], 10);
+                if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+                    // Extract label: text after ・ (up to 5 chars)
+                    let label = '';
+                    const bulletIndex = line.indexOf('・');
+                    if (bulletIndex !== -1) {
+                        const afterBullet = line.slice(bulletIndex + 1).trim();
+                        // Remove the time part and get first 5 chars
+                        const withoutTime = afterBullet.replace(timeRegex, '').trim();
+                        label = withoutTime.slice(0, 5);
+                    } else {
+                        // If no bullet, use start of line
+                        const withoutTime = line.replace(timeRegex, '').trim();
+                        label = withoutTime.slice(0, 5);
+                    }
+                    entries.push({
+                        hours,
+                        minutes,
+                        time: `${hours}:${String(minutes).padStart(2, '0')}`,
+                        label: label || '---',
+                    });
+                }
+            }
+        }
+        return entries.sort((a, b) => a.hours * 60 + a.minutes - (b.hours * 60 + b.minutes));
+    }
+
+    // Timeline component
+    function Timeline({ text }) {
+        const entries = useMemo(() => parseTimeEntries(text), [text]);
+        const startHour = 6;
+        const endHour = 24;
+        const totalMinutes = (endHour - startHour) * 60;
+
+        const getPosition = (hours, minutes) => {
+            const mins = (hours - startHour) * 60 + minutes;
+            return Math.max(0, Math.min(100, (mins / totalMinutes) * 100));
+        };
+
+        const hourMarkers = [];
+        for (let h = startHour; h <= endHour; h += 3) {
+            hourMarkers.push(h);
+        }
+
+        if (entries.length === 0) {
+            return (
+                <div className="timeline-container">
+                    <div className="timeline-label">Timeline</div>
+                    <div className="timeline-empty">
+                        行末に時間 (例: 10:00) を入力するとタイムラインに表示されます
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="timeline-container">
+                <div className="timeline-label">Timeline</div>
+                <div className="timeline">
+                    <div className="timeline-track" />
+                    {entries.map((entry, i) => (
+                        <div
+                            key={i}
+                            className="timeline-marker"
+                            style={{ left: `${getPosition(entry.hours, entry.minutes)}%` }}
+                        >
+                            <div className="timeline-dot" />
+                            <span className="timeline-text">{entry.label}</span>
+                            <span className="timeline-time">{entry.time}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="timeline-hours">
+                    {hourMarkers.map(h => (
+                        <span key={h}>{h}:00</span>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     function App() {
         const [message1, setMessage1] = useState('');
@@ -469,17 +648,23 @@
 
                             <div className="tab-content" key={activeTab}>
                                 {activeTab === 'morning' ? (
-                                    <textarea
-                                        value={message1}
-                                        onChange={(e) => setMessage1(e.target.value)}
-                                        placeholder="始業メッセージを入力..."
-                                    />
+                                    <>
+                                        <textarea
+                                            value={message1}
+                                            onChange={(e) => setMessage1(e.target.value)}
+                                            placeholder="始業メッセージを入力..."
+                                        />
+                                        <Timeline text={message1} />
+                                    </>
                                 ) : (
-                                    <textarea
-                                        value={message2}
-                                        onChange={(e) => setMessage2(e.target.value)}
-                                        placeholder="終業メッセージを入力..."
-                                    />
+                                    <>
+                                        <textarea
+                                            value={message2}
+                                            onChange={(e) => setMessage2(e.target.value)}
+                                            placeholder="終業メッセージを入力..."
+                                        />
+                                        <Timeline text={message2} />
+                                    </>
                                 )}
                             </div>
 
