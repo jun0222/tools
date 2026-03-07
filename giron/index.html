@@ -134,6 +134,20 @@
         .save-status.saving { background: var(--accent-yellow); }
         .save-status.saved { background: var(--accent-green); }
 
+        .mode-select {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border: 2px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .mode-select:focus {
+            background: var(--accent-yellow);
+        }
+
         main {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -296,19 +310,35 @@
     const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
     const STORAGE_KEY = 'giron_content';
+    const MODE_STORAGE_KEY = 'giron_mode';
 
-    // Level config for basic mode
-    const LEVEL_CONFIG = [
-        { symbol: 'ロ', name: '論点', color: 'level-0' },
-        { symbol: 'サ', name: 'サブ論点', color: 'level-1' },
-        { symbol: 'T', name: 'タスク', color: 'level-2' },
-        { symbol: 'ス', name: 'スケジュール', color: 'level-3' },
-        { symbol: '作', name: '作業', color: 'level-4' },
-        { symbol: 'ア', name: 'アウトプット', color: 'level-5' },
-    ];
+    // Mode configurations
+    const MODES = {
+        basic: {
+            name: 'Basic',
+            levels: [
+                { symbol: 'ロ', name: '論点', color: 'level-0' },
+                { symbol: 'サ', name: 'サブ論点', color: 'level-1' },
+                { symbol: 'T', name: 'タスク', color: 'level-2' },
+                { symbol: 'ス', name: 'スケジュール', color: 'level-3' },
+                { symbol: '作', name: '作業', color: 'level-4' },
+                { symbol: 'ア', name: 'アウトプット', color: 'level-5' },
+            ],
+        },
+        uiux: {
+            name: 'UI/UX',
+            levels: [
+                { symbol: '目', name: '目的', color: 'level-0' },
+                { symbol: '要', name: '要件', color: 'level-1' },
+                { symbol: '情', name: '情報設計', color: 'level-2' },
+                { symbol: '配', name: '配置', color: 'level-3' },
+                { symbol: '装', name: '装飾', color: 'level-4' },
+            ],
+        },
+    };
 
     // Parse bullet list
-    function parseContent(text) {
+    function parseContent(text, levelConfig) {
         const lines = text.split('\n');
         const items = [];
 
@@ -321,7 +351,7 @@
                 // Calculate indent level (2 spaces or 1 tab = 1 level)
                 const level = Math.min(
                     Math.floor(indent.replace(/\t/g, '  ').length / 2),
-                    LEVEL_CONFIG.length - 1
+                    levelConfig.length - 1
                 );
                 items.push({ level, content });
             }
@@ -332,8 +362,12 @@
 
     function App() {
         const [content, setContent] = useState('');
+        const [mode, setMode] = useState('basic');
         const [saveStatus, setSaveStatus] = useState('saved');
         const saveTimeoutRef = useRef(null);
+
+        const currentMode = MODES[mode];
+        const levelConfig = currentMode.levels;
 
         // Load from localStorage
         useEffect(() => {
@@ -341,7 +375,16 @@
             if (stored) {
                 setContent(stored);
             }
+            const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
+            if (storedMode && MODES[storedMode]) {
+                setMode(storedMode);
+            }
         }, []);
+
+        // Save mode
+        useEffect(() => {
+            localStorage.setItem(MODE_STORAGE_KEY, mode);
+        }, [mode]);
 
         // Auto-save
         const saveToStorage = useCallback(() => {
@@ -363,7 +406,7 @@
         }, [content, saveToStorage]);
 
         // Parse content
-        const items = useMemo(() => parseContent(content), [content]);
+        const items = useMemo(() => parseContent(content, levelConfig), [content, levelConfig]);
 
         return (
             <>
@@ -374,7 +417,16 @@
                             <span className="logo-sub">議論ビューア</span>
                         </div>
                         <div className="header-right">
-                            <span className="mode-badge">Basic</span>
+
+                            <select
+                                className="mode-select"
+                                value={mode}
+                                onChange={(e) => setMode(e.target.value)}
+                            >
+                                {Object.entries(MODES).map(([key, m]) => (
+                                    <option key={key} value={key}>{m.name}</option>
+                                ))}
+                            </select>
                             <span className={`save-status ${saveStatus}`}>
                                 {saveStatus === 'saving' ? '保存中...' : '保存済み'}
                             </span>
@@ -395,7 +447,7 @@
                     <div className="preview-panel">
                         <span className="panel-label">Preview</span>
                         <div className="legend">
-                            {LEVEL_CONFIG.map((cfg, i) => (
+                            {levelConfig.map((cfg, i) => (
                                 <div key={i} className="legend-item">
                                     <span className={`legend-badge ${cfg.color}`}>{cfg.symbol}</span>
                                     <span>{cfg.name}</span>
@@ -409,7 +461,7 @@
                                 </div>
                             ) : (
                                 items.map((item, i) => {
-                                    const cfg = LEVEL_CONFIG[item.level];
+                                    const cfg = levelConfig[item.level];
                                     return (
                                         <div
                                             key={i}
