@@ -418,12 +418,24 @@
             min-width: 20px;
         }
 
-        .gantt-bar:nth-child(6n+1) { background: var(--accent-blue); }
-        .gantt-bar:nth-child(6n+2) { background: var(--accent-green); }
-        .gantt-bar:nth-child(6n+3) { background: var(--accent-yellow); }
-        .gantt-bar:nth-child(6n+4) { background: var(--accent-purple); color: white; }
-        .gantt-bar:nth-child(6n+5) { background: #ff9f43; }
-        .gantt-bar:nth-child(6n) { background: var(--accent-red); color: white; }
+        .gantt-bar.color-0 { background: var(--accent-blue); }
+        .gantt-bar.color-1 { background: var(--accent-green); }
+        .gantt-bar.color-2 { background: var(--accent-yellow); }
+        .gantt-bar.color-3 { background: var(--accent-purple); color: white; }
+        .gantt-bar.color-4 { background: #ff9f43; }
+        .gantt-bar.color-5 { background: var(--accent-red); color: white; }
+
+        .gantt-bar.completed {
+            background: #ccc;
+            color: #666;
+            opacity: 0.7;
+        }
+
+        .gantt-check {
+            color: #22c55e;
+            font-weight: bold;
+            margin-right: 0.3rem;
+        }
 
         .gantt-bar-time {
             font-size: 0.55rem;
@@ -452,15 +464,19 @@
     function parseTimeEntries(text) {
         const lines = text.split('\n');
         const entries = [];
-        // Match time range: HH:MM~HH:MM or HH:MM〜HH:MM or HH:MM-HH:MM
-        const timeRangeRegex = /(\d{1,2}):(\d{2})\s*[~〜\-]\s*(\d{1,2}):(\d{2})\s*$/;
+        // Match time range: HH:MM~HH:MM or HH:MM〜HH:MM or HH:MM-HH:MM (with optional 完了 at end)
+        const timeRangeRegex = /(\d{1,2}):(\d{2})\s*[~〜\-]\s*(\d{1,2}):(\d{2})/;
         // Match single time: HH:MM
-        const singleTimeRegex = /(\d{1,2}):(\d{2})\s*$/;
+        const singleTimeRegex = /(\d{1,2}):(\d{2})/;
+        // Check for 完了 at end of line
+        const completedRegex = /完了\s*$/;
 
         for (const line of lines) {
             let startHours, startMinutes, endHours, endMinutes, hasEndTime = false;
+            const isCompleted = completedRegex.test(line);
+            const lineWithoutCompleted = line.replace(completedRegex, '').trim();
 
-            const rangeMatch = line.match(timeRangeRegex);
+            const rangeMatch = lineWithoutCompleted.match(timeRangeRegex);
             if (rangeMatch) {
                 startHours = parseInt(rangeMatch[1], 10);
                 startMinutes = parseInt(rangeMatch[2], 10);
@@ -468,7 +484,7 @@
                 endMinutes = parseInt(rangeMatch[4], 10);
                 hasEndTime = true;
             } else {
-                const singleMatch = line.match(singleTimeRegex);
+                const singleMatch = lineWithoutCompleted.match(singleTimeRegex);
                 if (singleMatch) {
                     startHours = parseInt(singleMatch[1], 10);
                     startMinutes = parseInt(singleMatch[2], 10);
@@ -478,14 +494,14 @@
             if (startHours !== undefined && startHours >= 0 && startHours <= 23 && startMinutes >= 0 && startMinutes <= 59) {
                 // Extract label: text after ・ (up to 5 chars)
                 let label = '';
-                const bulletIndex = line.indexOf('・');
+                const bulletIndex = lineWithoutCompleted.indexOf('・');
                 const timePattern = hasEndTime ? timeRangeRegex : singleTimeRegex;
                 if (bulletIndex !== -1) {
-                    const afterBullet = line.slice(bulletIndex + 1).trim();
+                    const afterBullet = lineWithoutCompleted.slice(bulletIndex + 1).trim();
                     const withoutTime = afterBullet.replace(timePattern, '').trim();
                     label = withoutTime.slice(0, 5);
                 } else {
-                    const withoutTime = line.replace(timePattern, '').trim();
+                    const withoutTime = lineWithoutCompleted.replace(timePattern, '').trim();
                     label = withoutTime.slice(0, 5);
                 }
 
@@ -501,6 +517,7 @@
                     hasEndTime,
                     time: timeStr,
                     label: label || '---',
+                    completed: isCompleted,
                 });
             }
         }
@@ -575,12 +592,13 @@
                         {entries.map((entry, i) => (
                             <div key={i} className="gantt-row">
                                 <div
-                                    className="gantt-bar"
+                                    className={`gantt-bar color-${i % 6} ${entry.completed ? 'completed' : ''}`}
                                     style={{
                                         left: `${getPosition(entry.hours, entry.minutes)}%`,
                                         width: `${getWidth(entry, i)}%`,
                                     }}
                                 >
+                                    {entry.completed && <span className="gantt-check">✓</span>}
                                     {entry.label}
                                     <span className="gantt-bar-time">{entry.time}</span>
                                 </div>
