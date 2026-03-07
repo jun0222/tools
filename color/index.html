@@ -714,6 +714,17 @@
 
         return (
             <svg className="human-svg" viewBox="0 0 200 340">
+                {/* Neck - drawn first so it appears behind everything */}
+                <rect
+                    x="85"
+                    y="87"
+                    width="30"
+                    height="20"
+                    fill="#fad5c8"
+                    stroke="#1a1a1a"
+                    strokeWidth="2"
+                />
+
                 {/* Hair */}
                 <ellipse
                     className="part"
@@ -722,7 +733,7 @@
                     onClick={() => onApplyColor('hair')}
                 />
 
-                {/* Head/Face */}
+                {/* Head/Face - covers top of neck */}
                 <ellipse cx="100" cy="55" rx="32" ry="35" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
                 {/* Eyes */}
                 <circle cx="88" cy="50" r="3" fill="#1a1a1a" />
@@ -732,14 +743,6 @@
                 {/* Cheeks */}
                 <ellipse cx="78" cy="58" rx="6" ry="4" fill="#fbb" opacity="0.5" />
                 <ellipse cx="122" cy="58" rx="6" ry="4" fill="#fbb" opacity="0.5" />
-
-                {/* Neck - drawn before clothes so it appears behind neckline */}
-                <path
-                    d="M 85 87 L 85 95 L 115 95 L 115 87 Q 110 82 100 82 Q 90 82 85 87 Z"
-                    fill="#fad5c8"
-                    stroke="#1a1a1a"
-                    strokeWidth="2"
-                />
 
                 {/* Outer (Cardigan/Jacket) - Left side */}
                 <path
