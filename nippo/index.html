@@ -111,6 +111,12 @@
             margin-left: 0.8rem;
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
         .save-status {
             font-size: 0.75rem;
             padding: 0.4rem 0.8rem;
@@ -132,58 +138,77 @@
             padding: 2rem;
         }
 
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: -4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.8rem 2rem;
+            border: var(--border-weight) solid var(--text-dark);
+            background: #e0dbd1;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            border-bottom: none;
+            position: relative;
+        }
+
+        .tab:first-child {
+            border-right: none;
+        }
+
+        .tab:hover:not(.active) {
+            background: #d5d0c6;
+        }
+
+        .tab.active {
+            background: white;
+            z-index: 2;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: white;
+        }
+
+        .tab-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            margin-left: 0.5rem;
+            color: white;
+        }
+
+        .tab-badge.morning {
+            background: var(--accent-blue);
+        }
+
+        .tab-badge.evening {
+            background: var(--accent-purple);
+        }
+
         .control-group {
             border: var(--border-weight) solid var(--text-dark);
             background: white;
             position: relative;
-            margin-bottom: 1.5rem;
             box-shadow: 6px 6px 0 var(--text-dark);
         }
 
-        .control-label {
-            font-family: 'Archivo Black', sans-serif;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            background: var(--text-dark);
-            color: var(--text-light);
-            padding: 0.6rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .control-label-badge {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.65rem;
-            background: var(--accent-purple);
-            padding: 0.2rem 0.5rem;
-            color: white;
-        }
-
         .control-content {
-            padding: 1rem;
-        }
-
-        textarea {
-            width: 100%;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.95rem;
-            padding: 1rem;
-            border: 3px solid var(--text-dark);
-            background: var(--bg-primary);
-            outline: none;
-            resize: none;
-            line-height: 1.6;
-            transition: all 0.2s;
-            min-height: 120px;
-            overflow: hidden;
-        }
-
-        textarea:focus {
-            background: #fffef5;
-            transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0 var(--text-dark);
+            padding: 1.5rem;
         }
 
         .settings-row {
@@ -191,6 +216,9 @@
             gap: 1rem;
             align-items: center;
             flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px dashed #ddd;
         }
 
         .setting-item {
@@ -218,10 +246,30 @@
             background: var(--accent-yellow);
         }
 
+        textarea {
+            width: 100%;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.95rem;
+            padding: 1rem;
+            border: 3px solid var(--text-dark);
+            background: var(--bg-primary);
+            outline: none;
+            resize: vertical;
+            line-height: 1.6;
+            transition: background 0.2s, box-shadow 0.2s;
+            min-height: 300px;
+        }
+
+        textarea:focus {
+            background: #fffef5;
+            box-shadow: inset 0 0 0 2px var(--accent-blue);
+        }
+
         .action-buttons {
             display: flex;
             gap: 0.8rem;
             flex-wrap: wrap;
+            margin-top: 1.5rem;
         }
 
         .btn-primary {
@@ -274,24 +322,14 @@
             opacity: 1;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .control-group {
-            animation: slideIn 0.4s ease-out backwards;
+        .tab-content {
+            animation: fadeIn 0.2s ease-out;
         }
-
-        .control-group:nth-child(1) { animation-delay: 0.1s; }
-        .control-group:nth-child(2) { animation-delay: 0.2s; }
-        .control-group:nth-child(3) { animation-delay: 0.3s; }
     </style>
 </head>
 <body>
@@ -308,10 +346,9 @@
         const [message2, setMessage2] = useState('');
         const [dateFormat, setDateFormat] = useState('short');
         const [saveStatus, setSaveStatus] = useState('saved');
+        const [activeTab, setActiveTab] = useState('morning');
         const [toast, setToast] = useState({ show: false, message: '' });
 
-        const textarea1Ref = useRef(null);
-        const textarea2Ref = useRef(null);
         const saveTimeoutRef = useRef(null);
 
         // Load from localStorage on mount
@@ -327,19 +364,6 @@
                 }
             }
         }, []);
-
-        // Auto-resize textareas
-        const autoResize = useCallback((textarea) => {
-            if (textarea) {
-                textarea.style.height = 'auto';
-                textarea.style.height = textarea.scrollHeight + 'px';
-            }
-        }, []);
-
-        useEffect(() => {
-            autoResize(textarea1Ref.current);
-            autoResize(textarea2Ref.current);
-        }, [message1, message2, autoResize]);
 
         // Auto-save with debounce
         const saveToStorage = useCallback(() => {
@@ -381,16 +405,16 @@
             setTimeout(() => setToast({ show: false, message: '' }), 2000);
         };
 
-        // Copy handlers
-        const handleCopy = async (type) => {
+        // Copy handler
+        const handleCopy = async () => {
             const date = getFormattedDate(dateFormat);
-            const text = type === 'message1'
+            const text = activeTab === 'morning'
                 ? `${date} ${message1}`
                 : `${date} ${message2}`;
 
             try {
                 await navigator.clipboard.writeText(text);
-                showToast(type === 'message1' ? '始業メッセージをコピーしました' : '終業メッセージをコピーしました');
+                showToast(activeTab === 'morning' ? '始業メッセージをコピーしました' : '終業メッセージをコピーしました');
             } catch (err) {
                 showToast('コピーに失敗しました');
             }
@@ -404,17 +428,31 @@
                             <span className="logo">日報</span>
                             <span className="logo-sub">NIPPO</span>
                         </div>
-                        <span className={`save-status ${saveStatus}`}>
-                            {saveStatus === 'saving' ? '保存中...' : '保存済み'}
-                        </span>
+                        <div className="header-right">
+                            <span className={`save-status ${saveStatus}`}>
+                                {saveStatus === 'saving' ? '保存中...' : '保存済み'}
+                            </span>
+                        </div>
                     </div>
                 </header>
 
                 <main>
+                    <div className="tabs">
+                        <button
+                            className={`tab ${activeTab === 'morning' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('morning')}
+                        >
+                            始業<span className="tab-badge morning">MORNING</span>
+                        </button>
+                        <button
+                            className={`tab ${activeTab === 'evening' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('evening')}
+                        >
+                            終業<span className="tab-badge evening">EVENING</span>
+                        </button>
+                    </div>
+
                     <div className="control-group">
-                        <div className="control-label">
-                            <span>Settings</span>
-                        </div>
                         <div className="control-content">
                             <div className="settings-row">
                                 <div className="setting-item">
@@ -428,48 +466,27 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="control-group">
-                        <div className="control-label">
-                            <span>始業</span>
-                            <span className="control-label-badge">MORNING</span>
-                        </div>
-                        <div className="control-content">
-                            <textarea
-                                ref={textarea1Ref}
-                                value={message1}
-                                onChange={(e) => setMessage1(e.target.value)}
-                                placeholder="始業メッセージを入力..."
-                            />
-                            <div className="action-buttons" style={{ marginTop: '1rem' }}>
-                                <button
-                                    className="btn-primary blue"
-                                    onClick={() => handleCopy('message1')}
-                                >
-                                    コピー
-                                </button>
+                            <div className="tab-content" key={activeTab}>
+                                {activeTab === 'morning' ? (
+                                    <textarea
+                                        value={message1}
+                                        onChange={(e) => setMessage1(e.target.value)}
+                                        placeholder="始業メッセージを入力..."
+                                    />
+                                ) : (
+                                    <textarea
+                                        value={message2}
+                                        onChange={(e) => setMessage2(e.target.value)}
+                                        placeholder="終業メッセージを入力..."
+                                    />
+                                )}
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="control-group">
-                        <div className="control-label">
-                            <span>終業</span>
-                            <span className="control-label-badge">EVENING</span>
-                        </div>
-                        <div className="control-content">
-                            <textarea
-                                ref={textarea2Ref}
-                                value={message2}
-                                onChange={(e) => setMessage2(e.target.value)}
-                                placeholder="終業メッセージを入力..."
-                            />
-                            <div className="action-buttons" style={{ marginTop: '1rem' }}>
+                            <div className="action-buttons">
                                 <button
-                                    className="btn-primary"
-                                    onClick={() => handleCopy('message2')}
+                                    className={`btn-primary ${activeTab === 'morning' ? 'blue' : ''}`}
+                                    onClick={handleCopy}
                                 >
                                     コピー
                                 </button>
