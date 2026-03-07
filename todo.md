@@ -2,6 +2,7 @@
 - [ ] python ツール
 - [ ] bash ツール
 - [ ] カラーピッカー
+  -  スマホの操作性
 - [ ] ロサtス作ア箇条書きツール
   - swe system design(system design primer, well artictated framework)モード
   - インフラモード

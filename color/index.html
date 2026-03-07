@@ -93,11 +93,11 @@
         }
 
         main {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 1.5rem;
             display: grid;
-            grid-template-columns: 320px 1fr 200px;
+            grid-template-columns: 320px 1fr 280px;
             gap: 1.5rem;
         }
 
@@ -436,6 +436,36 @@
             margin-bottom: 0.5rem;
             letter-spacing: 0.05em;
         }
+
+        /* Customization Controls */
+        .custom-control {
+            margin-bottom: 1rem;
+        }
+
+        .custom-buttons {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .custom-btn {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.6rem;
+            font-family: 'DM Mono', monospace;
+            border: 2px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .custom-btn:hover {
+            background: var(--bg-primary);
+        }
+
+        .custom-btn.active {
+            background: var(--accent-purple);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -461,6 +491,19 @@
         inner: '#f5f5f5',
         pants: '#4a4a4a',
         shoes: '#2d2d2d',
+    };
+
+    // Default body customization
+    const DEFAULT_BODY_CUSTOM = {
+        neckline: 'crew',           // 'crew', 'v', 'high'
+        sleeveLength: 'normal',     // 'short', 'normal', 'long'
+        sleeveWidth: 'normal',      // 'narrow', 'normal', 'wide'
+        torsoLength: 'normal',      // 'short', 'normal', 'long'
+        torsoWidth: 'normal',       // 'narrow', 'normal', 'wide'
+        pantsHemType: 'straight',   // 'straight', 'tapered', 'wide'
+        kneePosition: 'normal',     // 'high', 'normal', 'low'
+        pantsLength: 'normal',      // 'short', 'normal', 'long'
+        pantsWidth: 'normal',       // 'skinny', 'normal', 'wide'
     };
 
     function hslToHex(h, s, l) {
@@ -518,7 +561,57 @@
         };
     }
 
-    function HumanFigure({ parts, onApplyColor }) {
+    function HumanFigure({ parts, onApplyColor, bodyCustom }) {
+        // Calculate positions and sizes based on customization
+        const torsoTop = 95;
+        const torsoLengthOffset = bodyCustom.torsoLength === 'short' ? -10 : bodyCustom.torsoLength === 'long' ? 10 : 0;
+        const torsoBottom = 185 + torsoLengthOffset;
+
+        const torsoWidthFactor = bodyCustom.torsoWidth === 'narrow' ? 0.85 : bodyCustom.torsoWidth === 'wide' ? 1.15 : 1;
+        const outerLeftInner = 70 * torsoWidthFactor;
+        const outerRightInner = 200 - outerLeftInner;
+        const outerLeftOuter = 55 * torsoWidthFactor;
+        const outerRightOuter = 200 - outerLeftOuter;
+
+        // Sleeve parameters
+        const sleeveEndY = bodyCustom.sleeveLength === 'short' ? 130 : bodyCustom.sleeveLength === 'long' ? 185 : 175;
+        const sleeveWidthFactor = bodyCustom.sleeveWidth === 'narrow' ? 0.8 : bodyCustom.sleeveWidth === 'wide' ? 1.3 : 1;
+
+        // Pants parameters
+        const pantsTop = torsoBottom;
+        const pantsLengthOffset = bodyCustom.pantsLength === 'short' ? -30 : bodyCustom.pantsLength === 'long' ? 15 : 0;
+        const pantsBottom = 280 + pantsLengthOffset;
+
+        const kneeYOffset = bodyCustom.kneePosition === 'high' ? -20 : bodyCustom.kneePosition === 'low' ? 20 : 0;
+        const kneeY = 210 + kneeYOffset;
+
+        // Pants width calculations
+        const pantsTopWidth = bodyCustom.pantsWidth === 'skinny' ? 0.85 : bodyCustom.pantsWidth === 'wide' ? 1.2 : 1;
+        const pantsLeft = 60 + (1 - pantsTopWidth) * 20;
+        const pantsRight = 140 - (1 - pantsTopWidth) * 20;
+
+        // Hem width based on type
+        let hemWidthFactor;
+        if (bodyCustom.pantsHemType === 'tapered') hemWidthFactor = 0.7;
+        else if (bodyCustom.pantsHemType === 'wide') hemWidthFactor = 1.3;
+        else hemWidthFactor = 1.0;
+
+        const pantsBottomLeftInner = 80 - (80 - 55) * (1 - hemWidthFactor);
+        const pantsBottomLeftOuter = 55 + (80 - 55) * (1 - hemWidthFactor) * 0.3;
+        const pantsBottomRightInner = 120 + (145 - 120) * (1 - hemWidthFactor);
+        const pantsBottomRightOuter = 145 - (145 - 120) * (1 - hemWidthFactor) * 0.3;
+
+        // Neckline - calculate additional path segment after left shoulder
+        let necklineSegment;
+        if (bodyCustom.neckline === 'v') {
+            necklineSegment = `L 100 105 L ${outerRightInner} ${torsoTop}`;
+        } else if (bodyCustom.neckline === 'high') {
+            necklineSegment = `Q ${(outerLeftInner + outerRightInner) / 2} 88 ${outerRightInner} ${torsoTop}`;
+        } else {
+            // crew neck (default)
+            necklineSegment = `Q ${(outerLeftInner + 100) / 2} 90 100 88 Q ${(100 + outerRightInner) / 2} 90 ${outerRightInner} ${torsoTop}`;
+        }
+
         return (
             <svg className="human-svg" viewBox="0 0 200 340">
                 {/* Hair */}
@@ -542,56 +635,63 @@
                 {/* Outer (Cardigan/Jacket) - Left side */}
                 <path
                     className="part"
-                    d="M 55 95
-                       Q 50 100 48 120
-                       L 48 180
-                       Q 48 185 55 185
-                       L 70 185
-                       L 70 95
-                       Z"
+                    d={`M ${outerLeftOuter} ${torsoTop}
+                       Q ${outerLeftOuter - 5} ${torsoTop + 5} ${outerLeftOuter - 7} ${torsoTop + 25}
+                       L ${outerLeftOuter - 7} ${torsoBottom - 5}
+                       Q ${outerLeftOuter - 7} ${torsoBottom} ${outerLeftOuter} ${torsoBottom}
+                       L ${outerLeftInner} ${torsoBottom}
+                       L ${outerLeftInner} ${torsoTop}
+                       Z`}
                     fill={parts.outer}
                     onClick={() => onApplyColor('outer')}
                 />
                 {/* Outer - Right side */}
                 <path
                     className="part"
-                    d="M 145 95
-                       Q 150 100 152 120
-                       L 152 180
-                       Q 152 185 145 185
-                       L 130 185
-                       L 130 95
-                       Z"
+                    d={`M ${outerRightOuter} ${torsoTop}
+                       Q ${outerRightOuter + 5} ${torsoTop + 5} ${outerRightOuter + 7} ${torsoTop + 25}
+                       L ${outerRightOuter + 7} ${torsoBottom - 5}
+                       Q ${outerRightOuter + 7} ${torsoBottom} ${outerRightOuter} ${torsoBottom}
+                       L ${outerRightInner} ${torsoBottom}
+                       L ${outerRightInner} ${torsoTop}
+                       Z`}
                     fill={parts.outer}
                     onClick={() => onApplyColor('outer')}
                 />
                 {/* Left arm */}
                 <path
                     className="part"
-                    d="M 48 120 L 35 175 Q 33 185 40 185 L 50 185 L 55 130 Z"
+                    d={`M ${outerLeftOuter - 7} ${torsoTop + 25}
+                        L ${35 * sleeveWidthFactor} ${sleeveEndY}
+                        Q ${33 * sleeveWidthFactor} ${sleeveEndY + 10} ${40 * sleeveWidthFactor} ${sleeveEndY + 10}
+                        L ${50 * sleeveWidthFactor} ${sleeveEndY + 10}
+                        L ${outerLeftOuter} ${torsoTop + 35} Z`}
                     fill={parts.outer}
                     onClick={() => onApplyColor('outer')}
                 />
                 {/* Right arm */}
                 <path
                     className="part"
-                    d="M 152 120 L 165 175 Q 167 185 160 185 L 150 185 L 145 130 Z"
+                    d={`M ${outerRightOuter + 7} ${torsoTop + 25}
+                        L ${200 - 35 * sleeveWidthFactor} ${sleeveEndY}
+                        Q ${200 - 33 * sleeveWidthFactor} ${sleeveEndY + 10} ${200 - 40 * sleeveWidthFactor} ${sleeveEndY + 10}
+                        L ${200 - 50 * sleeveWidthFactor} ${sleeveEndY + 10}
+                        L ${outerRightOuter} ${torsoTop + 35} Z`}
                     fill={parts.outer}
                     onClick={() => onApplyColor('outer')}
                 />
                 {/* Hands */}
-                <ellipse cx="40" cy="190" rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
-                <ellipse cx="160" cy="190" rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
+                <ellipse cx={40 * sleeveWidthFactor} cy={sleeveEndY + 15} rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
+                <ellipse cx={200 - 40 * sleeveWidthFactor} cy={sleeveEndY + 15} rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
 
                 {/* Inner (T-shirt) */}
                 <path
                     className="part"
-                    d="M 70 95
-                       Q 72 90 100 88
-                       Q 128 90 130 95
-                       L 130 185
-                       L 70 185
-                       Z"
+                    d={`M ${outerLeftInner} ${torsoTop}
+                       ${necklineSegment}
+                       L ${outerRightInner} ${torsoBottom}
+                       L ${outerLeftInner} ${torsoBottom}
+                       Z`}
                     fill={parts.inner}
                     onClick={() => onApplyColor('inner')}
                 />
@@ -599,16 +699,16 @@
                 {/* Pants */}
                 <path
                     className="part"
-                    d="M 60 185
-                       L 55 280
-                       L 80 280
-                       L 85 210
-                       L 100 210
-                       L 115 210
-                       L 120 280
-                       L 145 280
-                       L 140 185
-                       Z"
+                    d={`M ${pantsLeft} ${pantsTop}
+                       L ${pantsBottomLeftOuter} ${pantsBottom}
+                       L ${pantsBottomLeftInner} ${pantsBottom}
+                       L 85 ${kneeY}
+                       L 100 ${kneeY}
+                       L 115 ${kneeY}
+                       L ${pantsBottomRightInner} ${pantsBottom}
+                       L ${pantsBottomRightOuter} ${pantsBottom}
+                       L ${pantsRight} ${pantsTop}
+                       Z`}
                     fill={parts.pants}
                     onClick={() => onApplyColor('pants')}
                 />
@@ -616,14 +716,24 @@
                 {/* Shoes - Left */}
                 <path
                     className="part"
-                    d="M 52 280 L 48 310 Q 45 320 55 320 L 85 320 Q 90 320 88 310 L 83 280 Z"
+                    d={`M ${pantsBottomLeftOuter - 3} ${pantsBottom}
+                        L ${pantsBottomLeftOuter - 7} ${pantsBottom + 30}
+                        Q ${pantsBottomLeftOuter - 10} ${pantsBottom + 40} ${pantsBottomLeftOuter} ${pantsBottom + 40}
+                        L ${pantsBottomLeftInner + 5} ${pantsBottom + 40}
+                        Q ${pantsBottomLeftInner + 10} ${pantsBottom + 40} ${pantsBottomLeftInner + 8} ${pantsBottom + 30}
+                        L ${pantsBottomLeftInner + 3} ${pantsBottom} Z`}
                     fill={parts.shoes}
                     onClick={() => onApplyColor('shoes')}
                 />
                 {/* Shoes - Right */}
                 <path
                     className="part"
-                    d="M 117 280 L 112 310 Q 110 320 115 320 L 145 320 Q 155 320 152 310 L 148 280 Z"
+                    d={`M ${pantsBottomRightInner - 3} ${pantsBottom}
+                        L ${pantsBottomRightInner - 8} ${pantsBottom + 30}
+                        Q ${pantsBottomRightInner - 10} ${pantsBottom + 40} ${pantsBottomRightInner - 5} ${pantsBottom + 40}
+                        L ${pantsBottomRightOuter} ${pantsBottom + 40}
+                        Q ${pantsBottomRightOuter + 10} ${pantsBottom + 40} ${pantsBottomRightOuter + 7} ${pantsBottom + 30}
+                        L ${pantsBottomRightOuter + 3} ${pantsBottom} Z`}
                     fill={parts.shoes}
                     onClick={() => onApplyColor('shoes')}
                 />
@@ -638,6 +748,7 @@
         const [palette, setPalette] = useState([]);
         const [selectedPaletteIdx, setSelectedPaletteIdx] = useState(null);
         const [humanParts, setHumanParts] = useState(DEFAULT_PARTS);
+        const [bodyCustom, setBodyCustom] = useState(DEFAULT_BODY_CUSTOM);
         const [hexInput, setHexInput] = useState('');
         const [isEditingHex, setIsEditingHex] = useState(false);
         const saveTimeoutRef = useRef(null);
@@ -655,6 +766,9 @@
                         // Merge with defaults to handle missing keys
                         setHumanParts({ ...DEFAULT_PARTS, ...data.humanParts });
                     }
+                    if (data.bodyCustom) {
+                        setBodyCustom({ ...DEFAULT_BODY_CUSTOM, ...data.bodyCustom });
+                    }
                     if (data.selectedHue !== undefined) setSelectedHue(data.selectedHue);
                     if (data.selectedSat !== undefined) setSelectedSat(data.selectedSat);
                     if (data.selectedLight !== undefined) setSelectedLight(data.selectedLight);
@@ -664,9 +778,9 @@
 
         // Save
         const saveData = useCallback(() => {
-            const data = { palette, humanParts, selectedHue, selectedSat, selectedLight };
+            const data = { palette, humanParts, bodyCustom, selectedHue, selectedSat, selectedLight };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }, [palette, humanParts, selectedHue, selectedSat, selectedLight]);
+        }, [palette, humanParts, bodyCustom, selectedHue, selectedSat, selectedLight]);
 
         useEffect(() => {
             if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -691,6 +805,7 @@
 
         const resetHuman = () => {
             setHumanParts(DEFAULT_PARTS);
+            setBodyCustom(DEFAULT_BODY_CUSTOM);
         };
 
         const copyColor = async (color) => {
@@ -712,6 +827,58 @@
             inner: 'インナー',
             pants: 'パンツ',
             shoes: 'シューズ',
+        };
+
+        const updateBodyCustom = (key, value) => {
+            setBodyCustom({ ...bodyCustom, [key]: value });
+        };
+
+        const CUSTOM_OPTIONS = {
+            neckline: { label: 'ネックライン', options: [
+                { value: 'crew', label: 'クルー' },
+                { value: 'v', label: 'V' },
+                { value: 'high', label: 'ハイ' }
+            ]},
+            sleeveLength: { label: '袖の長さ', options: [
+                { value: 'short', label: '半袖' },
+                { value: 'normal', label: '標準' },
+                { value: 'long', label: '長袖' }
+            ]},
+            sleeveWidth: { label: '袖の太さ', options: [
+                { value: 'narrow', label: '細め' },
+                { value: 'normal', label: '標準' },
+                { value: 'wide', label: '太め' }
+            ]},
+            torsoLength: { label: '上半身の長さ', options: [
+                { value: 'short', label: '短め' },
+                { value: 'normal', label: '標準' },
+                { value: 'long', label: '長め' }
+            ]},
+            torsoWidth: { label: '上半身の太さ', options: [
+                { value: 'narrow', label: '細め' },
+                { value: 'normal', label: '標準' },
+                { value: 'wide', label: '太め' }
+            ]},
+            pantsWidth: { label: 'パンツの太さ', options: [
+                { value: 'skinny', label: 'スキニー' },
+                { value: 'normal', label: '標準' },
+                { value: 'wide', label: 'ワイド' }
+            ]},
+            pantsLength: { label: 'パンツの丈', options: [
+                { value: 'short', label: '短め' },
+                { value: 'normal', label: '標準' },
+                { value: 'long', label: '長め' }
+            ]},
+            pantsHemType: { label: 'パンツの裾', options: [
+                { value: 'tapered', label: 'テーパード' },
+                { value: 'straight', label: 'ストレート' },
+                { value: 'wide', label: 'ワイド' }
+            ]},
+            kneePosition: { label: '膝の位置', options: [
+                { value: 'high', label: '高め' },
+                { value: 'normal', label: '標準' },
+                { value: 'low', label: '低め' }
+            ]},
         };
 
         // Hue wheel positions
@@ -861,6 +1028,7 @@
                                 <HumanFigure
                                     parts={humanParts}
                                     onApplyColor={applyColorToPart}
+                                    bodyCustom={bodyCustom}
                                 />
                                 <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: '#666', textAlign: 'center' }}>
                                     クリックで色を適用
@@ -872,25 +1040,48 @@
 
                     <div className="panel">
                         <div className="panel-header">Parts</div>
-                        <div className="panel-content">
-                            {Object.entries(PART_NAMES).map(([key, name]) => (
-                                <div key={key} style={{ marginBottom: '0.8rem' }}>
-                                    <div className="section-label">{name}</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <div style={{
-                                            width: 30, height: 30,
-                                            background: humanParts[key],
-                                            border: '3px solid var(--text-dark)',
-                                        }} />
-                                        <span
-                                            style={{ fontSize: '0.75rem', cursor: 'pointer' }}
-                                            onClick={() => copyColor(humanParts[key])}
-                                        >
-                                            {humanParts[key].toUpperCase()}
-                                        </span>
+                        <div className="panel-content" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <div style={{ fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '0.8rem' }}>カラー</div>
+                                {Object.entries(PART_NAMES).map(([key, name]) => (
+                                    <div key={key} style={{ marginBottom: '0.8rem' }}>
+                                        <div className="section-label">{name}</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <div style={{
+                                                width: 30, height: 30,
+                                                background: humanParts[key],
+                                                border: '3px solid var(--text-dark)',
+                                            }} />
+                                            <span
+                                                style={{ fontSize: '0.75rem', cursor: 'pointer' }}
+                                                onClick={() => copyColor(humanParts[key])}
+                                            >
+                                                {humanParts[key].toUpperCase()}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+
+                            <div style={{ borderTop: '2px dashed #ccc', paddingTop: '1rem' }}>
+                                <div style={{ fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '0.8rem' }}>カスタマイズ</div>
+                                {Object.entries(CUSTOM_OPTIONS).map(([key, config]) => (
+                                    <div key={key} className="custom-control">
+                                        <div className="section-label">{config.label}</div>
+                                        <div className="custom-buttons">
+                                            {config.options.map(opt => (
+                                                <button
+                                                    key={opt.value}
+                                                    className={`custom-btn ${bodyCustom[key] === opt.value ? 'active' : ''}`}
+                                                    onClick={() => updateBodyCustom(key, opt.value)}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </main>
