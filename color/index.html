@@ -496,13 +496,13 @@
     // Default body customization
     const DEFAULT_BODY_CUSTOM = {
         neckline: 'crew',           // 'crew', 'v', 'high'
-        sleeveLength: 'normal',     // 'short', 'normal', 'long'
+        sleeveLength: 'half',       // 'tank', 'sleeveless', 'half', 'five', 'seven', 'nine', 'long'
         sleeveWidth: 'normal',      // 'narrow', 'normal', 'wide'
         torsoLength: 'normal',      // 'short', 'normal', 'long'
         torsoWidth: 'normal',       // 'narrow', 'normal', 'wide'
-        pantsHemType: 'straight',   // 'straight', 'tapered', 'wide'
+        pantsHemType: 'straight',   // 'straight', 'tapered', 'wide', 'flare', 'barrel'
         kneePosition: 'normal',     // 'high', 'normal', 'low'
-        pantsLength: 'normal',      // 'short', 'normal', 'long'
+        pantsLength: 'full',        // 'shorts', 'five', 'cropped', 'full'
         pantsWidth: 'normal',       // 'skinny', 'normal', 'wide'
         shoeWidth: 'normal',        // 'narrow', 'normal', 'wide'
         shoeThickness: 'normal',    // 'thin', 'normal', 'thick'
@@ -569,20 +569,85 @@
         const torsoLengthOffset = bodyCustom.torsoLength === 'short' ? -10 : bodyCustom.torsoLength === 'long' ? 10 : 0;
         const torsoBottom = 185 + torsoLengthOffset;
 
-        const torsoWidthFactor = bodyCustom.torsoWidth === 'narrow' ? 0.85 : bodyCustom.torsoWidth === 'wide' ? 1.15 : 1;
+        const torsoWidthFactor = bodyCustom.torsoWidth === 'narrow' ? 1.15 : bodyCustom.torsoWidth === 'wide' ? 0.85 : 1;
         const outerLeftInner = 70 * torsoWidthFactor;
         const outerRightInner = 200 - outerLeftInner;
         const outerLeftOuter = 55 * torsoWidthFactor;
         const outerRightOuter = 200 - outerLeftOuter;
 
         // Sleeve parameters
-        const sleeveEndY = bodyCustom.sleeveLength === 'short' ? 130 : bodyCustom.sleeveLength === 'long' ? 185 : 175;
-        const sleeveWidthFactor = bodyCustom.sleeveWidth === 'narrow' ? 0.8 : bodyCustom.sleeveWidth === 'wide' ? 1.3 : 1;
+        // Define arm length (skin visible part) and sleeve end position
+        let armEndY, sleeveEndY, sleeveExists;
+        const armStartY = torsoTop + 25;
+
+        switch (bodyCustom.sleeveLength) {
+            case 'tank':
+                armEndY = 185;
+                sleeveEndY = torsoTop;
+                sleeveExists = false;
+                break;
+            case 'sleeveless':
+                armEndY = 185;
+                sleeveEndY = torsoTop + 10;
+                sleeveExists = true;
+                break;
+            case 'half':
+                armEndY = 185;
+                sleeveEndY = 135;
+                sleeveExists = true;
+                break;
+            case 'five':
+                armEndY = 185;
+                sleeveEndY = 155;
+                sleeveExists = true;
+                break;
+            case 'seven':
+                armEndY = 185;
+                sleeveEndY = 170;
+                sleeveExists = true;
+                break;
+            case 'nine':
+                armEndY = 185;
+                sleeveEndY = 180;
+                sleeveExists = true;
+                break;
+            case 'long':
+                armEndY = 185;
+                sleeveEndY = 185;
+                sleeveExists = true;
+                break;
+            default:
+                armEndY = 185;
+                sleeveEndY = 135;
+                sleeveExists = true;
+        }
+
+        // Sleeve width only affects the garment, not the arm
+        const baseSleeveWidth = 15;
+        const sleeveWidthOffset = bodyCustom.sleeveWidth === 'narrow' ? -5 : bodyCustom.sleeveWidth === 'wide' ? 8 : 0;
 
         // Pants parameters
         const pantsTop = torsoBottom;
-        const pantsLengthOffset = bodyCustom.pantsLength === 'short' ? -30 : bodyCustom.pantsLength === 'long' ? 15 : 0;
-        const pantsBottom = 280 + pantsLengthOffset;
+        let pantsBottom, legEndY;
+
+        switch (bodyCustom.pantsLength) {
+            case 'shorts':
+                pantsBottom = 230;  // Above knee
+                legEndY = 320;
+                break;
+            case 'five':
+                pantsBottom = 250;  // At knee
+                legEndY = 320;
+                break;
+            case 'cropped':
+                pantsBottom = 290;  // Show ankles
+                legEndY = 320;
+                break;
+            case 'full':
+            default:
+                pantsBottom = 310;  // Full length
+                legEndY = 320;
+        }
 
         const kneeYOffset = bodyCustom.kneePosition === 'high' ? -20 : bodyCustom.kneePosition === 'low' ? 20 : 0;
         const kneeY = 210 + kneeYOffset;
@@ -593,10 +658,29 @@
         const pantsRight = 140 - (1 - pantsTopWidth) * 20;
 
         // Hem width based on type
-        let hemWidthFactor;
-        if (bodyCustom.pantsHemType === 'tapered') hemWidthFactor = 0.7;
-        else if (bodyCustom.pantsHemType === 'wide') hemWidthFactor = 1.3;
-        else hemWidthFactor = 1.0;
+        let hemWidthFactor, kneeWidthFactor;
+        switch (bodyCustom.pantsHemType) {
+            case 'tapered':
+                hemWidthFactor = 0.7;
+                kneeWidthFactor = 1.0;
+                break;
+            case 'wide':
+                hemWidthFactor = 1.3;
+                kneeWidthFactor = 1.0;
+                break;
+            case 'flare':
+                hemWidthFactor = 1.5;  // Wider at bottom
+                kneeWidthFactor = 0.9;  // Narrower at knee
+                break;
+            case 'barrel':
+                hemWidthFactor = 0.85;  // Tapered at bottom
+                kneeWidthFactor = 1.3;  // Wide at thigh/knee
+                break;
+            case 'straight':
+            default:
+                hemWidthFactor = 1.0;
+                kneeWidthFactor = 1.0;
+        }
 
         const pantsBottomLeftInner = 80 - (80 - 55) * (1 - hemWidthFactor);
         const pantsBottomLeftOuter = 55 + (80 - 55) * (1 - hemWidthFactor) * 0.3;
@@ -605,7 +689,7 @@
 
         // Shoe parameters
         const shoeWidthFactor = bodyCustom.shoeWidth === 'narrow' ? 0.85 : bodyCustom.shoeWidth === 'wide' ? 1.2 : 1;
-        const shoeThicknessFactor = bodyCustom.shoeThickness === 'thin' ? 0.7 : bodyCustom.shoeThickness === 'thick' ? 1.4 : 1;
+        const shoeThicknessFactor = bodyCustom.shoeThickness === 'thin' ? 0.35 : bodyCustom.shoeThickness === 'thick' ? 0.7 : 0.5;  // Half of previous values
 
         // Neck area coordinates
         const neckBottom = 93; // Where the neck meets the shoulders
@@ -651,7 +735,7 @@
 
                 {/* Neck - drawn before clothes so it appears behind neckline */}
                 <path
-                    d="M 85 78 Q 85 93 85 93 L 115 93 Q 115 93 115 78 Q 115 72 100 72 Q 85 72 85 78 Z"
+                    d="M 85 87 L 85 95 L 115 95 L 115 87 Q 110 82 100 82 Q 90 82 85 87 Z"
                     fill="#fad5c8"
                     stroke="#1a1a1a"
                     strokeWidth="2"
@@ -683,31 +767,58 @@
                     fill={parts.outer}
                     onClick={() => onApplyColor('outer')}
                 />
-                {/* Left arm */}
+                {/* Arms (skin) - Left */}
                 <path
-                    className="part"
-                    d={`M ${outerLeftOuter - 7} ${torsoTop + 25}
-                        L ${35 * sleeveWidthFactor} ${sleeveEndY}
-                        Q ${33 * sleeveWidthFactor} ${sleeveEndY + 10} ${40 * sleeveWidthFactor} ${sleeveEndY + 10}
-                        L ${50 * sleeveWidthFactor} ${sleeveEndY + 10}
-                        L ${outerLeftOuter} ${torsoTop + 35} Z`}
-                    fill={parts.outer}
-                    onClick={() => onApplyColor('outer')}
+                    d={`M ${outerLeftOuter - 3} ${armStartY}
+                        L 40 ${armEndY}
+                        Q 38 ${armEndY + 8} 43 ${armEndY + 8}
+                        L 48 ${armEndY + 8}
+                        L ${outerLeftOuter + 2} ${armStartY + 5} Z`}
+                    fill="#fad5c8"
+                    stroke="#1a1a1a"
+                    strokeWidth="2"
                 />
-                {/* Right arm */}
+                {/* Arms (skin) - Right */}
                 <path
-                    className="part"
-                    d={`M ${outerRightOuter + 7} ${torsoTop + 25}
-                        L ${200 - 35 * sleeveWidthFactor} ${sleeveEndY}
-                        Q ${200 - 33 * sleeveWidthFactor} ${sleeveEndY + 10} ${200 - 40 * sleeveWidthFactor} ${sleeveEndY + 10}
-                        L ${200 - 50 * sleeveWidthFactor} ${sleeveEndY + 10}
-                        L ${outerRightOuter} ${torsoTop + 35} Z`}
-                    fill={parts.outer}
-                    onClick={() => onApplyColor('outer')}
+                    d={`M ${outerRightOuter + 3} ${armStartY}
+                        L 160 ${armEndY}
+                        Q 162 ${armEndY + 8} 157 ${armEndY + 8}
+                        L 152 ${armEndY + 8}
+                        L ${outerRightOuter - 2} ${armStartY + 5} Z`}
+                    fill="#fad5c8"
+                    stroke="#1a1a1a"
+                    strokeWidth="2"
                 />
+
+                {/* Sleeves (clothing) - only if sleeves exist */}
+                {sleeveExists && (
+                    <>
+                        {/* Left sleeve */}
+                        <path
+                            className="part"
+                            d={`M ${outerLeftOuter - 7} ${armStartY}
+                                L ${40 - baseSleeveWidth - sleeveWidthOffset} ${sleeveEndY}
+                                L ${40 + baseSleeveWidth + sleeveWidthOffset} ${sleeveEndY}
+                                L ${outerLeftOuter + 3} ${armStartY + 5} Z`}
+                            fill={parts.outer}
+                            onClick={() => onApplyColor('outer')}
+                        />
+                        {/* Right sleeve */}
+                        <path
+                            className="part"
+                            d={`M ${outerRightOuter + 7} ${armStartY}
+                                L ${160 + baseSleeveWidth + sleeveWidthOffset} ${sleeveEndY}
+                                L ${160 - baseSleeveWidth - sleeveWidthOffset} ${sleeveEndY}
+                                L ${outerRightOuter - 3} ${armStartY + 5} Z`}
+                            fill={parts.outer}
+                            onClick={() => onApplyColor('outer')}
+                        />
+                    </>
+                )}
+
                 {/* Hands */}
-                <ellipse cx={40 * sleeveWidthFactor} cy={sleeveEndY + 15} rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
-                <ellipse cx={200 - 40 * sleeveWidthFactor} cy={sleeveEndY + 15} rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
+                <ellipse cx="40" cy={armEndY + 13} rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
+                <ellipse cx="160" cy={armEndY + 13} rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
 
                 {/* Inner (T-shirt) */}
                 <path
@@ -721,15 +832,35 @@
                     onClick={() => onApplyColor('inner')}
                 />
 
+                {/* Legs (skin) - visible below pants */}
+                <path
+                    d={`M ${pantsBottomLeftOuter} ${pantsBottom}
+                       L 58 ${legEndY}
+                       L 82 ${legEndY}
+                       L ${pantsBottomLeftInner} ${pantsBottom} Z`}
+                    fill="#fad5c8"
+                    stroke="#1a1a1a"
+                    strokeWidth="2"
+                />
+                <path
+                    d={`M ${pantsBottomRightInner} ${pantsBottom}
+                       L 118 ${legEndY}
+                       L 142 ${legEndY}
+                       L ${pantsBottomRightOuter} ${pantsBottom} Z`}
+                    fill="#fad5c8"
+                    stroke="#1a1a1a"
+                    strokeWidth="2"
+                />
+
                 {/* Pants */}
                 <path
                     className="part"
                     d={`M ${pantsLeft} ${pantsTop}
                        L ${pantsBottomLeftOuter} ${pantsBottom}
                        L ${pantsBottomLeftInner} ${pantsBottom}
-                       L 85 ${kneeY}
+                       L ${85 - (85 - 60) * (kneeWidthFactor - 1)} ${kneeY}
                        L 100 ${kneeY}
-                       L 115 ${kneeY}
+                       L ${115 + (140 - 115) * (kneeWidthFactor - 1)} ${kneeY}
                        L ${pantsBottomRightInner} ${pantsBottom}
                        L ${pantsBottomRightOuter} ${pantsBottom}
                        L ${pantsRight} ${pantsTop}
@@ -741,24 +872,24 @@
                 {/* Shoes - Left */}
                 <path
                     className="part"
-                    d={`M ${pantsBottomLeftOuter - 3} ${pantsBottom}
-                        L ${pantsBottomLeftOuter - 7 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
-                        Q ${pantsBottomLeftOuter - 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomLeftOuter} ${pantsBottom + 40 * shoeThicknessFactor}
-                        L ${pantsBottomLeftInner + 5 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor}
-                        Q ${pantsBottomLeftInner + 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomLeftInner + 8 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
-                        L ${pantsBottomLeftInner + 3} ${pantsBottom} Z`}
+                    d={`M ${58 - 5 * (shoeWidthFactor - 1)} ${legEndY}
+                        L ${58 - 10 * shoeWidthFactor} ${legEndY + 15 * shoeThicknessFactor}
+                        Q ${58 - 12 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor} ${58 - 5 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor}
+                        L ${82 + 5 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor}
+                        Q ${82 + 12 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor} ${82 + 10 * shoeWidthFactor} ${legEndY + 15 * shoeThicknessFactor}
+                        L ${82 + 5 * (shoeWidthFactor - 1)} ${legEndY} Z`}
                     fill={parts.shoes}
                     onClick={() => onApplyColor('shoes')}
                 />
                 {/* Shoes - Right */}
                 <path
                     className="part"
-                    d={`M ${pantsBottomRightInner - 3} ${pantsBottom}
-                        L ${pantsBottomRightInner - 8 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
-                        Q ${pantsBottomRightInner - 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomRightInner - 5 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor}
-                        L ${pantsBottomRightOuter * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor}
-                        Q ${pantsBottomRightOuter + 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomRightOuter + 7 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
-                        L ${pantsBottomRightOuter + 3} ${pantsBottom} Z`}
+                    d={`M ${118 - 5 * (shoeWidthFactor - 1)} ${legEndY}
+                        L ${118 - 10 * shoeWidthFactor} ${legEndY + 15 * shoeThicknessFactor}
+                        Q ${118 - 12 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor} ${118 - 5 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor}
+                        L ${142 + 5 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor}
+                        Q ${142 + 12 * shoeWidthFactor} ${legEndY + 20 * shoeThicknessFactor} ${142 + 10 * shoeWidthFactor} ${legEndY + 15 * shoeThicknessFactor}
+                        L ${142 + 5 * (shoeWidthFactor - 1)} ${legEndY} Z`}
                     fill={parts.shoes}
                     onClick={() => onApplyColor('shoes')}
                 />
@@ -865,8 +996,12 @@
                 { value: 'high', label: 'ハイ' }
             ]},
             sleeveLength: { label: '袖の長さ', options: [
-                { value: 'short', label: '半袖' },
-                { value: 'normal', label: '標準' },
+                { value: 'tank', label: 'タンク' },
+                { value: 'sleeveless', label: 'ノースリ' },
+                { value: 'half', label: '半袖' },
+                { value: 'five', label: '5部' },
+                { value: 'seven', label: '7部' },
+                { value: 'nine', label: '9部' },
                 { value: 'long', label: '長袖' }
             ]},
             sleeveWidth: { label: '袖の太さ', options: [
@@ -890,14 +1025,17 @@
                 { value: 'wide', label: 'ワイド' }
             ]},
             pantsLength: { label: 'パンツの丈', options: [
-                { value: 'short', label: '短め' },
-                { value: 'normal', label: '標準' },
-                { value: 'long', label: '長め' }
+                { value: 'shorts', label: 'ショーツ' },
+                { value: 'five', label: '5分丈' },
+                { value: 'cropped', label: 'クロップド' },
+                { value: 'full', label: '長ズボン' }
             ]},
             pantsHemType: { label: 'パンツの裾', options: [
                 { value: 'tapered', label: 'テーパード' },
                 { value: 'straight', label: 'ストレート' },
-                { value: 'wide', label: 'ワイド' }
+                { value: 'wide', label: 'ワイド' },
+                { value: 'flare', label: 'フレア' },
+                { value: 'barrel', label: 'バレル' }
             ]},
             kneePosition: { label: '膝の位置', options: [
                 { value: 'high', label: '高め' },
