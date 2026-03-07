@@ -626,6 +626,30 @@
         const baseSleeveWidth = 15;
         const sleeveWidthOffset = bodyCustom.sleeveWidth === 'narrow' ? -5 : bodyCustom.sleeveWidth === 'wide' ? 8 : 0;
 
+        // Calculate sleeve width perpendicular to arm direction
+        const sleeveWidth = baseSleeveWidth + sleeveWidthOffset;
+
+        // Left arm angle: from shoulder to hand (40, armEndY)
+        const leftArmDX = 40 - (outerLeftOuter - 3);
+        const leftArmDY = armEndY - armStartY;
+        const leftArmLength = Math.sqrt(leftArmDX * leftArmDX + leftArmDY * leftArmDY);
+        const leftPerpendicularX = -leftArmDY / leftArmLength * sleeveWidth;
+        const leftPerpendicularY = leftArmDX / leftArmLength * sleeveWidth;
+
+        // Right arm angle: from shoulder to hand (160, armEndY)
+        const rightArmDX = 160 - (outerRightOuter + 3);
+        const rightArmDY = armEndY - armStartY;
+        const rightArmLength = Math.sqrt(rightArmDX * rightArmDX + rightArmDY * rightArmDY);
+        const rightPerpendicularX = -rightArmDY / rightArmLength * sleeveWidth;
+        const rightPerpendicularY = rightArmDX / rightArmLength * sleeveWidth;
+
+        // Sleeve end positions along the arm
+        const leftSleeveRatio = (sleeveEndY - armStartY) / (armEndY - armStartY);
+        const leftSleeveX = (outerLeftOuter - 3) + leftArmDX * leftSleeveRatio;
+
+        const rightSleeveRatio = (sleeveEndY - armStartY) / (armEndY - armStartY);
+        const rightSleeveX = (outerRightOuter + 3) + rightArmDX * rightSleeveRatio;
+
         // Pants parameters
         const pantsTop = torsoBottom;
         let pantsBottom, legEndY;
@@ -799,20 +823,20 @@
                         {/* Left sleeve */}
                         <path
                             className="part"
-                            d={`M ${outerLeftOuter - 7} ${armStartY}
-                                L ${40 - baseSleeveWidth - sleeveWidthOffset} ${sleeveEndY}
-                                L ${40 + baseSleeveWidth + sleeveWidthOffset} ${sleeveEndY}
-                                L ${outerLeftOuter + 3} ${armStartY + 5} Z`}
+                            d={`M ${(outerLeftOuter - 3) - leftPerpendicularX} ${armStartY - leftPerpendicularY}
+                                L ${leftSleeveX - leftPerpendicularX} ${sleeveEndY - leftPerpendicularY}
+                                L ${leftSleeveX + leftPerpendicularX} ${sleeveEndY + leftPerpendicularY}
+                                L ${(outerLeftOuter - 3) + leftPerpendicularX} ${armStartY + leftPerpendicularY} Z`}
                             fill={parts.outer}
                             onClick={() => onApplyColor('outer')}
                         />
                         {/* Right sleeve */}
                         <path
                             className="part"
-                            d={`M ${outerRightOuter + 7} ${armStartY}
-                                L ${160 + baseSleeveWidth + sleeveWidthOffset} ${sleeveEndY}
-                                L ${160 - baseSleeveWidth - sleeveWidthOffset} ${sleeveEndY}
-                                L ${outerRightOuter - 3} ${armStartY + 5} Z`}
+                            d={`M ${(outerRightOuter + 3) - rightPerpendicularX} ${armStartY - rightPerpendicularY}
+                                L ${rightSleeveX - rightPerpendicularX} ${sleeveEndY - rightPerpendicularY}
+                                L ${rightSleeveX + rightPerpendicularX} ${sleeveEndY + rightPerpendicularY}
+                                L ${(outerRightOuter + 3) + rightPerpendicularX} ${armStartY + rightPerpendicularY} Z`}
                             fill={parts.outer}
                             onClick={() => onApplyColor('outer')}
                         />
