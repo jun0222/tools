@@ -300,13 +300,44 @@
 
         .current-info { flex: 1; font-size: 0.8rem; }
 
-        .color-code {
+        .color-code-input {
+            font-family: 'DM Mono', monospace;
             font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
+            font-size: 0.85rem;
+            width: 100%;
+            padding: 0.3rem 0.5rem;
+            border: 2px solid var(--text-dark);
+            background: var(--bg-primary);
+            outline: none;
+            margin-bottom: 0.4rem;
         }
 
-        .color-code:hover { text-decoration: underline; }
+        .color-code-input:focus {
+            background: white;
+            box-shadow: 0 0 0 2px var(--accent-blue);
+        }
+
+        .hsl-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.3rem;
+            font-size: 0.65rem;
+        }
+
+        .hsl-item {
+            background: var(--bg-primary);
+            padding: 0.2rem 0.4rem;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .hsl-label {
+            color: #888;
+        }
+
+        .hsl-value {
+            font-weight: bold;
+        }
 
         /* Palette */
         .palette {
@@ -480,6 +511,41 @@
             return Math.round(255 * color).toString(16).padStart(2, '0');
         };
         return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    function hexToHsl(hex) {
+        // Remove # if present
+        hex = hex.replace(/^#/, '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(c => c + c).join('');
+        }
+        if (hex.length !== 6) return null;
+
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                case g: h = ((b - r) / d + 2) / 6; break;
+                case b: h = ((r - g) / d + 4) / 6; break;
+            }
+        }
+
+        return {
+            h: Math.round(h * 360),
+            s: Math.round(s * 100),
+            l: Math.round(l * 100),
+        };
     }
 
     // Calculate position on circle
@@ -759,11 +825,33 @@
                             <div className="current-color">
                                 <div className="current-swatch" style={{ background: currentColor }} />
                                 <div className="current-info">
-                                    <div className="color-code" onClick={() => copyColor(currentColor)}>
-                                        {currentColor.toUpperCase()}
-                                    </div>
-                                    <div style={{ fontSize: '0.65rem', color: '#888' }}>
-                                        H:{selectedHue} S:{selectedSat} L:{selectedLight}
+                                    <input
+                                        type="text"
+                                        className="color-code-input"
+                                        value={currentColor.toUpperCase()}
+                                        onChange={(e) => {
+                                            const hsl = hexToHsl(e.target.value);
+                                            if (hsl) {
+                                                setSelectedHue(Math.round(hsl.h / 30) * 30 % 360);
+                                                setSelectedSat(hsl.s);
+                                                setSelectedLight(hsl.l);
+                                            }
+                                        }}
+                                        onFocus={(e) => e.target.select()}
+                                    />
+                                    <div className="hsl-info">
+                                        <div className="hsl-item">
+                                            <div className="hsl-label">色相 H</div>
+                                            <div className="hsl-value">{selectedHue}°</div>
+                                        </div>
+                                        <div className="hsl-item">
+                                            <div className="hsl-label">彩度 S</div>
+                                            <div className="hsl-value">{selectedSat}%</div>
+                                        </div>
+                                        <div className="hsl-item">
+                                            <div className="hsl-label">明度 L</div>
+                                            <div className="hsl-value">{selectedLight}%</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
