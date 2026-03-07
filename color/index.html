@@ -414,47 +414,8 @@
         }
 
         .human-svg .part:hover {
-            filter: brightness(1.1);
-        }
-
-        .human-svg .part.selected {
+            filter: brightness(1.15);
             stroke-width: 4;
-            filter: drop-shadow(0 0 6px var(--accent-purple));
-        }
-
-        .part-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            justify-content: center;
-        }
-
-        .part-btn {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.65rem;
-            padding: 0.3rem 0.5rem;
-            border: 2px solid var(--text-dark);
-            background: white;
-            cursor: pointer;
-        }
-
-        .part-btn:hover { background: var(--accent-yellow); }
-        .part-btn.selected { background: var(--accent-purple); color: white; }
-
-        .apply-btn {
-            margin-top: 0.8rem;
-            font-family: 'Archivo Black', sans-serif;
-            font-size: 0.7rem;
-            padding: 0.5rem 1rem;
-            border: 3px solid var(--text-dark);
-            background: var(--accent-green);
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        .apply-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 3px 3px 0 var(--text-dark);
         }
 
         .reset-btn {
@@ -557,15 +518,15 @@
         };
     }
 
-    function HumanFigure({ parts, selectedPart, onSelectPart }) {
+    function HumanFigure({ parts, onApplyColor }) {
         return (
             <svg className="human-svg" viewBox="0 0 200 340">
                 {/* Hair */}
                 <ellipse
-                    className={`part ${selectedPart === 'hair' ? 'selected' : ''}`}
+                    className="part"
                     cx="100" cy="35" rx="38" ry="30"
                     fill={parts.hair}
-                    onClick={() => onSelectPart('hair')}
+                    onClick={() => onApplyColor('hair')}
                 />
                 {/* Head/Face */}
                 <ellipse cx="100" cy="55" rx="32" ry="35" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
@@ -580,7 +541,7 @@
 
                 {/* Outer (Cardigan/Jacket) - Left side */}
                 <path
-                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    className="part"
                     d="M 55 95
                        Q 50 100 48 120
                        L 48 180
@@ -589,11 +550,11 @@
                        L 70 95
                        Z"
                     fill={parts.outer}
-                    onClick={() => onSelectPart('outer')}
+                    onClick={() => onApplyColor('outer')}
                 />
                 {/* Outer - Right side */}
                 <path
-                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    className="part"
                     d="M 145 95
                        Q 150 100 152 120
                        L 152 180
@@ -602,21 +563,21 @@
                        L 130 95
                        Z"
                     fill={parts.outer}
-                    onClick={() => onSelectPart('outer')}
+                    onClick={() => onApplyColor('outer')}
                 />
                 {/* Left arm */}
                 <path
-                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    className="part"
                     d="M 48 120 L 35 175 Q 33 185 40 185 L 50 185 L 55 130 Z"
                     fill={parts.outer}
-                    onClick={() => onSelectPart('outer')}
+                    onClick={() => onApplyColor('outer')}
                 />
                 {/* Right arm */}
                 <path
-                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    className="part"
                     d="M 152 120 L 165 175 Q 167 185 160 185 L 150 185 L 145 130 Z"
                     fill={parts.outer}
-                    onClick={() => onSelectPart('outer')}
+                    onClick={() => onApplyColor('outer')}
                 />
                 {/* Hands */}
                 <ellipse cx="40" cy="190" rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
@@ -624,7 +585,7 @@
 
                 {/* Inner (T-shirt) */}
                 <path
-                    className={`part ${selectedPart === 'inner' ? 'selected' : ''}`}
+                    className="part"
                     d="M 70 95
                        Q 72 90 100 88
                        Q 128 90 130 95
@@ -632,12 +593,12 @@
                        L 70 185
                        Z"
                     fill={parts.inner}
-                    onClick={() => onSelectPart('inner')}
+                    onClick={() => onApplyColor('inner')}
                 />
 
                 {/* Pants */}
                 <path
-                    className={`part ${selectedPart === 'pants' ? 'selected' : ''}`}
+                    className="part"
                     d="M 60 185
                        L 55 280
                        L 80 280
@@ -649,22 +610,22 @@
                        L 140 185
                        Z"
                     fill={parts.pants}
-                    onClick={() => onSelectPart('pants')}
+                    onClick={() => onApplyColor('pants')}
                 />
 
                 {/* Shoes - Left */}
                 <path
-                    className={`part ${selectedPart === 'shoes' ? 'selected' : ''}`}
+                    className="part"
                     d="M 52 280 L 48 310 Q 45 320 55 320 L 85 320 Q 90 320 88 310 L 83 280 Z"
                     fill={parts.shoes}
-                    onClick={() => onSelectPart('shoes')}
+                    onClick={() => onApplyColor('shoes')}
                 />
                 {/* Shoes - Right */}
                 <path
-                    className={`part ${selectedPart === 'shoes' ? 'selected' : ''}`}
+                    className="part"
                     d="M 117 280 L 112 310 Q 110 320 115 320 L 145 320 Q 155 320 152 310 L 148 280 Z"
                     fill={parts.shoes}
-                    onClick={() => onSelectPart('shoes')}
+                    onClick={() => onApplyColor('shoes')}
                 />
             </svg>
         );
@@ -677,7 +638,6 @@
         const [palette, setPalette] = useState([]);
         const [selectedPaletteIdx, setSelectedPaletteIdx] = useState(null);
         const [humanParts, setHumanParts] = useState(DEFAULT_PARTS);
-        const [selectedPart, setSelectedPart] = useState('outer');
         const saveTimeoutRef = useRef(null);
 
         const currentColor = hslToHex(selectedHue, selectedSat, selectedLight);
@@ -723,8 +683,8 @@
             if (selectedPaletteIdx === idx) setSelectedPaletteIdx(null);
         };
 
-        const applyToHuman = () => {
-            setHumanParts({ ...humanParts, [selectedPart]: currentColor });
+        const applyColorToPart = (part) => {
+            setHumanParts({ ...humanParts, [part]: currentColor });
         };
 
         const resetHuman = () => {
@@ -879,25 +839,11 @@
                             <div className="human-container">
                                 <HumanFigure
                                     parts={humanParts}
-                                    selectedPart={selectedPart}
-                                    onSelectPart={setSelectedPart}
+                                    onApplyColor={applyColorToPart}
                                 />
-
-                                <div className="part-buttons">
-                                    {Object.entries(PART_NAMES).map(([key, name]) => (
-                                        <button
-                                            key={key}
-                                            className={`part-btn ${selectedPart === key ? 'selected' : ''}`}
-                                            onClick={() => setSelectedPart(key)}
-                                        >
-                                            {name}
-                                        </button>
-                                    ))}
+                                <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: '#666', textAlign: 'center' }}>
+                                    クリックで色を適用
                                 </div>
-
-                                <button className="apply-btn" onClick={applyToHuman}>
-                                    {PART_NAMES[selectedPart]}に適用
-                                </button>
                                 <button className="reset-btn" onClick={resetHuman}>リセット</button>
                             </div>
                         </div>
