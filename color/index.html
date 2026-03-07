@@ -25,11 +25,7 @@
             --border-weight: 4px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'DM Mono', monospace;
@@ -93,15 +89,15 @@
             font-size: 0.7rem;
             padding: 0.3rem 0.6rem;
             border: 2px solid var(--text-dark);
+            background: var(--accent-green);
         }
-        .save-status.saved { background: var(--accent-green); }
 
         main {
             max-width: 1400px;
             margin: 0 auto;
             padding: 1.5rem;
             display: grid;
-            grid-template-columns: 300px 1fr 200px;
+            grid-template-columns: 320px 1fr 200px;
             gap: 1.5rem;
         }
 
@@ -129,36 +125,77 @@
             padding: 1rem;
         }
 
-        /* Hue Ring */
-        .hue-ring {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
+        /* Hue Wheel */
+        .hue-wheel-container {
+            display: flex;
+            justify-content: center;
             margin-bottom: 1rem;
         }
 
-        .hue-btn {
-            aspect-ratio: 1;
+        .hue-wheel {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+
+        .hue-segment {
+            position: absolute;
+            width: 36px;
+            height: 36px;
             border: 3px solid var(--text-dark);
+            border-radius: 50%;
             cursor: pointer;
             transition: transform 0.1s;
         }
 
-        .hue-btn:hover {
-            transform: scale(1.1);
-            z-index: 1;
+        .hue-segment:hover {
+            transform: scale(1.15);
+            z-index: 10;
         }
 
-        .hue-btn.selected {
+        .hue-segment.selected {
             box-shadow: 0 0 0 3px white, 0 0 0 6px var(--text-dark);
+            z-index: 11;
         }
 
         /* Tone Grid */
+        .tone-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
         .tone-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 4px;
-            margin-bottom: 1rem;
+        }
+
+        .tone-axis {
+            position: absolute;
+            font-size: 0.55rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .tone-axis.horizontal {
+            bottom: -18px;
+            left: 0;
+            right: 0;
+            justify-content: space-between;
+        }
+
+        .tone-axis.vertical {
+            top: 0;
+            bottom: 0;
+            left: -45px;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .tone-arrow {
+            font-size: 0.7rem;
         }
 
         .tone-btn {
@@ -193,10 +230,7 @@
             border: 3px solid var(--text-dark);
         }
 
-        .current-info {
-            flex: 1;
-            font-size: 0.8rem;
-        }
+        .current-info { flex: 1; font-size: 0.8rem; }
 
         .color-code {
             font-weight: bold;
@@ -204,9 +238,7 @@
             cursor: pointer;
         }
 
-        .color-code:hover {
-            text-decoration: underline;
-        }
+        .color-code:hover { text-decoration: underline; }
 
         /* Palette */
         .palette {
@@ -225,10 +257,7 @@
             transition: transform 0.1s;
         }
 
-        .palette-swatch:hover {
-            transform: scale(1.1);
-            z-index: 1;
-        }
+        .palette-swatch:hover { transform: scale(1.1); z-index: 1; }
 
         .palette-swatch.selected {
             box-shadow: 0 0 0 2px white, 0 0 0 4px var(--accent-purple);
@@ -236,10 +265,8 @@
 
         .palette-swatch .delete {
             position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 18px;
-            height: 18px;
+            top: -8px; right: -8px;
+            width: 18px; height: 18px;
             background: var(--accent-red);
             color: white;
             border: 2px solid var(--text-dark);
@@ -251,9 +278,7 @@
             justify-content: center;
         }
 
-        .palette-swatch:hover .delete {
-            display: flex;
-        }
+        .palette-swatch:hover .delete { display: flex; }
 
         .add-btn {
             width: 36px;
@@ -267,9 +292,7 @@
             justify-content: center;
         }
 
-        .add-btn:hover {
-            background: var(--accent-yellow);
-        }
+        .add-btn:hover { background: var(--accent-yellow); }
 
         /* Human Figure */
         .human-container {
@@ -278,68 +301,26 @@
             align-items: center;
         }
 
-        .human-figure {
-            position: relative;
-            width: 120px;
-            height: 240px;
+        .human-svg {
+            width: 200px;
+            height: 340px;
             margin: 1rem 0;
         }
 
-        .human-part {
-            position: absolute;
+        .human-svg .part {
             cursor: pointer;
-            transition: filter 0.1s;
+            transition: filter 0.15s, stroke-width 0.15s;
+            stroke: var(--text-dark);
+            stroke-width: 2;
         }
 
-        .human-part:hover {
+        .human-svg .part:hover {
             filter: brightness(1.1);
         }
 
-        .human-part.selected {
-            filter: drop-shadow(0 0 4px var(--accent-purple));
-        }
-
-        .part-hat {
-            left: 30px; top: 0;
-            width: 60px; height: 25px;
-            border-radius: 8px 8px 0 0;
-            border: 3px solid var(--text-dark);
-        }
-
-        .part-head {
-            left: 35px; top: 20px;
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            border: 3px solid var(--text-dark);
-            background: #ffd5c8;
-        }
-
-        .part-outer {
-            left: 20px; top: 70px;
-            width: 80px; height: 70px;
-            border-radius: 8px;
-            border: 3px solid var(--text-dark);
-        }
-
-        .part-inner {
-            left: 35px; top: 75px;
-            width: 50px; height: 40px;
-            border-radius: 4px;
-            border: 3px solid var(--text-dark);
-        }
-
-        .part-pants {
-            left: 25px; top: 140px;
-            width: 70px; height: 60px;
-            border-radius: 0 0 8px 8px;
-            border: 3px solid var(--text-dark);
-        }
-
-        .part-shoes {
-            left: 25px; top: 200px;
-            width: 70px; height: 30px;
-            border-radius: 0 0 12px 12px;
-            border: 3px solid var(--text-dark);
+        .human-svg .part.selected {
+            stroke-width: 4;
+            filter: drop-shadow(0 0 6px var(--accent-purple));
         }
 
         .part-buttons {
@@ -358,14 +339,8 @@
             cursor: pointer;
         }
 
-        .part-btn:hover {
-            background: var(--accent-yellow);
-        }
-
-        .part-btn.selected {
-            background: var(--accent-purple);
-            color: white;
-        }
+        .part-btn:hover { background: var(--accent-yellow); }
+        .part-btn.selected { background: var(--accent-purple); color: white; }
 
         .apply-btn {
             margin-top: 0.8rem;
@@ -392,10 +367,7 @@
             cursor: pointer;
         }
 
-        .reset-btn:hover {
-            background: var(--accent-red);
-            color: white;
-        }
+        .reset-btn:hover { background: var(--accent-red); color: white; }
 
         .section-label {
             font-size: 0.65rem;
@@ -418,9 +390,18 @@
     // 12 Hue colors (30 degree steps)
     const HUES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
 
-    // Generate tone grid (saturation x lightness)
+    // Tone grid
     const SATURATIONS = [100, 75, 50, 25, 10];
-    const LIGHTNESSES = [90, 75, 60, 45, 30];
+    const LIGHTNESSES = [85, 70, 55, 40, 25];
+
+    // Default human parts colors
+    const DEFAULT_PARTS = {
+        hair: '#2d2d2d',
+        outer: '#8b7355',
+        inner: '#f5f5f5',
+        pants: '#4a4a4a',
+        shoes: '#2d2d2d',
+    };
 
     function hslToHex(h, s, l) {
         const hDecimal = l / 100;
@@ -433,32 +414,151 @@
         return `#${f(0)}${f(8)}${f(4)}`;
     }
 
+    // Calculate position on circle
+    function getHuePosition(hue, radius, centerX, centerY) {
+        const angle = (hue - 90) * (Math.PI / 180);
+        return {
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle),
+        };
+    }
+
+    function HumanFigure({ parts, selectedPart, onSelectPart }) {
+        return (
+            <svg className="human-svg" viewBox="0 0 200 340">
+                {/* Hair */}
+                <ellipse
+                    className={`part ${selectedPart === 'hair' ? 'selected' : ''}`}
+                    cx="100" cy="35" rx="38" ry="30"
+                    fill={parts.hair}
+                    onClick={() => onSelectPart('hair')}
+                />
+                {/* Head/Face */}
+                <ellipse cx="100" cy="55" rx="32" ry="35" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
+                {/* Eyes */}
+                <circle cx="88" cy="50" r="3" fill="#1a1a1a" />
+                <circle cx="112" cy="50" r="3" fill="#1a1a1a" />
+                {/* Mouth */}
+                <path d="M 92 65 Q 100 72 108 65" fill="none" stroke="#e88" strokeWidth="2" />
+                {/* Cheeks */}
+                <ellipse cx="78" cy="58" rx="6" ry="4" fill="#fbb" opacity="0.5" />
+                <ellipse cx="122" cy="58" rx="6" ry="4" fill="#fbb" opacity="0.5" />
+
+                {/* Outer (Cardigan/Jacket) - Left side */}
+                <path
+                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    d="M 55 95
+                       Q 50 100 48 120
+                       L 48 180
+                       Q 48 185 55 185
+                       L 70 185
+                       L 70 95
+                       Z"
+                    fill={parts.outer}
+                    onClick={() => onSelectPart('outer')}
+                />
+                {/* Outer - Right side */}
+                <path
+                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    d="M 145 95
+                       Q 150 100 152 120
+                       L 152 180
+                       Q 152 185 145 185
+                       L 130 185
+                       L 130 95
+                       Z"
+                    fill={parts.outer}
+                    onClick={() => onSelectPart('outer')}
+                />
+                {/* Left arm */}
+                <path
+                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    d="M 48 120 L 35 175 Q 33 185 40 185 L 50 185 L 55 130 Z"
+                    fill={parts.outer}
+                    onClick={() => onSelectPart('outer')}
+                />
+                {/* Right arm */}
+                <path
+                    className={`part ${selectedPart === 'outer' ? 'selected' : ''}`}
+                    d="M 152 120 L 165 175 Q 167 185 160 185 L 150 185 L 145 130 Z"
+                    fill={parts.outer}
+                    onClick={() => onSelectPart('outer')}
+                />
+                {/* Hands */}
+                <ellipse cx="40" cy="190" rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
+                <ellipse cx="160" cy="190" rx="10" ry="8" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
+
+                {/* Inner (T-shirt) */}
+                <path
+                    className={`part ${selectedPart === 'inner' ? 'selected' : ''}`}
+                    d="M 70 95
+                       Q 72 90 100 88
+                       Q 128 90 130 95
+                       L 130 185
+                       L 70 185
+                       Z"
+                    fill={parts.inner}
+                    onClick={() => onSelectPart('inner')}
+                />
+
+                {/* Pants */}
+                <path
+                    className={`part ${selectedPart === 'pants' ? 'selected' : ''}`}
+                    d="M 60 185
+                       L 55 280
+                       L 80 280
+                       L 85 210
+                       L 100 210
+                       L 115 210
+                       L 120 280
+                       L 145 280
+                       L 140 185
+                       Z"
+                    fill={parts.pants}
+                    onClick={() => onSelectPart('pants')}
+                />
+
+                {/* Shoes - Left */}
+                <path
+                    className={`part ${selectedPart === 'shoes' ? 'selected' : ''}`}
+                    d="M 52 280 L 48 310 Q 45 320 55 320 L 85 320 Q 90 320 88 310 L 83 280 Z"
+                    fill={parts.shoes}
+                    onClick={() => onSelectPart('shoes')}
+                />
+                {/* Shoes - Right */}
+                <path
+                    className={`part ${selectedPart === 'shoes' ? 'selected' : ''}`}
+                    d="M 117 280 L 112 310 Q 110 320 115 320 L 145 320 Q 155 320 152 310 L 148 280 Z"
+                    fill={parts.shoes}
+                    onClick={() => onSelectPart('shoes')}
+                />
+            </svg>
+        );
+    }
+
     function App() {
         const [selectedHue, setSelectedHue] = useState(0);
         const [selectedSat, setSelectedSat] = useState(100);
-        const [selectedLight, setSelectedLight] = useState(50);
+        const [selectedLight, setSelectedLight] = useState(55);
         const [palette, setPalette] = useState([]);
         const [selectedPaletteIdx, setSelectedPaletteIdx] = useState(null);
-        const [humanParts, setHumanParts] = useState({
-            hat: '#888888',
-            outer: '#2c3e50',
-            inner: '#ecf0f1',
-            pants: '#34495e',
-            shoes: '#1a1a1a',
-        });
+        const [humanParts, setHumanParts] = useState(DEFAULT_PARTS);
         const [selectedPart, setSelectedPart] = useState('outer');
         const saveTimeoutRef = useRef(null);
 
         const currentColor = hslToHex(selectedHue, selectedSat, selectedLight);
 
-        // Load from localStorage
+        // Load
         useEffect(() => {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
                 try {
                     const data = JSON.parse(stored);
                     if (data.palette) setPalette(data.palette);
-                    if (data.humanParts) setHumanParts(data.humanParts);
+                    if (data.humanParts) {
+                        // Merge with defaults to handle missing keys
+                        setHumanParts({ ...DEFAULT_PARTS, ...data.humanParts });
+                    }
                     if (data.selectedHue !== undefined) setSelectedHue(data.selectedHue);
                     if (data.selectedSat !== undefined) setSelectedSat(data.selectedSat);
                     if (data.selectedLight !== undefined) setSelectedLight(data.selectedLight);
@@ -466,7 +566,7 @@
             }
         }, []);
 
-        // Auto-save
+        // Save
         const saveData = useCallback(() => {
             const data = { palette, humanParts, selectedHue, selectedSat, selectedLight };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -478,49 +578,40 @@
             return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
         }, [saveData]);
 
-        // Add to palette
         const addToPalette = () => {
             if (!palette.includes(currentColor)) {
                 setPalette([...palette, currentColor]);
             }
         };
 
-        // Remove from palette
         const removeFromPalette = (idx) => {
             setPalette(palette.filter((_, i) => i !== idx));
             if (selectedPaletteIdx === idx) setSelectedPaletteIdx(null);
         };
 
-        // Apply color to human part
         const applyToHuman = () => {
             setHumanParts({ ...humanParts, [selectedPart]: currentColor });
         };
 
-        // Reset human colors
         const resetHuman = () => {
-            setHumanParts({
-                hat: '#888888',
-                outer: '#2c3e50',
-                inner: '#ecf0f1',
-                pants: '#34495e',
-                shoes: '#1a1a1a',
-            });
+            setHumanParts(DEFAULT_PARTS);
         };
 
-        // Copy color code
         const copyColor = async (color) => {
-            try {
-                await navigator.clipboard.writeText(color);
-            } catch (e) {}
+            try { await navigator.clipboard.writeText(color); } catch (e) {}
         };
 
         const PART_NAMES = {
-            hat: '帽子',
+            hair: '髪',
             outer: 'アウター',
             inner: 'インナー',
             pants: 'パンツ',
             shoes: 'シューズ',
         };
+
+        // Hue wheel positions
+        const wheelCenter = 90;
+        const wheelRadius = 65;
 
         return (
             <>
@@ -530,39 +621,61 @@
                             <span className="logo">COLOR</span>
                             <span className="logo-sub">PICKER</span>
                         </div>
-                        <span className="save-status saved">自動保存</span>
+                        <span className="save-status">自動保存</span>
                     </div>
                 </header>
 
                 <main>
-                    {/* Left Panel: Color Selection */}
                     <div className="panel">
                         <div className="panel-header">Color</div>
                         <div className="panel-content">
-                            <div className="section-label">Hue (色相)</div>
-                            <div className="hue-ring">
-                                {HUES.map((hue) => (
-                                    <button
-                                        key={hue}
-                                        className={`hue-btn ${selectedHue === hue ? 'selected' : ''}`}
-                                        style={{ background: hslToHex(hue, 100, 50) }}
-                                        onClick={() => setSelectedHue(hue)}
-                                    />
-                                ))}
+                            <div className="section-label">Hue Wheel (色相環)</div>
+                            <div className="hue-wheel-container">
+                                <div className="hue-wheel">
+                                    {HUES.map((hue) => {
+                                        const pos = getHuePosition(hue, wheelRadius, wheelCenter, wheelCenter);
+                                        return (
+                                            <button
+                                                key={hue}
+                                                className={`hue-segment ${selectedHue === hue ? 'selected' : ''}`}
+                                                style={{
+                                                    background: hslToHex(hue, 100, 50),
+                                                    left: pos.x - 18,
+                                                    top: pos.y - 18,
+                                                }}
+                                                onClick={() => setSelectedHue(hue)}
+                                            />
+                                        );
+                                    })}
+                                </div>
                             </div>
 
                             <div className="section-label">Tone (トーン)</div>
-                            <div className="tone-grid">
-                                {LIGHTNESSES.map((l) =>
-                                    SATURATIONS.map((s) => (
-                                        <button
-                                            key={`${s}-${l}`}
-                                            className={`tone-btn ${selectedSat === s && selectedLight === l ? 'selected' : ''}`}
-                                            style={{ background: hslToHex(selectedHue, s, l) }}
-                                            onClick={() => { setSelectedSat(s); setSelectedLight(l); }}
-                                        />
-                                    ))
-                                )}
+                            <div className="tone-container" style={{ marginLeft: '50px', marginBottom: '30px' }}>
+                                <div className="tone-axis vertical">
+                                    <span>明るい</span>
+                                    <span className="tone-arrow">↑</span>
+                                    <span>明度</span>
+                                    <span className="tone-arrow">↓</span>
+                                    <span>暗い</span>
+                                </div>
+                                <div className="tone-grid">
+                                    {LIGHTNESSES.map((l) =>
+                                        SATURATIONS.map((s) => (
+                                            <button
+                                                key={`${s}-${l}`}
+                                                className={`tone-btn ${selectedSat === s && selectedLight === l ? 'selected' : ''}`}
+                                                style={{ background: hslToHex(selectedHue, s, l) }}
+                                                onClick={() => { setSelectedSat(s); setSelectedLight(l); }}
+                                            />
+                                        ))
+                                    )}
+                                </div>
+                                <div className="tone-axis horizontal">
+                                    <span>鮮やか ←</span>
+                                    <span>彩度</span>
+                                    <span>→ 淡い</span>
+                                </div>
                             </div>
 
                             <div className="current-color">
@@ -584,10 +697,7 @@
                                         key={i}
                                         className={`palette-swatch ${selectedPaletteIdx === i ? 'selected' : ''}`}
                                         style={{ background: color }}
-                                        onClick={() => {
-                                            setSelectedPaletteIdx(i);
-                                            copyColor(color);
-                                        }}
+                                        onClick={() => { setSelectedPaletteIdx(i); copyColor(color); }}
                                     >
                                         <span className="delete" onClick={(e) => { e.stopPropagation(); removeFromPalette(i); }}>×</span>
                                     </div>
@@ -597,39 +707,15 @@
                         </div>
                     </div>
 
-                    {/* Center Panel: Human Figure */}
                     <div className="panel">
                         <div className="panel-header">Outfit Preview</div>
                         <div className="panel-content">
                             <div className="human-container">
-                                <div className="human-figure">
-                                    <div
-                                        className={`human-part part-hat ${selectedPart === 'hat' ? 'selected' : ''}`}
-                                        style={{ background: humanParts.hat }}
-                                        onClick={() => setSelectedPart('hat')}
-                                    />
-                                    <div className="human-part part-head" />
-                                    <div
-                                        className={`human-part part-outer ${selectedPart === 'outer' ? 'selected' : ''}`}
-                                        style={{ background: humanParts.outer }}
-                                        onClick={() => setSelectedPart('outer')}
-                                    />
-                                    <div
-                                        className={`human-part part-inner ${selectedPart === 'inner' ? 'selected' : ''}`}
-                                        style={{ background: humanParts.inner }}
-                                        onClick={() => setSelectedPart('inner')}
-                                    />
-                                    <div
-                                        className={`human-part part-pants ${selectedPart === 'pants' ? 'selected' : ''}`}
-                                        style={{ background: humanParts.pants }}
-                                        onClick={() => setSelectedPart('pants')}
-                                    />
-                                    <div
-                                        className={`human-part part-shoes ${selectedPart === 'shoes' ? 'selected' : ''}`}
-                                        style={{ background: humanParts.shoes }}
-                                        onClick={() => setSelectedPart('shoes')}
-                                    />
-                                </div>
+                                <HumanFigure
+                                    parts={humanParts}
+                                    selectedPart={selectedPart}
+                                    onSelectPart={setSelectedPart}
+                                />
 
                                 <div className="part-buttons">
                                     {Object.entries(PART_NAMES).map(([key, name]) => (
@@ -646,14 +732,11 @@
                                 <button className="apply-btn" onClick={applyToHuman}>
                                     {PART_NAMES[selectedPart]}に適用
                                 </button>
-                                <button className="reset-btn" onClick={resetHuman}>
-                                    リセット
-                                </button>
+                                <button className="reset-btn" onClick={resetHuman}>リセット</button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Panel: Part Colors */}
                     <div className="panel">
                         <div className="panel-header">Parts</div>
                         <div className="panel-content">
@@ -661,14 +744,11 @@
                                 <div key={key} style={{ marginBottom: '0.8rem' }}>
                                     <div className="section-label">{name}</div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <div
-                                            style={{
-                                                width: 30,
-                                                height: 30,
-                                                background: humanParts[key],
-                                                border: '3px solid var(--text-dark)',
-                                            }}
-                                        />
+                                        <div style={{
+                                            width: 30, height: 30,
+                                            background: humanParts[key],
+                                            border: '3px solid var(--text-dark)',
+                                        }} />
                                         <span
                                             style={{ fontSize: '0.75rem', cursor: 'pointer' }}
                                             onClick={() => copyColor(humanParts[key])}
