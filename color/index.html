@@ -158,6 +158,40 @@
             z-index: 11;
         }
 
+        .hue-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 4px;
+        }
+
+        .hue-center-btn {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--text-dark);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .hue-center-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .hue-center-btn.selected {
+            box-shadow: 0 0 0 3px var(--accent-purple);
+        }
+
+        .hue-center-btn.white {
+            background: #ffffff;
+        }
+
+        .hue-center-btn.black {
+            background: #000000;
+        }
+
         /* Tone Grid */
         .tone-container {
             position: relative;
@@ -196,6 +230,40 @@
 
         .tone-arrow {
             font-size: 0.7rem;
+        }
+
+        .bw-buttons {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .bw-btn {
+            flex: 1;
+            padding: 8px;
+            border: 3px solid var(--text-dark);
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: 'DM Mono', monospace;
+            transition: transform 0.1s;
+        }
+
+        .bw-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .bw-btn.selected {
+            box-shadow: 0 0 0 2px var(--accent-purple), 0 0 0 4px var(--text-dark);
+        }
+
+        .bw-btn.white {
+            background: #ffffff;
+            color: #000;
+        }
+
+        .bw-btn.black {
+            background: #000000;
+            color: #fff;
         }
 
         .tone-btn {
@@ -647,6 +715,16 @@
                                             />
                                         );
                                     })}
+                                    <div className="hue-center">
+                                        <button
+                                            className={`hue-center-btn white ${selectedSat === 0 && selectedLight === 100 ? 'selected' : ''}`}
+                                            onClick={() => { setSelectedSat(0); setSelectedLight(100); }}
+                                        />
+                                        <button
+                                            className={`hue-center-btn black ${selectedSat === 0 && selectedLight === 0 ? 'selected' : ''}`}
+                                            onClick={() => { setSelectedSat(0); setSelectedLight(0); }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
