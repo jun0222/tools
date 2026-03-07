@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giron - 議論ビューア</title>
+    <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #1a1a1a;
+            --accent-yellow: #ffde03;
+            --accent-red: #ff2e63;
+            --accent-blue: #08d9d6;
+            --accent-green: #9dff00;
+            --accent-purple: #6c5ce7;
+            --accent-orange: #ff9f43;
+            --text-dark: #1a1a1a;
+            --text-light: #f5f0e6;
+            --border-weight: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(0,0,0,0.03) 50px,
+                    rgba(0,0,0,0.03) 51px
+                );
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        header {
+            padding: 1rem 2rem;
+            border-bottom: var(--border-weight) solid var(--text-dark);
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::before {
+            content: 'GIRON';
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            color: var(--accent-purple);
+            z-index: -1;
+        }
+
+        .logo-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.2rem 0.6rem;
+            display: inline-block;
+            transform: rotate(-2deg);
+            margin-left: 0.6rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mode-badge {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border: 2px solid var(--text-dark);
+            background: var(--accent-blue);
+            text-transform: uppercase;
+        }
+
+        .save-status {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border: 2px solid var(--text-dark);
+            background: white;
+        }
+
+        .save-status.saving { background: var(--accent-yellow); }
+        .save-status.saved { background: var(--accent-green); }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 70px);
+        }
+
+        @media (max-width: 800px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .editor-panel {
+            padding: 1rem;
+            border-right: var(--border-weight) solid var(--text-dark);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-label {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.4rem 0.8rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            align-self: flex-start;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            padding: 1rem;
+            border: 3px solid var(--text-dark);
+            background: white;
+            outline: none;
+            resize: none;
+            line-height: 1.7;
+        }
+
+        textarea:focus {
+            box-shadow: inset 0 0 0 2px var(--accent-blue);
+        }
+
+        .preview-panel {
+            padding: 1rem;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .preview-content {
+            padding: 0.5rem;
+        }
+
+        .preview-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .preview-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-badge {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            border: 2px solid var(--text-dark);
+            border-radius: 3px;
+        }
+
+        .item-badge.level-0 { background: var(--accent-red); color: white; }
+        .item-badge.level-1 { background: var(--accent-orange); }
+        .item-badge.level-2 { background: var(--accent-blue); }
+        .item-badge.level-3 { background: var(--accent-purple); color: white; }
+        .item-badge.level-4 { background: var(--accent-yellow); }
+        .item-badge.level-5 { background: var(--accent-green); }
+
+        .item-type {
+            font-size: 0.55rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            min-width: 50px;
+        }
+
+        .item-text {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .item-indent {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .indent-bar {
+            width: 2px;
+            min-height: 100%;
+            margin-right: 8px;
+            background: #ddd;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 2px solid var(--text-dark);
+            background: var(--bg-primary);
+            margin-bottom: 1rem;
+            font-size: 0.65rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .legend-badge {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            font-weight: bold;
+            border: 2px solid var(--text-dark);
+            border-radius: 2px;
+        }
+
+        .empty-preview {
+            color: #999;
+            font-size: 0.85rem;
+            padding: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+    const STORAGE_KEY = 'giron_content';
+
+    // Level config for basic mode
+    const LEVEL_CONFIG = [
+        { symbol: 'ロ', name: '論点', color: 'level-0' },
+        { symbol: 'サ', name: 'サブ論点', color: 'level-1' },
+        { symbol: 'T', name: 'タスク', color: 'level-2' },
+        { symbol: 'ス', name: 'スケジュール', color: 'level-3' },
+        { symbol: '作', name: '作業', color: 'level-4' },
+        { symbol: 'ア', name: 'アウトプット', color: 'level-5' },
+    ];
+
+    // Parse bullet list
+    function parseContent(text) {
+        const lines = text.split('\n');
+        const items = [];
+
+        for (const line of lines) {
+            // Match lines starting with ・ (with optional leading spaces/tabs for indent)
+            const match = line.match(/^(\s*)(・|-)(.*)$/);
+            if (match) {
+                const indent = match[1];
+                const content = match[3].trim();
+                // Calculate indent level (2 spaces or 1 tab = 1 level)
+                const level = Math.min(
+                    Math.floor(indent.replace(/\t/g, '  ').length / 2),
+                    LEVEL_CONFIG.length - 1
+                );
+                items.push({ level, content });
+            }
+        }
+
+        return items;
+    }
+
+    function App() {
+        const [content, setContent] = useState('');
+        const [saveStatus, setSaveStatus] = useState('saved');
+        const saveTimeoutRef = useRef(null);
+
+        // Load from localStorage
+        useEffect(() => {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                setContent(stored);
+            }
+        }, []);
+
+        // Auto-save
+        const saveToStorage = useCallback(() => {
+            localStorage.setItem(STORAGE_KEY, content);
+            setSaveStatus('saved');
+        }, [content]);
+
+        useEffect(() => {
+            setSaveStatus('saving');
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+            saveTimeoutRef.current = setTimeout(saveToStorage, 500);
+            return () => {
+                if (saveTimeoutRef.current) {
+                    clearTimeout(saveTimeoutRef.current);
+                }
+            };
+        }, [content, saveToStorage]);
+
+        // Parse content
+        const items = useMemo(() => parseContent(content), [content]);
+
+        return (
+            <>
+                <header>
+                    <div className="header-content">
+                        <div>
+                            <span className="logo">GIRON</span>
+                            <span className="logo-sub">議論ビューア</span>
+                        </div>
+                        <div className="header-right">
+                            <span className="mode-badge">Basic</span>
+                            <span className={`save-status ${saveStatus}`}>
+                                {saveStatus === 'saving' ? '保存中...' : '保存済み'}
+                            </span>
+                        </div>
+                    </div>
+                </header>
+
+                <main>
+                    <div className="editor-panel">
+                        <span className="panel-label">Editor</span>
+                        <textarea
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            placeholder="・論点を入力&#10;  ・サブ論点（2スペースでインデント）&#10;    ・タスク&#10;      ・スケジュール&#10;        ・作業&#10;          ・アウトプット"
+                        />
+                    </div>
+
+                    <div className="preview-panel">
+                        <span className="panel-label">Preview</span>
+                        <div className="legend">
+                            {LEVEL_CONFIG.map((cfg, i) => (
+                                <div key={i} className="legend-item">
+                                    <span className={`legend-badge ${cfg.color}`}>{cfg.symbol}</span>
+                                    <span>{cfg.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="preview-content">
+                            {items.length === 0 ? (
+                                <div className="empty-preview">
+                                    ・で始まる行を入力するとプレビューされます
+                                </div>
+                            ) : (
+                                items.map((item, i) => {
+                                    const cfg = LEVEL_CONFIG[item.level];
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="preview-item"
+                                            style={{ paddingLeft: `${item.level * 20}px` }}
+                                        >
+                                            <span className={`item-badge ${cfg.color}`}>
+                                                {cfg.symbol}
+                                            </span>
+                                            <span className="item-type">{cfg.name}</span>
+                                            <span className="item-text">{item.content || '(空)'}</span>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                </main>
+            </>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
