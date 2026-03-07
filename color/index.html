@@ -504,6 +504,8 @@
         kneePosition: 'normal',     // 'high', 'normal', 'low'
         pantsLength: 'normal',      // 'short', 'normal', 'long'
         pantsWidth: 'normal',       // 'skinny', 'normal', 'wide'
+        shoeWidth: 'normal',        // 'narrow', 'normal', 'wide'
+        shoeThickness: 'normal',    // 'thin', 'normal', 'thick'
     };
 
     function hslToHex(h, s, l) {
@@ -601,15 +603,29 @@
         const pantsBottomRightInner = 120 + (145 - 120) * (1 - hemWidthFactor);
         const pantsBottomRightOuter = 145 - (145 - 120) * (1 - hemWidthFactor) * 0.3;
 
+        // Shoe parameters
+        const shoeWidthFactor = bodyCustom.shoeWidth === 'narrow' ? 0.85 : bodyCustom.shoeWidth === 'wide' ? 1.2 : 1;
+        const shoeThicknessFactor = bodyCustom.shoeThickness === 'thin' ? 0.7 : bodyCustom.shoeThickness === 'thick' ? 1.4 : 1;
+
+        // Neck area coordinates
+        const neckBottom = 93; // Where the neck meets the shoulders
+
         // Neckline - calculate additional path segment after left shoulder
         let necklineSegment;
+        let necklineTopY;
+
         if (bodyCustom.neckline === 'v') {
-            necklineSegment = `L 100 105 L ${outerRightInner} ${torsoTop}`;
+            // V-neck: opens in a V shape, showing neck and collarbone
+            necklineTopY = neckBottom + 12;
+            necklineSegment = `L 100 ${necklineTopY} L ${outerRightInner} ${torsoTop}`;
         } else if (bodyCustom.neckline === 'high') {
-            necklineSegment = `Q ${(outerLeftInner + outerRightInner) / 2} 88 ${outerRightInner} ${torsoTop}`;
+            // High neck: covers the neck up to near the chin
+            necklineTopY = 78;
+            necklineSegment = `Q ${(outerLeftInner + outerRightInner) / 2} ${necklineTopY} ${outerRightInner} ${torsoTop}`;
         } else {
-            // crew neck (default)
-            necklineSegment = `Q ${(outerLeftInner + 100) / 2} 90 100 88 Q ${(100 + outerRightInner) / 2} 90 ${outerRightInner} ${torsoTop}`;
+            // Crew neck (default): rounded neckline showing the neck
+            necklineTopY = neckBottom + 5;
+            necklineSegment = `Q ${(outerLeftInner + 100) / 2} ${necklineTopY - 2} 100 ${necklineTopY} Q ${(100 + outerRightInner) / 2} ${necklineTopY - 2} ${outerRightInner} ${torsoTop}`;
         }
 
         return (
@@ -621,6 +637,7 @@
                     fill={parts.hair}
                     onClick={() => onApplyColor('hair')}
                 />
+
                 {/* Head/Face */}
                 <ellipse cx="100" cy="55" rx="32" ry="35" fill="#fad5c8" stroke="#1a1a1a" strokeWidth="2" />
                 {/* Eyes */}
@@ -631,6 +648,14 @@
                 {/* Cheeks */}
                 <ellipse cx="78" cy="58" rx="6" ry="4" fill="#fbb" opacity="0.5" />
                 <ellipse cx="122" cy="58" rx="6" ry="4" fill="#fbb" opacity="0.5" />
+
+                {/* Neck - drawn before clothes so it appears behind neckline */}
+                <path
+                    d="M 85 78 Q 85 93 85 93 L 115 93 Q 115 93 115 78 Q 115 72 100 72 Q 85 72 85 78 Z"
+                    fill="#fad5c8"
+                    stroke="#1a1a1a"
+                    strokeWidth="2"
+                />
 
                 {/* Outer (Cardigan/Jacket) - Left side */}
                 <path
@@ -717,10 +742,10 @@
                 <path
                     className="part"
                     d={`M ${pantsBottomLeftOuter - 3} ${pantsBottom}
-                        L ${pantsBottomLeftOuter - 7} ${pantsBottom + 30}
-                        Q ${pantsBottomLeftOuter - 10} ${pantsBottom + 40} ${pantsBottomLeftOuter} ${pantsBottom + 40}
-                        L ${pantsBottomLeftInner + 5} ${pantsBottom + 40}
-                        Q ${pantsBottomLeftInner + 10} ${pantsBottom + 40} ${pantsBottomLeftInner + 8} ${pantsBottom + 30}
+                        L ${pantsBottomLeftOuter - 7 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
+                        Q ${pantsBottomLeftOuter - 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomLeftOuter} ${pantsBottom + 40 * shoeThicknessFactor}
+                        L ${pantsBottomLeftInner + 5 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor}
+                        Q ${pantsBottomLeftInner + 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomLeftInner + 8 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
                         L ${pantsBottomLeftInner + 3} ${pantsBottom} Z`}
                     fill={parts.shoes}
                     onClick={() => onApplyColor('shoes')}
@@ -729,10 +754,10 @@
                 <path
                     className="part"
                     d={`M ${pantsBottomRightInner - 3} ${pantsBottom}
-                        L ${pantsBottomRightInner - 8} ${pantsBottom + 30}
-                        Q ${pantsBottomRightInner - 10} ${pantsBottom + 40} ${pantsBottomRightInner - 5} ${pantsBottom + 40}
-                        L ${pantsBottomRightOuter} ${pantsBottom + 40}
-                        Q ${pantsBottomRightOuter + 10} ${pantsBottom + 40} ${pantsBottomRightOuter + 7} ${pantsBottom + 30}
+                        L ${pantsBottomRightInner - 8 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
+                        Q ${pantsBottomRightInner - 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomRightInner - 5 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor}
+                        L ${pantsBottomRightOuter * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor}
+                        Q ${pantsBottomRightOuter + 10 * shoeWidthFactor} ${pantsBottom + 40 * shoeThicknessFactor} ${pantsBottomRightOuter + 7 * shoeWidthFactor} ${pantsBottom + 30 * shoeThicknessFactor}
                         L ${pantsBottomRightOuter + 3} ${pantsBottom} Z`}
                     fill={parts.shoes}
                     onClick={() => onApplyColor('shoes')}
@@ -878,6 +903,16 @@
                 { value: 'high', label: '高め' },
                 { value: 'normal', label: '標準' },
                 { value: 'low', label: '低め' }
+            ]},
+            shoeWidth: { label: '靴の幅', options: [
+                { value: 'narrow', label: '細め' },
+                { value: 'normal', label: '標準' },
+                { value: 'wide', label: '太め' }
+            ]},
+            shoeThickness: { label: '靴の厚み', options: [
+                { value: 'thin', label: '薄め' },
+                { value: 'normal', label: '標準' },
+                { value: 'thick', label: '厚め' }
             ]},
         };
 
