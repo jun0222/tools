@@ -638,6 +638,8 @@
         const [palette, setPalette] = useState([]);
         const [selectedPaletteIdx, setSelectedPaletteIdx] = useState(null);
         const [humanParts, setHumanParts] = useState(DEFAULT_PARTS);
+        const [hexInput, setHexInput] = useState('');
+        const [isEditingHex, setIsEditingHex] = useState(false);
         const saveTimeoutRef = useRef(null);
 
         const currentColor = hslToHex(selectedHue, selectedSat, selectedLight);
@@ -693,6 +695,15 @@
 
         const copyColor = async (color) => {
             try { await navigator.clipboard.writeText(color); } catch (e) {}
+        };
+
+        const selectColorFromHex = (hex) => {
+            const hsl = hexToHsl(hex);
+            if (hsl) {
+                setSelectedHue(Math.round(hsl.h / 30) * 30 % 360);
+                setSelectedSat(hsl.s);
+                setSelectedLight(hsl.l);
+            }
         };
 
         const PART_NAMES = {
@@ -788,16 +799,26 @@
                                     <input
                                         type="text"
                                         className="color-code-input"
-                                        value={currentColor.toUpperCase()}
+                                        value={isEditingHex ? hexInput : currentColor.toUpperCase()}
                                         onChange={(e) => {
-                                            const hsl = hexToHsl(e.target.value);
-                                            if (hsl) {
-                                                setSelectedHue(Math.round(hsl.h / 30) * 30 % 360);
-                                                setSelectedSat(hsl.s);
-                                                setSelectedLight(hsl.l);
+                                            setHexInput(e.target.value);
+                                        }}
+                                        onFocus={(e) => {
+                                            setIsEditingHex(true);
+                                            setHexInput(currentColor.toUpperCase());
+                                            e.target.select();
+                                        }}
+                                        onBlur={() => {
+                                            selectColorFromHex(hexInput);
+                                            setIsEditingHex(false);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                selectColorFromHex(hexInput);
+                                                setIsEditingHex(false);
+                                                e.target.blur();
                                             }
                                         }}
-                                        onFocus={(e) => e.target.select()}
                                     />
                                     <div className="hsl-info">
                                         <div className="hsl-item">
@@ -823,7 +844,7 @@
                                         key={i}
                                         className={`palette-swatch ${selectedPaletteIdx === i ? 'selected' : ''}`}
                                         style={{ background: color }}
-                                        onClick={() => { setSelectedPaletteIdx(i); copyColor(color); }}
+                                        onClick={() => { setSelectedPaletteIdx(i); selectColorFromHex(color); }}
                                     >
                                         <span className="delete" onClick={(e) => { e.stopPropagation(); removeFromPalette(i); }}>×</span>
                                     </div>
