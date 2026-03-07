@@ -3,8 +3,8 @@
 - [ ] bash ツール
 - [ ] カラーピッカー
 - [ ] ロサtス作ア箇条書きツール
-  - sweモード
+  - swe system design(system design primer, well artictated framework)モード
   - インフラモード
-  - seモード
+  - seモード(IPA)
   - pmモード
   - pdmモード

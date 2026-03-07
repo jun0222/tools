@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Picker</title>
+    <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #1a1a1a;
+            --accent-yellow: #ffde03;
+            --accent-red: #ff2e63;
+            --accent-blue: #08d9d6;
+            --accent-green: #9dff00;
+            --accent-purple: #6c5ce7;
+            --text-dark: #1a1a1a;
+            --text-light: #f5f0e6;
+            --border-weight: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(0,0,0,0.03) 50px, rgba(0,0,0,0.03) 51px),
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(0,0,0,0.03) 50px, rgba(0,0,0,0.03) 51px);
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        header {
+            padding: 1rem 2rem;
+            border-bottom: var(--border-weight) solid var(--text-dark);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            color: var(--text-dark);
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .logo::before {
+            content: 'COLOR';
+            position: absolute;
+            left: 3px; top: 3px;
+            color: var(--accent-purple);
+            z-index: -1;
+        }
+
+        .logo-sub {
+            font-size: 0.7rem;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.2rem 0.6rem;
+            margin-left: 0.5rem;
+        }
+
+        .save-status {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border: 2px solid var(--text-dark);
+        }
+        .save-status.saved { background: var(--accent-green); }
+
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 300px 1fr 200px;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1000px) {
+            main { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            border: var(--border-weight) solid var(--text-dark);
+            background: white;
+            box-shadow: 6px 6px 0 var(--text-dark);
+        }
+
+        .panel-header {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: var(--text-dark);
+            color: var(--text-light);
+            padding: 0.5rem 1rem;
+        }
+
+        .panel-content {
+            padding: 1rem;
+        }
+
+        /* Hue Ring */
+        .hue-ring {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .hue-btn {
+            aspect-ratio: 1;
+            border: 3px solid var(--text-dark);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .hue-btn:hover {
+            transform: scale(1.1);
+            z-index: 1;
+        }
+
+        .hue-btn.selected {
+            box-shadow: 0 0 0 3px white, 0 0 0 6px var(--text-dark);
+        }
+
+        /* Tone Grid */
+        .tone-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .tone-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--text-dark);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .tone-btn:hover {
+            transform: scale(1.15);
+            z-index: 1;
+        }
+
+        .tone-btn.selected {
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--text-dark);
+        }
+
+        /* Current Color */
+        .current-color {
+            border: 3px solid var(--text-dark);
+            padding: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .current-swatch {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--text-dark);
+        }
+
+        .current-info {
+            flex: 1;
+            font-size: 0.8rem;
+        }
+
+        .color-code {
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .color-code:hover {
+            text-decoration: underline;
+        }
+
+        /* Palette */
+        .palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 50px;
+        }
+
+        .palette-swatch {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--text-dark);
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s;
+        }
+
+        .palette-swatch:hover {
+            transform: scale(1.1);
+            z-index: 1;
+        }
+
+        .palette-swatch.selected {
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--accent-purple);
+        }
+
+        .palette-swatch .delete {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-red);
+            color: white;
+            border: 2px solid var(--text-dark);
+            border-radius: 50%;
+            font-size: 10px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .palette-swatch:hover .delete {
+            display: flex;
+        }
+
+        .add-btn {
+            width: 36px;
+            height: 36px;
+            border: 3px dashed var(--text-dark);
+            background: var(--bg-primary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-btn:hover {
+            background: var(--accent-yellow);
+        }
+
+        /* Human Figure */
+        .human-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .human-figure {
+            position: relative;
+            width: 120px;
+            height: 240px;
+            margin: 1rem 0;
+        }
+
+        .human-part {
+            position: absolute;
+            cursor: pointer;
+            transition: filter 0.1s;
+        }
+
+        .human-part:hover {
+            filter: brightness(1.1);
+        }
+
+        .human-part.selected {
+            filter: drop-shadow(0 0 4px var(--accent-purple));
+        }
+
+        .part-hat {
+            left: 30px; top: 0;
+            width: 60px; height: 25px;
+            border-radius: 8px 8px 0 0;
+            border: 3px solid var(--text-dark);
+        }
+
+        .part-head {
+            left: 35px; top: 20px;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 3px solid var(--text-dark);
+            background: #ffd5c8;
+        }
+
+        .part-outer {
+            left: 20px; top: 70px;
+            width: 80px; height: 70px;
+            border-radius: 8px;
+            border: 3px solid var(--text-dark);
+        }
+
+        .part-inner {
+            left: 35px; top: 75px;
+            width: 50px; height: 40px;
+            border-radius: 4px;
+            border: 3px solid var(--text-dark);
+        }
+
+        .part-pants {
+            left: 25px; top: 140px;
+            width: 70px; height: 60px;
+            border-radius: 0 0 8px 8px;
+            border: 3px solid var(--text-dark);
+        }
+
+        .part-shoes {
+            left: 25px; top: 200px;
+            width: 70px; height: 30px;
+            border-radius: 0 0 12px 12px;
+            border: 3px solid var(--text-dark);
+        }
+
+        .part-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .part-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            padding: 0.3rem 0.5rem;
+            border: 2px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+        }
+
+        .part-btn:hover {
+            background: var(--accent-yellow);
+        }
+
+        .part-btn.selected {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .apply-btn {
+            margin-top: 0.8rem;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.7rem;
+            padding: 0.5rem 1rem;
+            border: 3px solid var(--text-dark);
+            background: var(--accent-green);
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .apply-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 3px 3px 0 var(--text-dark);
+        }
+
+        .reset-btn {
+            margin-top: 0.5rem;
+            font-size: 0.65rem;
+            padding: 0.3rem 0.6rem;
+            border: 2px solid var(--text-dark);
+            background: white;
+            cursor: pointer;
+        }
+
+        .reset-btn:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .section-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+
+    const STORAGE_KEY = 'color_picker_data';
+
+    // 12 Hue colors (30 degree steps)
+    const HUES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+
+    // Generate tone grid (saturation x lightness)
+    const SATURATIONS = [100, 75, 50, 25, 10];
+    const LIGHTNESSES = [90, 75, 60, 45, 30];
+
+    function hslToHex(h, s, l) {
+        const hDecimal = l / 100;
+        const a = (s * Math.min(hDecimal, 1 - hDecimal)) / 100;
+        const f = (n) => {
+            const k = (n + h / 30) % 12;
+            const color = hDecimal - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    function App() {
+        const [selectedHue, setSelectedHue] = useState(0);
+        const [selectedSat, setSelectedSat] = useState(100);
+        const [selectedLight, setSelectedLight] = useState(50);
+        const [palette, setPalette] = useState([]);
+        const [selectedPaletteIdx, setSelectedPaletteIdx] = useState(null);
+        const [humanParts, setHumanParts] = useState({
+            hat: '#888888',
+            outer: '#2c3e50',
+            inner: '#ecf0f1',
+            pants: '#34495e',
+            shoes: '#1a1a1a',
+        });
+        const [selectedPart, setSelectedPart] = useState('outer');
+        const saveTimeoutRef = useRef(null);
+
+        const currentColor = hslToHex(selectedHue, selectedSat, selectedLight);
+
+        // Load from localStorage
+        useEffect(() => {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    if (data.palette) setPalette(data.palette);
+                    if (data.humanParts) setHumanParts(data.humanParts);
+                    if (data.selectedHue !== undefined) setSelectedHue(data.selectedHue);
+                    if (data.selectedSat !== undefined) setSelectedSat(data.selectedSat);
+                    if (data.selectedLight !== undefined) setSelectedLight(data.selectedLight);
+                } catch (e) {}
+            }
+        }, []);
+
+        // Auto-save
+        const saveData = useCallback(() => {
+            const data = { palette, humanParts, selectedHue, selectedSat, selectedLight };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }, [palette, humanParts, selectedHue, selectedSat, selectedLight]);
+
+        useEffect(() => {
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+            saveTimeoutRef.current = setTimeout(saveData, 300);
+            return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
+        }, [saveData]);
+
+        // Add to palette
+        const addToPalette = () => {
+            if (!palette.includes(currentColor)) {
+                setPalette([...palette, currentColor]);
+            }
+        };
+
+        // Remove from palette
+        const removeFromPalette = (idx) => {
+            setPalette(palette.filter((_, i) => i !== idx));
+            if (selectedPaletteIdx === idx) setSelectedPaletteIdx(null);
+        };
+
+        // Apply color to human part
+        const applyToHuman = () => {
+            setHumanParts({ ...humanParts, [selectedPart]: currentColor });
+        };
+
+        // Reset human colors
+        const resetHuman = () => {
+            setHumanParts({
+                hat: '#888888',
+                outer: '#2c3e50',
+                inner: '#ecf0f1',
+                pants: '#34495e',
+                shoes: '#1a1a1a',
+            });
+        };
+
+        // Copy color code
+        const copyColor = async (color) => {
+            try {
+                await navigator.clipboard.writeText(color);
+            } catch (e) {}
+        };
+
+        const PART_NAMES = {
+            hat: '帽子',
+            outer: 'アウター',
+            inner: 'インナー',
+            pants: 'パンツ',
+            shoes: 'シューズ',
+        };
+
+        return (
+            <>
+                <header>
+                    <div className="header-content">
+                        <div>
+                            <span className="logo">COLOR</span>
+                            <span className="logo-sub">PICKER</span>
+                        </div>
+                        <span className="save-status saved">自動保存</span>
+                    </div>
+                </header>
+
+                <main>
+                    {/* Left Panel: Color Selection */}
+                    <div className="panel">
+                        <div className="panel-header">Color</div>
+                        <div className="panel-content">
+                            <div className="section-label">Hue (色相)</div>
+                            <div className="hue-ring">
+                                {HUES.map((hue) => (
+                                    <button
+                                        key={hue}
+                                        className={`hue-btn ${selectedHue === hue ? 'selected' : ''}`}
+                                        style={{ background: hslToHex(hue, 100, 50) }}
+                                        onClick={() => setSelectedHue(hue)}
+                                    />
+                                ))}
+                            </div>
+
+                            <div className="section-label">Tone (トーン)</div>
+                            <div className="tone-grid">
+                                {LIGHTNESSES.map((l) =>
+                                    SATURATIONS.map((s) => (
+                                        <button
+                                            key={`${s}-${l}`}
+                                            className={`tone-btn ${selectedSat === s && selectedLight === l ? 'selected' : ''}`}
+                                            style={{ background: hslToHex(selectedHue, s, l) }}
+                                            onClick={() => { setSelectedSat(s); setSelectedLight(l); }}
+                                        />
+                                    ))
+                                )}
+                            </div>
+
+                            <div className="current-color">
+                                <div className="current-swatch" style={{ background: currentColor }} />
+                                <div className="current-info">
+                                    <div className="color-code" onClick={() => copyColor(currentColor)}>
+                                        {currentColor.toUpperCase()}
+                                    </div>
+                                    <div style={{ fontSize: '0.65rem', color: '#888' }}>
+                                        H:{selectedHue} S:{selectedSat} L:{selectedLight}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="section-label">Palette (パレット)</div>
+                            <div className="palette">
+                                {palette.map((color, i) => (
+                                    <div
+                                        key={i}
+                                        className={`palette-swatch ${selectedPaletteIdx === i ? 'selected' : ''}`}
+                                        style={{ background: color }}
+                                        onClick={() => {
+                                            setSelectedPaletteIdx(i);
+                                            copyColor(color);
+                                        }}
+                                    >
+                                        <span className="delete" onClick={(e) => { e.stopPropagation(); removeFromPalette(i); }}>×</span>
+                                    </div>
+                                ))}
+                                <button className="add-btn" onClick={addToPalette}>+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Center Panel: Human Figure */}
+                    <div className="panel">
+                        <div className="panel-header">Outfit Preview</div>
+                        <div className="panel-content">
+                            <div className="human-container">
+                                <div className="human-figure">
+                                    <div
+                                        className={`human-part part-hat ${selectedPart === 'hat' ? 'selected' : ''}`}
+                                        style={{ background: humanParts.hat }}
+                                        onClick={() => setSelectedPart('hat')}
+                                    />
+                                    <div className="human-part part-head" />
+                                    <div
+                                        className={`human-part part-outer ${selectedPart === 'outer' ? 'selected' : ''}`}
+                                        style={{ background: humanParts.outer }}
+                                        onClick={() => setSelectedPart('outer')}
+                                    />
+                                    <div
+                                        className={`human-part part-inner ${selectedPart === 'inner' ? 'selected' : ''}`}
+                                        style={{ background: humanParts.inner }}
+                                        onClick={() => setSelectedPart('inner')}
+                                    />
+                                    <div
+                                        className={`human-part part-pants ${selectedPart === 'pants' ? 'selected' : ''}`}
+                                        style={{ background: humanParts.pants }}
+                                        onClick={() => setSelectedPart('pants')}
+                                    />
+                                    <div
+                                        className={`human-part part-shoes ${selectedPart === 'shoes' ? 'selected' : ''}`}
+                                        style={{ background: humanParts.shoes }}
+                                        onClick={() => setSelectedPart('shoes')}
+                                    />
+                                </div>
+
+                                <div className="part-buttons">
+                                    {Object.entries(PART_NAMES).map(([key, name]) => (
+                                        <button
+                                            key={key}
+                                            className={`part-btn ${selectedPart === key ? 'selected' : ''}`}
+                                            onClick={() => setSelectedPart(key)}
+                                        >
+                                            {name}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button className="apply-btn" onClick={applyToHuman}>
+                                    {PART_NAMES[selectedPart]}に適用
+                                </button>
+                                <button className="reset-btn" onClick={resetHuman}>
+                                    リセット
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Panel: Part Colors */}
+                    <div className="panel">
+                        <div className="panel-header">Parts</div>
+                        <div className="panel-content">
+                            {Object.entries(PART_NAMES).map(([key, name]) => (
+                                <div key={key} style={{ marginBottom: '0.8rem' }}>
+                                    <div className="section-label">{name}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div
+                                            style={{
+                                                width: 30,
+                                                height: 30,
+                                                background: humanParts[key],
+                                                border: '3px solid var(--text-dark)',
+                                            }}
+                                        />
+                                        <span
+                                            style={{ fontSize: '0.75rem', cursor: 'pointer' }}
+                                            onClick={() => copyColor(humanParts[key])}
+                                        >
+                                            {humanParts[key].toUpperCase()}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </main>
+            </>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
