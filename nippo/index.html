@@ -428,31 +428,35 @@
         .gantt-check {
             position: absolute;
             right: 100%;
-            margin-right: 0.3rem;
-            color: #22c55e;
+            margin-right: 0.5rem;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-green);
+            border: 2px solid var(--text-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
             font-weight: bold;
+            font-size: 0.75rem;
         }
 
         .gantt-progress {
             position: absolute;
             right: 100%;
             margin-right: 0.5rem;
-            width: 40px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border: 2px solid var(--text-dark);
-            background: white;
-            overflow: hidden;
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spinner-rotation 0.8s linear infinite;
         }
 
-        .gantt-progress-fill {
-            height: 100%;
-            background: var(--accent-blue);
-            animation: progress-animation 2s ease-in-out infinite;
-        }
-
-        @keyframes progress-animation {
-            0%, 100% { width: 30%; }
-            50% { width: 70%; }
+        @keyframes spinner-rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
 
@@ -806,9 +810,7 @@
                                         >
                                             {entry.completed && entryIdx === 0 && <span className="gantt-check">✓</span>}
                                             {entry.inProgress && entryIdx === 0 && (
-                                                <div className="gantt-progress">
-                                                    <div className="gantt-progress-fill" />
-                                                </div>
+                                                <div className="gantt-progress" />
                                             )}
                                             {isLastInGroup && (
                                                 <span className="gantt-label-text">{entry.label}</span>
