@@ -581,22 +581,28 @@
                         </div>
                         {groupedEntries.map((group, groupIdx) => (
                             <div key={groupIdx} className="gantt-row">
-                                {group.map((entry, entryIdx) => (
-                                    <div
-                                        key={entryIdx}
-                                        className={`gantt-bar color-${groupIdx % 6} ${entry.completed ? 'completed' : ''}`}
-                                        style={{
-                                            left: `${getPosition(entry.hours, entry.minutes)}%`,
-                                            width: `${getWidth(entry)}%`,
-                                        }}
-                                    >
-                                        {entry.completed && <span className="gantt-check">✓</span>}
-                                        <span className="gantt-bar-label">
-                                            {entry.label}
-                                            <span className="gantt-bar-time"> {entry.time}</span>
-                                        </span>
-                                    </div>
-                                ))}
+                                {group.map((entry, entryIdx) => {
+                                    const isLast = entryIdx === group.length - 1;
+                                    const allTimes = group.map(e => e.time).join(',');
+                                    return (
+                                        <div
+                                            key={entryIdx}
+                                            className={`gantt-bar color-${groupIdx % 6} ${entry.completed ? 'completed' : ''}`}
+                                            style={{
+                                                left: `${getPosition(entry.hours, entry.minutes)}%`,
+                                                width: `${getWidth(entry)}%`,
+                                            }}
+                                        >
+                                            {entry.completed && entryIdx === 0 && <span className="gantt-check">✓</span>}
+                                            {isLast && (
+                                                <span className="gantt-bar-label">
+                                                    {entry.label}
+                                                    <span className="gantt-bar-time"> {allTimes}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ))}
                     </div>
