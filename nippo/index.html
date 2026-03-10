@@ -88,18 +88,17 @@
             position: relative;
             display: inline-block;
             line-height: 1;
-            vertical-align: top;
         }
 
         .logo::before {
             content: '日報';
             position: absolute;
-            left: 3px;
-            top: 3px;
+            left: 0;
+            top: 0;
             color: var(--accent-blue);
             z-index: -1;
             line-height: 1;
-            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            transform: translate(3px, 3px);
         }
 
         .logo-sub {
