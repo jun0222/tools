@@ -133,9 +133,18 @@
         }
 
         main {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            main {
+                grid-template-columns: 1fr;
+            }
         }
 
 
@@ -283,6 +292,7 @@
         .gantt {
             border: 3px solid var(--text-dark);
             background: white;
+            overflow-x: auto;
         }
 
         .gantt-header {
@@ -293,9 +303,9 @@
 
         .gantt-time-slot {
             flex: 1;
-            text-align: center;
+            text-align: left;
             font-size: 0.55rem;
-            padding: 0.3rem 0;
+            padding: 0.3rem 0 0.3rem 0.2rem;
             border-right: 1px solid #ddd;
             color: #666;
         }
@@ -303,6 +313,7 @@
         .gantt-time-slot.hour-mark {
             font-weight: 500;
             border-right: 2px solid #999;
+            border-left: 2px solid #999;
         }
 
         .gantt-time-slot:last-child {
@@ -364,17 +375,19 @@
             white-space: nowrap;
         }
 
-        .gantt-bar.color-0 { background: var(--accent-blue); }
-        .gantt-bar.color-1 { background: var(--accent-green); }
-        .gantt-bar.color-2 { background: var(--accent-yellow); }
-        .gantt-bar.color-3 { background: var(--accent-purple); color: white; }
-        .gantt-bar.color-4 { background: #ff9f43; }
-        .gantt-bar.color-5 { background: var(--accent-red); color: white; }
-
-        .gantt-bar.completed {
+        .gantt-bar.default {
             background: #ccc;
             color: #666;
-            opacity: 0.7;
+        }
+
+        .gantt-bar.completed {
+            background: var(--accent-green);
+            color: var(--text-dark);
+        }
+
+        .gantt-bar.in-progress {
+            background: var(--accent-blue);
+            color: var(--text-dark);
         }
 
         .gantt-check {
@@ -385,11 +398,93 @@
             font-weight: bold;
         }
 
+        .gantt-progress {
+            position: absolute;
+            right: 100%;
+            margin-right: 0.5rem;
+            width: 40px;
+            height: 16px;
+            border: 2px solid var(--text-dark);
+            background: white;
+            overflow: hidden;
+        }
+
+        .gantt-progress-fill {
+            height: 100%;
+            background: var(--accent-blue);
+            animation: progress-animation 2s ease-in-out infinite;
+        }
+
+        @keyframes progress-animation {
+            0%, 100% { width: 30%; }
+            50% { width: 70%; }
+        }
+
 
         .gantt-empty {
             text-align: center;
             color: #999;
             font-size: 0.75rem;
+            padding: 1rem;
+        }
+
+        .summary-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .summary-group {
+            border: 3px solid var(--text-dark);
+            background: white;
+            box-shadow: 4px 4px 0 var(--text-dark);
+        }
+
+        .summary-header {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.5rem 1rem;
+            border-bottom: 2px solid var(--text-dark);
+        }
+
+        .summary-header.completed {
+            background: var(--accent-green);
+        }
+
+        .summary-header.in-progress {
+            background: var(--accent-blue);
+        }
+
+        .summary-header.default {
+            background: #ccc;
+        }
+
+        .summary-items {
+            padding: 0.8rem;
+        }
+
+        .summary-item {
+            font-size: 0.7rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed #eee;
+            line-height: 1.4;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-time {
+            color: #666;
+            font-size: 0.65rem;
+        }
+
+        .summary-empty {
+            text-align: center;
+            color: #999;
+            font-size: 0.65rem;
             padding: 1rem;
         }
     </style>
@@ -413,26 +508,29 @@
         const singleTimeRegex = /(\d{1,2}):(\d{2})/g;
         // Check for 完了 at end of line
         const completedRegex = /完了\s*$/;
+        // Check for 進行中 at end of line
+        const inProgressRegex = /進行中\s*$/;
 
         for (const line of lines) {
             const isCompleted = completedRegex.test(line);
-            const lineWithoutCompleted = line.replace(completedRegex, '').trim();
+            const isInProgress = inProgressRegex.test(line);
+            const lineWithoutStatus = line.replace(completedRegex, '').replace(inProgressRegex, '').trim();
 
             // Extract label: text after ・ (no character limit)
             let label = '';
-            const bulletIndex = lineWithoutCompleted.indexOf('・');
+            const bulletIndex = lineWithoutStatus.indexOf('・');
             if (bulletIndex !== -1) {
-                const afterBullet = lineWithoutCompleted.slice(bulletIndex + 1).trim();
+                const afterBullet = lineWithoutStatus.slice(bulletIndex + 1).trim();
                 // Remove all time patterns to get the label
                 const withoutTimes = afterBullet.replace(/\d{1,2}:\d{2}\s*[~〜\-]?\s*\d{0,2}:?\d{0,2}/g, '').replace(/[,、]/g, '').trim();
                 label = withoutTimes;
             } else {
-                const withoutTimes = lineWithoutCompleted.replace(/\d{1,2}:\d{2}\s*[~〜\-]?\s*\d{0,2}:?\d{0,2}/g, '').replace(/[,、]/g, '').trim();
+                const withoutTimes = lineWithoutStatus.replace(/\d{1,2}:\d{2}\s*[~〜\-]?\s*\d{0,2}:?\d{0,2}/g, '').replace(/[,、]/g, '').trim();
                 label = withoutTimes;
             }
 
             // Split by comma or 、 to get multiple time ranges
-            const timeSegments = lineWithoutCompleted.split(/[,、]/);
+            const timeSegments = lineWithoutStatus.split(/[,、]/);
             const lineEntries = [];
 
             for (const segment of timeSegments) {
@@ -472,6 +570,7 @@
                         time: timeStr,
                         label: label || '---',
                         completed: isCompleted,
+                        inProgress: isInProgress,
                         lineGroup: entries.length, // Track which line this belongs to
                     });
                 }
@@ -491,6 +590,85 @@
             // Then sort by time within the same line
             return a.hours * 60 + a.minutes - (b.hours * 60 + b.minutes);
         });
+    }
+
+    // Summary component
+    function Summary({ entries, onCopySummary }) {
+        const completed = entries.filter(e => e.completed);
+        const inProgress = entries.filter(e => e.inProgress && !e.completed);
+        const pending = entries.filter(e => !e.completed && !e.inProgress);
+
+        // Group by lineGroup to avoid duplicates and collect all times
+        const groupByLine = (items) => {
+            const groups = {};
+            items.forEach(item => {
+                if (!groups[item.lineGroup]) {
+                    const allTimes = items.filter(i => i.lineGroup === item.lineGroup).map(i => i.time);
+                    groups[item.lineGroup] = { ...item, allTimes };
+                }
+            });
+            return Object.values(groups);
+        };
+
+        const completedItems = groupByLine(completed);
+        const inProgressItems = groupByLine(inProgress);
+        const pendingItems = groupByLine(pending);
+
+        return (
+            <div className="summary-section">
+                <div className="summary-group">
+                    <div className="summary-header completed">完了 ({completedItems.length})</div>
+                    <div className="summary-items">
+                        {completedItems.length > 0 ? (
+                            completedItems.map((item, idx) => (
+                                <div key={idx} className="summary-item">
+                                    ・{item.label}
+                                    <div className="summary-time">{item.allTimes.join(', ')}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="summary-empty">なし</div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="summary-group">
+                    <div className="summary-header in-progress">進行中 ({inProgressItems.length})</div>
+                    <div className="summary-items">
+                        {inProgressItems.length > 0 ? (
+                            inProgressItems.map((item, idx) => (
+                                <div key={idx} className="summary-item">
+                                    ・{item.label}
+                                    <div className="summary-time">{item.allTimes.join(', ')}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="summary-empty">なし</div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="summary-group">
+                    <div className="summary-header default">未着手 ({pendingItems.length})</div>
+                    <div className="summary-items">
+                        {pendingItems.length > 0 ? (
+                            pendingItems.map((item, idx) => (
+                                <div key={idx} className="summary-item">
+                                    ・{item.label}
+                                    <div className="summary-time">{item.allTimes.join(', ')}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="summary-empty">なし</div>
+                        )}
+                    </div>
+                </div>
+
+                <button className="btn-primary" onClick={onCopySummary}>
+                    サマリをコピー
+                </button>
+            </div>
+        );
     }
 
     // Gantt chart component
@@ -578,16 +756,22 @@
                             <div key={groupIdx} className="gantt-row">
                                 {group.map((entry, entryIdx) => {
                                     const isLast = entryIdx === group.length - 1;
+                                    const statusClass = entry.completed ? 'completed' : entry.inProgress ? 'in-progress' : 'default';
                                     return (
                                         <div
                                             key={entryIdx}
-                                            className={`gantt-bar color-${groupIdx % 6} ${entry.completed ? 'completed' : ''}`}
+                                            className={`gantt-bar ${statusClass}`}
                                             style={{
                                                 left: `${getPosition(entry.hours, entry.minutes)}%`,
                                                 width: `${getWidth(entry)}%`,
                                             }}
                                         >
                                             {entry.completed && entryIdx === 0 && <span className="gantt-check">✓</span>}
+                                            {entry.inProgress && entryIdx === 0 && (
+                                                <div className="gantt-progress">
+                                                    <div className="gantt-progress-fill" />
+                                                </div>
+                                            )}
                                             {isLast && (
                                                 <span className="gantt-bar-label">
                                                     {entry.label}
@@ -606,7 +790,7 @@
 
     function App() {
         const [message, setMessage] = useState('');
-        const [dateFormat, setDateFormat] = useState('short');
+        const [dateFormat, setDateFormat] = useState('long');
         const [saveStatus, setSaveStatus] = useState('saved');
         const [toast, setToast] = useState({ show: false, message: '' });
 
@@ -668,11 +852,67 @@
         // Copy handler
         const handleCopy = async () => {
             const date = getFormattedDate(dateFormat);
-            const text = `${date} ${message}`;
+            const text = `${date}\n${message}`;
 
             try {
                 await navigator.clipboard.writeText(text);
                 showToast('メッセージをコピーしました');
+            } catch (err) {
+                showToast('コピーに失敗しました');
+            }
+        };
+
+        // Copy summary handler
+        const handleCopySummary = async () => {
+            const date = getFormattedDate(dateFormat);
+            const entries = parseTimeEntries(message);
+
+            // Group by lineGroup to avoid duplicates
+            const groupByLine = (items) => {
+                const groups = {};
+                items.forEach(item => {
+                    if (!groups[item.lineGroup]) {
+                        // Collect all times for this line group
+                        const allTimes = items.filter(i => i.lineGroup === item.lineGroup).map(i => i.time);
+                        groups[item.lineGroup] = { ...item, allTimes };
+                    }
+                });
+                return Object.values(groups);
+            };
+
+            const completed = groupByLine(entries.filter(e => e.completed));
+            const inProgress = groupByLine(entries.filter(e => e.inProgress && !e.completed));
+            const pending = groupByLine(entries.filter(e => !e.completed && !e.inProgress));
+
+            let summaryText = `${date}\n`;
+
+            if (completed.length > 0) {
+                summaryText += '\n【完了】\n';
+                completed.forEach(item => {
+                    const times = item.allTimes.join(', ');
+                    summaryText += `・${item.label} ${times}\n`;
+                });
+            }
+
+            if (inProgress.length > 0) {
+                summaryText += '\n【進行中】\n';
+                inProgress.forEach(item => {
+                    const times = item.allTimes.join(', ');
+                    summaryText += `・${item.label} ${times}\n`;
+                });
+            }
+
+            if (pending.length > 0) {
+                summaryText += '\n【未着手】\n';
+                pending.forEach(item => {
+                    const times = item.allTimes.join(', ');
+                    summaryText += `・${item.label} ${times}\n`;
+                });
+            }
+
+            try {
+                await navigator.clipboard.writeText(summaryText);
+                showToast('サマリをコピーしました');
             } catch (err) {
                 showToast('コピーに失敗しました');
             }
@@ -727,6 +967,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <Summary entries={parseTimeEntries(message)} onCopySummary={handleCopySummary} />
                 </main>
 
                 <div className={`toast ${toast.show ? 'show' : ''}`}>
