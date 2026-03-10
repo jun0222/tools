@@ -356,16 +356,21 @@
             background: var(--bg-primary);
         }
 
-        .gantt-hour {
+        .gantt-time-slot {
             flex: 1;
             text-align: center;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             padding: 0.3rem 0;
             border-right: 1px solid #ddd;
             color: #666;
         }
 
-        .gantt-hour:last-child {
+        .gantt-time-slot.hour-mark {
+            font-weight: 500;
+            border-right: 2px solid #999;
+        }
+
+        .gantt-time-slot:last-child {
             border-right: none;
         }
 
@@ -413,9 +418,15 @@
             font-size: 0.65rem;
             font-weight: 500;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            overflow: visible;
             min-width: 20px;
+        }
+
+        .gantt-bar-label {
+            position: absolute;
+            left: 100%;
+            margin-left: 0.3rem;
+            white-space: nowrap;
         }
 
         .gantt-bar.color-0 { background: var(--accent-blue); }
@@ -432,9 +443,11 @@
         }
 
         .gantt-check {
+            position: absolute;
+            right: 100%;
+            margin-right: 0.3rem;
             color: #22c55e;
             font-weight: bold;
-            margin-right: 0.3rem;
         }
 
         .gantt-bar-time {
@@ -465,63 +478,89 @@
         const lines = text.split('\n');
         const entries = [];
         // Match time range: HH:MM~HH:MM or HH:MM〜HH:MM or HH:MM-HH:MM (with optional 完了 at end)
-        const timeRangeRegex = /(\d{1,2}):(\d{2})\s*[~〜\-]\s*(\d{1,2}):(\d{2})/;
+        const timeRangeRegex = /(\d{1,2}):(\d{2})\s*[~〜\-]\s*(\d{1,2}):(\d{2})/g;
         // Match single time: HH:MM
-        const singleTimeRegex = /(\d{1,2}):(\d{2})/;
+        const singleTimeRegex = /(\d{1,2}):(\d{2})/g;
         // Check for 完了 at end of line
         const completedRegex = /完了\s*$/;
 
         for (const line of lines) {
-            let startHours, startMinutes, endHours, endMinutes, hasEndTime = false;
             const isCompleted = completedRegex.test(line);
             const lineWithoutCompleted = line.replace(completedRegex, '').trim();
 
-            const rangeMatch = lineWithoutCompleted.match(timeRangeRegex);
-            if (rangeMatch) {
-                startHours = parseInt(rangeMatch[1], 10);
-                startMinutes = parseInt(rangeMatch[2], 10);
-                endHours = parseInt(rangeMatch[3], 10);
-                endMinutes = parseInt(rangeMatch[4], 10);
-                hasEndTime = true;
+            // Extract label: text after ・ (up to 20 chars for display)
+            let label = '';
+            const bulletIndex = lineWithoutCompleted.indexOf('・');
+            if (bulletIndex !== -1) {
+                const afterBullet = lineWithoutCompleted.slice(bulletIndex + 1).trim();
+                // Remove all time patterns to get the label
+                const withoutTimes = afterBullet.replace(/\d{1,2}:\d{2}\s*[~〜\-]?\s*\d{0,2}:?\d{0,2}/g, '').replace(/[,、]/g, '').trim();
+                label = withoutTimes.slice(0, 20);
             } else {
-                const singleMatch = lineWithoutCompleted.match(singleTimeRegex);
-                if (singleMatch) {
-                    startHours = parseInt(singleMatch[1], 10);
-                    startMinutes = parseInt(singleMatch[2], 10);
+                const withoutTimes = lineWithoutCompleted.replace(/\d{1,2}:\d{2}\s*[~〜\-]?\s*\d{0,2}:?\d{0,2}/g, '').replace(/[,、]/g, '').trim();
+                label = withoutTimes.slice(0, 20);
+            }
+
+            // Split by comma or 、 to get multiple time ranges
+            const timeSegments = lineWithoutCompleted.split(/[,、]/);
+            const lineEntries = [];
+
+            for (const segment of timeSegments) {
+                const trimmedSegment = segment.trim();
+                let startHours, startMinutes, endHours, endMinutes, hasEndTime = false;
+
+                // Reset regex lastIndex
+                timeRangeRegex.lastIndex = 0;
+                const rangeMatch = timeRangeRegex.exec(trimmedSegment);
+
+                if (rangeMatch) {
+                    startHours = parseInt(rangeMatch[1], 10);
+                    startMinutes = parseInt(rangeMatch[2], 10);
+                    endHours = parseInt(rangeMatch[3], 10);
+                    endMinutes = parseInt(rangeMatch[4], 10);
+                    hasEndTime = true;
+                } else {
+                    singleTimeRegex.lastIndex = 0;
+                    const singleMatch = singleTimeRegex.exec(trimmedSegment);
+                    if (singleMatch) {
+                        startHours = parseInt(singleMatch[1], 10);
+                        startMinutes = parseInt(singleMatch[2], 10);
+                    }
+                }
+
+                if (startHours !== undefined && startHours >= 0 && startHours <= 23 && startMinutes >= 0 && startMinutes <= 59) {
+                    const timeStr = hasEndTime
+                        ? `${startHours}:${String(startMinutes).padStart(2, '0')}~${endHours}:${String(endMinutes).padStart(2, '0')}`
+                        : `${startHours}:${String(startMinutes).padStart(2, '0')}`;
+
+                    lineEntries.push({
+                        hours: startHours,
+                        minutes: startMinutes,
+                        endHours: hasEndTime ? endHours : null,
+                        endMinutes: hasEndTime ? endMinutes : null,
+                        hasEndTime,
+                        time: timeStr,
+                        label: label || '---',
+                        completed: isCompleted,
+                        lineGroup: entries.length, // Track which line this belongs to
+                    });
                 }
             }
 
-            if (startHours !== undefined && startHours >= 0 && startHours <= 23 && startMinutes >= 0 && startMinutes <= 59) {
-                // Extract label: text after ・ (up to 5 chars)
-                let label = '';
-                const bulletIndex = lineWithoutCompleted.indexOf('・');
-                const timePattern = hasEndTime ? timeRangeRegex : singleTimeRegex;
-                if (bulletIndex !== -1) {
-                    const afterBullet = lineWithoutCompleted.slice(bulletIndex + 1).trim();
-                    const withoutTime = afterBullet.replace(timePattern, '').trim();
-                    label = withoutTime.slice(0, 5);
-                } else {
-                    const withoutTime = lineWithoutCompleted.replace(timePattern, '').trim();
-                    label = withoutTime.slice(0, 5);
-                }
-
-                const timeStr = hasEndTime
-                    ? `${startHours}:${String(startMinutes).padStart(2, '0')}~${endHours}:${String(endMinutes).padStart(2, '0')}`
-                    : `${startHours}:${String(startMinutes).padStart(2, '0')}`;
-
-                entries.push({
-                    hours: startHours,
-                    minutes: startMinutes,
-                    endHours: hasEndTime ? endHours : null,
-                    endMinutes: hasEndTime ? endMinutes : null,
-                    hasEndTime,
-                    time: timeStr,
-                    label: label || '---',
-                    completed: isCompleted,
-                });
+            // Add all entries from this line
+            if (lineEntries.length > 0) {
+                entries.push(...lineEntries);
             }
         }
-        return entries.sort((a, b) => a.hours * 60 + a.minutes - (b.hours * 60 + b.minutes));
+
+        return entries.sort((a, b) => {
+            // First sort by lineGroup to keep entries from the same line together
+            if (a.lineGroup !== b.lineGroup) {
+                return a.lineGroup - b.lineGroup;
+            }
+            // Then sort by time within the same line
+            return a.hours * 60 + a.minutes - (b.hours * 60 + b.minutes);
+        });
     }
 
     // Gantt chart component
@@ -537,38 +576,49 @@
             return Math.max(0, Math.min(100, (mins / totalMinutes) * 100));
         };
 
-        // Calculate bar width (use end time if specified, otherwise until next entry or default 1 hour)
-        const getWidth = (entry, index) => {
+        // Calculate bar width (use end time if specified, otherwise default 30 minutes)
+        const getWidth = (entry) => {
             const currentMins = entry.hours * 60 + entry.minutes;
             let endMins;
 
             if (entry.hasEndTime) {
                 // Use specified end time
                 endMins = entry.endHours * 60 + entry.endMinutes;
-            } else if (index < entries.length - 1) {
-                // Until next entry
-                const next = entries[index + 1];
-                endMins = next.hours * 60 + next.minutes;
             } else {
-                // Last entry without end time: 1 hour or until end of day
-                endMins = Math.min(currentMins + 60, endHour * 60);
+                // Default to 30 minutes if no end time specified
+                endMins = currentMins + 30;
             }
 
             const durationMins = endMins - currentMins;
-            return Math.max(2, (durationMins / totalMinutes) * 100);
+            return Math.max(1, (durationMins / totalMinutes) * 100);
         };
 
-        const hours = [];
+        // Generate 5-minute time slots
+        const timeSlots = [];
         for (let h = startHour; h < endHour; h++) {
-            hours.push(h);
+            for (let m = 0; m < 60; m += 5) {
+                timeSlots.push({ hour: h, minute: m });
+            }
         }
+
+        // Group entries by lineGroup to display on the same row
+        const groupedEntries = useMemo(() => {
+            const groups = {};
+            entries.forEach(entry => {
+                if (!groups[entry.lineGroup]) {
+                    groups[entry.lineGroup] = [];
+                }
+                groups[entry.lineGroup].push(entry);
+            });
+            return Object.values(groups);
+        }, [entries]);
 
         if (entries.length === 0) {
             return (
                 <div className="gantt-container">
-                    <div className="gantt-label">Gantt Chart</div>
+                    <div className="gantt-label">Gantt Chart (5分刻み)</div>
                     <div className="gantt-empty">
-                        行末に時間 (例: 10:00) を入力するとガントチャートに表示されます
+                        行末に時間 (例: 10:00~11:00, 13:00~14:00) を入力するとガントチャートに表示されます
                     </div>
                 </div>
             );
@@ -576,32 +626,42 @@
 
         return (
             <div className="gantt-container">
-                <div className="gantt-label">Gantt Chart</div>
+                <div className="gantt-label">Gantt Chart (5分刻み)</div>
                 <div className="gantt">
                     <div className="gantt-header">
-                        {hours.map(h => (
-                            <div key={h} className="gantt-hour">{h}</div>
+                        {timeSlots.map((slot, idx) => (
+                            <div
+                                key={idx}
+                                className={`gantt-time-slot ${slot.minute === 0 ? 'hour-mark' : ''}`}
+                            >
+                                {slot.minute === 0 ? slot.hour : ''}
+                            </div>
                         ))}
                     </div>
                     <div className="gantt-rows">
                         <div className="gantt-grid">
-                            {hours.map(h => (
-                                <div key={h} className="gantt-grid-col" />
+                            {timeSlots.map((slot, idx) => (
+                                <div key={idx} className="gantt-grid-col" />
                             ))}
                         </div>
-                        {entries.map((entry, i) => (
-                            <div key={i} className="gantt-row">
-                                <div
-                                    className={`gantt-bar color-${i % 6} ${entry.completed ? 'completed' : ''}`}
-                                    style={{
-                                        left: `${getPosition(entry.hours, entry.minutes)}%`,
-                                        width: `${getWidth(entry, i)}%`,
-                                    }}
-                                >
-                                    {entry.completed && <span className="gantt-check">✓</span>}
-                                    {entry.label}
-                                    <span className="gantt-bar-time">{entry.time}</span>
-                                </div>
+                        {groupedEntries.map((group, groupIdx) => (
+                            <div key={groupIdx} className="gantt-row">
+                                {group.map((entry, entryIdx) => (
+                                    <div
+                                        key={entryIdx}
+                                        className={`gantt-bar color-${groupIdx % 6} ${entry.completed ? 'completed' : ''}`}
+                                        style={{
+                                            left: `${getPosition(entry.hours, entry.minutes)}%`,
+                                            width: `${getWidth(entry)}%`,
+                                        }}
+                                    >
+                                        {entry.completed && <span className="gantt-check">✓</span>}
+                                        <span className="gantt-bar-label">
+                                            {entry.label}
+                                            <span className="gantt-bar-time"> {entry.time}</span>
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
                         ))}
                     </div>

@@ -5,6 +5,7 @@
   -  スマホの操作性
 - [ ] ロサtス作ア箇条書きツール
   - swe system design(system design primer, well artictated framework)モード
+    - 今までの経験とか、技術領域（フロント、インフラなど）ごととか
   - インフラモード
   - seモード(IPA)
   - pmモード
