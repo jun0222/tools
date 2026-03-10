@@ -343,6 +343,11 @@
         const items = [];
 
         for (const line of lines) {
+            // Skip lines that are just "---" (markdown horizontal rule)
+            if (line.trim().match(/^-{3,}$/)) {
+                continue;
+            }
+
             // Match lines starting with ・ (with optional leading spaces/tabs for indent)
             const match = line.match(/^(\s*)(・|-)(.*)$/);
             if (match) {
