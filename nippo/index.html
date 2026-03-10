@@ -138,67 +138,6 @@
             padding: 2rem;
         }
 
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: -4px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .tab {
-            font-family: 'Archivo Black', sans-serif;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 0.8rem 2rem;
-            border: var(--border-weight) solid var(--text-dark);
-            background: #e0dbd1;
-            color: var(--text-dark);
-            cursor: pointer;
-            transition: all 0.15s;
-            border-bottom: none;
-            position: relative;
-        }
-
-        .tab:first-child {
-            border-right: none;
-        }
-
-        .tab:hover:not(.active) {
-            background: #d5d0c6;
-        }
-
-        .tab.active {
-            background: white;
-            z-index: 2;
-        }
-
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: white;
-        }
-
-        .tab-badge {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.6rem;
-            padding: 0.15rem 0.4rem;
-            margin-left: 0.5rem;
-            color: white;
-        }
-
-        .tab-badge.morning {
-            background: var(--accent-blue);
-        }
-
-        .tab-badge.evening {
-            background: var(--accent-purple);
-        }
 
         .control-group {
             border: var(--border-weight) solid var(--text-dark);
@@ -325,10 +264,6 @@
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
-        }
-
-        .tab-content {
-            animation: fadeIn 0.2s ease-out;
         }
 
         .gantt-container {
@@ -671,11 +606,9 @@
     }
 
     function App() {
-        const [message1, setMessage1] = useState('');
-        const [message2, setMessage2] = useState('');
+        const [message, setMessage] = useState('');
         const [dateFormat, setDateFormat] = useState('short');
         const [saveStatus, setSaveStatus] = useState('saved');
-        const [activeTab, setActiveTab] = useState('morning');
         const [toast, setToast] = useState({ show: false, message: '' });
 
         const saveTimeoutRef = useRef(null);
@@ -686,8 +619,7 @@
             if (stored) {
                 try {
                     const data = JSON.parse(stored);
-                    setMessage1(data.message1 || '');
-                    setMessage2(data.message2 || '');
+                    setMessage(data.message || data.message1 || '');
                 } catch (e) {
                     console.error('Failed to parse stored data', e);
                 }
@@ -697,10 +629,10 @@
         // Auto-save with debounce
         const saveToStorage = useCallback(() => {
             const date = getFormattedDate(dateFormat);
-            const data = { date, message1, message2 };
+            const data = { date, message };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             setSaveStatus('saved');
-        }, [message1, message2, dateFormat]);
+        }, [message, dateFormat]);
 
         useEffect(() => {
             setSaveStatus('saving');
@@ -716,7 +648,7 @@
                     clearTimeout(saveTimeoutRef.current);
                 }
             };
-        }, [message1, message2, saveToStorage]);
+        }, [message, saveToStorage]);
 
         // Get formatted date
         const getFormattedDate = (format) => {
@@ -737,13 +669,11 @@
         // Copy handler
         const handleCopy = async () => {
             const date = getFormattedDate(dateFormat);
-            const text = activeTab === 'morning'
-                ? `${date} ${message1}`
-                : `${date} ${message2}`;
+            const text = `${date} ${message}`;
 
             try {
                 await navigator.clipboard.writeText(text);
-                showToast(activeTab === 'morning' ? '始業メッセージをコピーしました' : '終業メッセージをコピーしました');
+                showToast('メッセージをコピーしました');
             } catch (err) {
                 showToast('コピーに失敗しました');
             }
@@ -766,21 +696,6 @@
                 </header>
 
                 <main>
-                    <div className="tabs">
-                        <button
-                            className={`tab ${activeTab === 'morning' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('morning')}
-                        >
-                            始業<span className="tab-badge morning">MORNING</span>
-                        </button>
-                        <button
-                            className={`tab ${activeTab === 'evening' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('evening')}
-                        >
-                            終業<span className="tab-badge evening">EVENING</span>
-                        </button>
-                    </div>
-
                     <div className="control-group">
                         <div className="control-content">
                             <div className="settings-row">
@@ -796,31 +711,16 @@
                                 </div>
                             </div>
 
-                            <div className="tab-content" key={activeTab}>
-                                {activeTab === 'morning' ? (
-                                    <>
-                                        <textarea
-                                            value={message1}
-                                            onChange={(e) => setMessage1(e.target.value)}
-                                            placeholder="始業メッセージを入力..."
-                                        />
-                                        <Gantt text={message1} />
-                                    </>
-                                ) : (
-                                    <>
-                                        <textarea
-                                            value={message2}
-                                            onChange={(e) => setMessage2(e.target.value)}
-                                            placeholder="終業メッセージを入力..."
-                                        />
-                                        <Gantt text={message2} />
-                                    </>
-                                )}
-                            </div>
+                            <textarea
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="メッセージを入力... (例: 10:00~11:00, 13:00~14:00 ・会議 完了)"
+                            />
+                            <Gantt text={message} />
 
                             <div className="action-buttons">
                                 <button
-                                    className={`btn-primary ${activeTab === 'morning' ? 'blue' : ''}`}
+                                    className="btn-primary blue"
                                     onClick={handleCopy}
                                 >
                                     コピー
