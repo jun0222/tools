@@ -363,36 +363,22 @@
             font-size: 0.6rem;
             font-weight: 500;
             white-space: nowrap;
-            overflow: hidden;
+            overflow: visible;
             min-width: 20px;
             cursor: pointer;
         }
 
-        .gantt-bar:hover::after {
-            content: attr(data-label);
+        .gantt-label-text {
             position: absolute;
-            left: 50%;
-            bottom: calc(100% + 8px);
-            transform: translateX(-50%);
-            background: var(--text-dark);
-            color: var(--text-light);
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
+            left: 100%;
+            margin-left: 0.5rem;
             white-space: nowrap;
-            z-index: 100;
-            font-size: 0.7rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        .gantt-bar:hover::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: calc(100% + 2px);
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-top-color: var(--text-dark);
-            z-index: 100;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            height: 100%;
         }
 
         .gantt-bar.default {
@@ -776,11 +762,11 @@
                             <div key={groupIdx} className="gantt-row">
                                 {group.map((entry, entryIdx) => {
                                     const statusClass = entry.completed ? 'completed' : entry.inProgress ? 'in-progress' : 'default';
+                                    const isLastInGroup = entryIdx === group.length - 1;
                                     return (
                                         <div
                                             key={entryIdx}
                                             className={`gantt-bar ${statusClass}`}
-                                            data-label={entry.label}
                                             style={{
                                                 left: `${getPosition(entry.hours, entry.minutes)}%`,
                                                 width: `${getWidth(entry)}%`,
@@ -791,6 +777,9 @@
                                                 <div className="gantt-progress">
                                                     <div className="gantt-progress-fill" />
                                                 </div>
+                                            )}
+                                            {isLastInGroup && (
+                                                <span className="gantt-label-text">{entry.label}</span>
                                             )}
                                         </div>
                                     );
