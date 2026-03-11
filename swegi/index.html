@@ -350,67 +350,122 @@
 
     // System design levels
     const LEVELS = [
-        { symbol: '見', name: '見積もり', color: 'level-0' },
-        { symbol: '高', name: 'ハイレベル', color: 'level-1' },
-        { symbol: '低', name: 'ローレベル', color: 'level-2' },
-        { symbol: '項', name: '項目', color: 'level-3' },
-        { symbol: '詳', name: '詳細', color: 'level-4' },
-        { symbol: '補', name: '補足', color: 'level-5' },
+        { symbol: 'セ', name: 'セクション', color: 'level-0' },
+        { symbol: 'カ', name: 'カテゴリ', color: 'level-1' },
+        { symbol: '項', name: '項目', color: 'level-2' },
+        { symbol: '詳', name: '詳細', color: 'level-3' },
+        { symbol: '補', name: '補足', color: 'level-4' },
+        { symbol: '他', name: 'その他', color: 'level-5' },
     ];
+
+    // Section templates (nested structure)
+    const SECTION_TEMPLATES = {
+        estimation: {
+            title: '見積もり',
+            children: [
+                {
+                    title: '機能要件',
+                    children: [
+                        { title: '問題の優先度' },
+                        { title: 'who, why: 対象user' },
+                        { title: 'when, how: 優先ユースケース' },
+                        { title: 'what: 機能の必要不要' },
+                        { title: 'where: 既存システム連携' }
+                    ]
+                },
+                {
+                    title: '非機能要件',
+                    children: [
+                        { title: 'req数' },
+                        { title: 'data量' },
+                        { title: 'レイテンシ' },
+                        { title: 'write/read heavy' }
+                    ]
+                }
+            ]
+        },
+        highLevel: {
+            title: 'ハイレベルデザイン',
+            children: [
+                { title: 'APIインターフェース' },
+                { title: 'データモデル' },
+                { title: 'アーキテクチャ概要図' }
+            ]
+        },
+        lowLevel: {
+            title: 'ローレベルデザイン(トレードオフ)',
+            children: [
+                { title: '重要コンポーネント特定' },
+                {
+                    title: 'パフォーマンス',
+                    children: [
+                        { title: 'レイテンシ' },
+                        { title: 'DB最適化（インデックス、クエリ）' },
+                        { title: 'キャッシュ戦略' }
+                    ]
+                },
+                {
+                    title: 'スケーラビリティ',
+                    children: [
+                        { title: '運用負荷' },
+                        { title: '水平スケーリング' },
+                        { title: 'DB分散（リードレプリカ）' },
+                        { title: '非同期処理（キュー）' }
+                    ]
+                },
+                {
+                    title: '可用性信頼性',
+                    children: [
+                        { title: '単一障害点' },
+                        { title: 'マルチAZ, リージョン' },
+                        { title: '障害分離（サーキットブレーカーなど）' }
+                    ]
+                },
+                {
+                    title: '一貫性とトランザクション',
+                    children: [
+                        { title: 'ACIDとRDB' },
+                        { title: 'CAP定理（一貫性or可用性）' },
+                        { title: '分散トランザクション' }
+                    ]
+                }
+            ]
+        }
+    };
 
     // Section configurations
     const SECTIONS = {
         estimation: {
             name: '見積もり',
-            desc: '機能要件・非機能要件',
-            template: `・見積もり
-  ・機能要件
-    ・問題の優先度
-    ・who, why: 対象user
-    ・when, how: 優先ユースケース
-    ・what: 機能の必要不要
-    ・where: 既存システム連携
-  ・非機能要件
-    ・req数
-    ・data量
-    ・レイテンシ
-    ・write/read heavy`
+            desc: '機能要件・非機能要件'
         },
         highLevel: {
-            name: 'ハイレベルデザイン',
-            desc: 'API・データモデル・アーキテクチャ',
-            template: `・ハイレベルデザイン
-  ・APIインターフェース
-  ・データモデル
-  ・アーキテクチャ概要図`
+            name: 'ハイレベル',
+            desc: 'API・データモデル・アーキテクチャ'
         },
         lowLevel: {
-            name: 'ローレベルデザイン',
-            desc: 'トレードオフの判断・実装詳細',
-            template: `・ローレベルデザイン(トレードオフ)
-  ・重要コンポーネント特定
-  ・パフォーマンス
-    ・レイテンシ
-    ・DB最適化（インデックス、クエリ）
-    ・キャッシュ戦略
-  ・スケーラビリティ
-    ・運用負荷
-    ・水平スケーリング
-    ・DB分散（リードレプリカ）
-    ・非同期処理（キュー）
-  ・可用性信頼性
-    ・単一障害点
-    ・マルチAZ, リージョン
-    ・障害分離（サーキットブレーカーなど）
-  ・一貫性とトランザクション
-    ・ACIDとRDB
-    ・CAP定理（一貫性or可用性）
-    ・分散トランザクション`
+            name: 'ローレベル',
+            desc: 'トレードオフの判断・実装詳細'
         }
     };
 
-    // Parse bullet list
-    function parseContent(text, levelConfig) {
+    // Flatten template tree to array with levels
+    function flattenTemplate(node, level = 0) {
+        const result = [];
+
+        result.push({ level, content: node.title });
+
+        if (node.children) {
+            for (const child of node.children) {
+                result.push(...flattenTemplate(child, level + 1));
+            }
+        }
+
+        return result;
+    }
+
+    // Parse bullet list structure (just levels, no content)
+    function parseStructure(text) {
         const lines = text.split('\n');
         const items = [];
 
@@ -422,16 +477,49 @@
             const match = line.match(/^(\s*)(・|-)(.*)$/);
             if (match) {
                 const indent = match[1];
-                const content = match[3].trim();
-                const level = Math.min(
-                    Math.floor(indent.replace(/\t/g, '  ').length / 2),
-                    levelConfig.length - 1
-                );
-                items.push({ level, content });
+                const userContent = match[3].trim();
+                const level = Math.floor(indent.replace(/\t/g, '  ').length / 2);
+                items.push({ level, userContent });
             }
         }
 
         return items;
+    }
+
+    // Map structure to template
+    function mapToTemplate(structure, sectionKey) {
+        if (!SECTION_TEMPLATES[sectionKey]) {
+            return structure.map(item => ({
+                level: item.level,
+                content: item.userContent || '(空)'
+            }));
+        }
+
+        const template = flattenTemplate(SECTION_TEMPLATES[sectionKey]);
+        const result = [];
+
+        for (let i = 0; i < structure.length; i++) {
+            const structItem = structure[i];
+            const templateItem = template[i];
+
+            if (templateItem) {
+                const displayContent = structItem.userContent
+                    ? structItem.userContent
+                    : templateItem.content + '（空）';
+
+                result.push({
+                    level: structItem.level,
+                    content: displayContent
+                });
+            } else {
+                result.push({
+                    level: structItem.level,
+                    content: structItem.userContent || '（範囲外）'
+                });
+            }
+        }
+
+        return result;
     }
 
     function App() {
@@ -476,16 +564,34 @@
             };
         }, [content, saveToStorage]);
 
-        // Parse content
-        const items = useMemo(() => parseContent(content, LEVELS), [content]);
+        // Parse structure and map to template
+        const structure = useMemo(() => parseStructure(content), [content]);
+        const items = useMemo(() => mapToTemplate(structure, section), [structure, section]);
 
-        // Insert template
+        // Insert template structure
         const insertTemplate = () => {
-            const template = SECTIONS[section].template;
+            if (!SECTION_TEMPLATES[section]) return;
+
+            const template = SECTION_TEMPLATES[section];
+            const lines = [];
+
+            function buildLines(node, indent = 0) {
+                lines.push('  '.repeat(indent) + '・');
+
+                if (node.children) {
+                    for (const child of node.children) {
+                        buildLines(child, indent + 1);
+                    }
+                }
+            }
+
+            buildLines(template);
+            const templateText = lines.join('\n');
+
             if (content.trim() === '') {
-                setContent(template);
+                setContent(templateText);
             } else {
-                setContent(content + '\n\n' + template);
+                setContent(content + '\n\n' + templateText);
             }
         };
 
@@ -521,7 +627,7 @@
                             ))}
                         </div>
                         <button className="template-btn" onClick={insertTemplate}>
-                            テンプレート挿入
+                            構造テンプレート挿入
                         </button>
                     </div>
 
@@ -530,7 +636,7 @@
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="・見積もり&#10;  ・機能要件（2スペースでインデント）&#10;    ・詳細項目"
+                            placeholder="・&#10;  ・&#10;    ・&#10;&#10;左のセクションを選んで構造だけ入力してください"
                         />
                     </div>
 
@@ -547,8 +653,9 @@
                         <div className="preview-content">
                             {items.length === 0 ? (
                                 <div className="empty-preview">
-                                    ・で始まる行を入力するとプレビューされます<br/>
-                                    左のセクションから「テンプレート挿入」を使うと便利です
+                                    左のセクションを選択して、エディタに「・」で構造を入力<br/>
+                                    プレビューに自動的にテンプレート項目名が表示されます<br/>
+                                    「構造テンプレート挿入」ボタンで構造の雛形を挿入できます
                                 </div>
                             ) : (
                                 items.map((item, i) => {
