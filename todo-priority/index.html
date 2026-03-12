@@ -63,7 +63,10 @@
         </div>
 
         <div v-if="analysisResult" class="output-section">
-          <h2>分析結果</h2>
+          <div class="result-header">
+            <h2>分析結果</h2>
+            <div class="completion-time">所要時間: {{ elapsedTime }}秒</div>
+          </div>
           <div class="analysis-output" v-html="parsedAnalysisResult"></div>
         </div>
       </div>
@@ -396,6 +399,22 @@
     border-top: 2px solid #eee;
   }
 
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .completion-time {
+    background-color: #edf2f7;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #4a5568;
+    font-weight: 600;
+  }
+
   .analysis-output {
     background-color: #f8f9fa;
     border: 2px solid #e9ecef;
@@ -504,6 +523,12 @@
 
     .analyze-btn {
       width: 100%;
+    }
+
+    .result-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
     }
   }
 </style>

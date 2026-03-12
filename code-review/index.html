@@ -63,7 +63,10 @@
         </div>
 
         <div v-if="reviewResult" class="output-section">
-          <h2>レビュー結果</h2>
+          <div class="result-header">
+            <h2>レビュー結果</h2>
+            <div class="completion-time">所要時間: {{ elapsedTime }}秒</div>
+          </div>
           <div class="review-output" v-html="parsedReviewResult"></div>
         </div>
       </div>
@@ -361,6 +364,22 @@
     border-top: 2px solid #eee;
   }
 
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .completion-time {
+    background-color: #e3f2fd;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 600;
+  }
+
   .progress-section {
     margin-bottom: 20px;
   }
@@ -505,6 +524,12 @@
 
     .review-btn {
       width: 100%;
+    }
+
+    .result-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
     }
   }
 </style>
