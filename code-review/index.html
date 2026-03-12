@@ -159,15 +159,11 @@
               console.log("%c🧐 レビュー対象のコード:", "color: #9AA0A6;");
               console.log(this.codeInput);
 
-              // ストリーミングでプロンプトの実行
+              // プロンプトの実行
               console.log("%c🤖 レビュー結果:", "color: #34A853; font-weight: bold;");
-              const stream = await this.session.promptStreaming(`このコードをレビューして改善案を出してください:\n\n\`\`\`\n${this.codeInput}\n\`\`\``);
+              const result = await this.session.prompt(`このコードをレビューして改善案を出してください:\n\n\`\`\`\n${this.codeInput}\n\`\`\``);
 
-              // ストリーミング結果を1文字ずつ表示
-              this.reviewResult = "";
-              for await (const chunk of stream) {
-                this.reviewResult = chunk;
-              }
+              this.reviewResult = result;
 
               console.log(this.reviewResult);
               this.statusMessage = "レビュー完了！";
