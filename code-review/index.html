@@ -6,6 +6,7 @@
     <title>AIコードレビュー - Gemini Nano</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
   <body>
     <div id="app">
@@ -53,11 +54,17 @@
           </button>
         </div>
 
+        <!-- プログレスバーと経過時間 -->
+        <div v-if="isReviewing" class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+          </div>
+          <div class="elapsed-time">経過時間: {{ elapsedTime }}秒</div>
+        </div>
+
         <div v-if="reviewResult" class="output-section">
           <h2>レビュー結果</h2>
-          <div class="review-output">
-            <pre>{{ reviewResult }}</pre>
-          </div>
+          <div class="review-output" v-html="parsedReviewResult"></div>
         </div>
       </div>
     </div>
@@ -72,10 +79,18 @@
           apiAvailable: false,
           isReviewing: false,
           statusMessage: "",
-          session: null
+          session: null,
+          elapsedTime: 0,
+          timerInterval: null
         },
         async mounted() {
           await this.checkAPIAvailability();
+        },
+        computed: {
+          parsedReviewResult() {
+            if (!this.reviewResult) return '';
+            return marked.parse(this.reviewResult);
+          }
         },
         methods: {
           async checkAPIAvailability() {
@@ -96,20 +111,35 @@
 
           getReviewPrompt() {
             const prompts = {
-              general: "あなたは非常に厳しいシニアエンジニアです。以下のコードのバグや改善点を、日本語で簡潔かつ具体的に指摘してください。コード品質、可読性、保守性、潜在的な改善点について包括的にレビューしてください：",
-              security: "あなたはセキュリティエキスパートです。以下のコードのセキュリティ脆弱性、潜在的な攻撃のリスク、セキュリティベストプラクティスについて日本語で分析してください：",
-              performance: "あなたはパフォーマンスチューニングの専門家です。以下のコードのパフォーマンス最適化、効率性、潜在的なボトルネックについて日本語でレビューしてください：",
-              "best-practices": "あなたは経験豊富なアーキテクトです。以下のコードについて、コーディングベストプラクティス、デザインパターン、業界標準に基づいて日本語で改善提案をしてください：",
-              bugs: "あなたはバグハンターです。以下のコードの潜在的なバグ、エッジケース、論理エラー、ランタイムエラーについて日本語で詳しく分析してください："
+              general: "あなたは厳しいシニアエンジニアです。以下のコードの主要な問題点を3〜5個、箇条書きで簡潔に指摘してください。具体的な改善案も含めてください。",
+              security: "セキュリティの専門家として、以下のコードの主要な脆弱性を3〜5個、箇条書きで簡潔に指摘してください。",
+              performance: "パフォーマンス専門家として、以下のコードの主要なボトルネックを3〜5個、箇条書きで簡潔に指摘してください。",
+              "best-practices": "アーキテクトとして、以下のコードの主要な改善点を3〜5個、箇条書きで簡潔に指摘してください。",
+              bugs: "バグハンターとして、以下のコードの潜在的なバグを3〜5個、箇条書きで簡潔に指摘してください。"
             };
 
             return prompts[this.reviewType] || prompts.general;
+          },
+
+          startTimer() {
+            this.elapsedTime = 0;
+            this.timerInterval = setInterval(() => {
+              this.elapsedTime++;
+            }, 1000);
+          },
+
+          stopTimer() {
+            if (this.timerInterval) {
+              clearInterval(this.timerInterval);
+              this.timerInterval = null;
+            }
           },
 
           async reviewCode() {
             this.isReviewing = true;
             this.reviewResult = "";
             this.statusMessage = "コードを分析中...";
+            this.startTimer();
 
             // 前回のセッションがあれば破棄
             if (this.session) {
@@ -129,12 +159,17 @@
               console.log("%c🧐 レビュー対象のコード:", "color: #9AA0A6;");
               console.log(this.codeInput);
 
-              // プロンプトの実行
+              // ストリーミングでプロンプトの実行
               console.log("%c🤖 レビュー結果:", "color: #34A853; font-weight: bold;");
-              const result = await this.session.prompt(`このコードをレビューして改善案を出してください:\n\n\`\`\`\n${this.codeInput}\n\`\`\``);
+              const stream = await this.session.promptStreaming(`このコードをレビューして改善案を出してください:\n\n\`\`\`\n${this.codeInput}\n\`\`\``);
 
-              this.reviewResult = result;
-              console.log(result);
+              // ストリーミング結果を1文字ずつ表示
+              this.reviewResult = "";
+              for await (const chunk of stream) {
+                this.reviewResult = chunk;
+              }
+
+              console.log(this.reviewResult);
               this.statusMessage = "レビュー完了！";
 
             } catch (error) {
@@ -143,6 +178,7 @@
               this.statusMessage = "レビューに失敗しました。";
             } finally {
               this.isReviewing = false;
+              this.stopTimer();
 
               // セッションの終了（リソース解放）
               if (this.session) {
@@ -329,6 +365,42 @@
     border-top: 2px solid #eee;
   }
 
+  .progress-section {
+    margin-bottom: 20px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+    background-size: 200% 100%;
+    animation: progressAnimation 1.5s linear infinite;
+  }
+
+  @keyframes progressAnimation {
+    0% {
+      background-position: 0% 0%;
+    }
+    100% {
+      background-position: 200% 0%;
+    }
+  }
+
+  .elapsed-time {
+    text-align: center;
+    color: #667eea;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
   .review-output {
     background-color: #f8f9fa;
     border: 2px solid #e9ecef;
@@ -336,15 +408,89 @@
     padding: 20px;
     max-height: 600px;
     overflow-y: auto;
+    line-height: 1.8;
+  }
+
+  .review-output h1,
+  .review-output h2,
+  .review-output h3 {
+    color: #667eea;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+
+  .review-output h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 8px;
+  }
+
+  .review-output h2 {
+    font-size: 1.5rem;
+  }
+
+  .review-output h3 {
+    font-size: 1.2rem;
+  }
+
+  .review-output ul,
+  .review-output ol {
+    margin-left: 20px;
+    margin-bottom: 15px;
+  }
+
+  .review-output li {
+    margin-bottom: 8px;
+  }
+
+  .review-output p {
+    margin-bottom: 12px;
+  }
+
+  .review-output code {
+    background-color: #f3e5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: #764ba2;
   }
 
   .review-output pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #333;
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 15px;
+  }
+
+  .review-output pre code {
+    background-color: transparent;
+    padding: 0;
+    color: #f8f8f2;
+  }
+
+  .review-output blockquote {
+    border-left: 4px solid #667eea;
+    padding-left: 15px;
+    margin-left: 0;
+    color: #666;
+    font-style: italic;
+  }
+
+  .review-output strong {
+    color: #764ba2;
+    font-weight: 700;
+  }
+
+  .review-output a {
+    color: #667eea;
+    text-decoration: none;
+  }
+
+  .review-output a:hover {
+    text-decoration: underline;
   }
 
   @media (max-width: 768px) {
