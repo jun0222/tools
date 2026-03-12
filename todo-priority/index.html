@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TODO優先順位アドバイザー - Gemini Nano</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <h1>TODO優先順位アドバイザー (Gemini Nano)</h1>
+
+      <div v-if="!apiAvailable" class="error-message">
+        <p>お使いのブラウザでGemini Nano APIが利用できません。</p>
+        <p>Chrome Canaryで以下のフラグを有効にしてください：</p>
+        <ul>
+          <li>chrome://flags/#optimization-guide-on-device-model - Enable</li>
+          <li>chrome://flags/#prompt-api-for-gemini-nano - Enable</li>
+        </ul>
+      </div>
+
+      <div v-else>
+        <div class="status-message" v-if="statusMessage">
+          {{ statusMessage }}
+        </div>
+
+        <div class="input-section">
+          <label for="todo-input">TODOリストを入力:</label>
+          <textarea
+            v-model="todoInput"
+            id="todo-input"
+            placeholder="TODOリストをここに貼り付けてください...&#10;&#10;例:&#10;- プロジェクトAの資料作成&#10;- バグ修正&#10;- ミーティング準備&#10;- メールの返信"
+            rows="15"
+            :disabled="isAnalyzing"
+          ></textarea>
+        </div>
+
+        <div class="controls">
+          <div class="analysis-type">
+            <label for="analysis-type">分析観点:</label>
+            <select v-model="analysisType" id="analysis-type" :disabled="isAnalyzing">
+              <option value="urgent">緊急度重視</option>
+              <option value="important">重要度重視</option>
+              <option value="balanced">バランス重視</option>
+              <option value="quick-win">クイックウィン重視</option>
+              <option value="impact">インパクト重視</option>
+            </select>
+          </div>
+
+          <button @click="analyzeTodo" :disabled="!todoInput || isAnalyzing" class="analyze-btn">
+            {{ isAnalyzing ? '分析中...' : '優先順位を分析' }}
+          </button>
+        </div>
+
+        <!-- プログレスバーと経過時間 -->
+        <div v-if="isAnalyzing" class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+          </div>
+          <div class="elapsed-time">経過時間: {{ elapsedTime }}秒</div>
+        </div>
+
+        <div v-if="analysisResult" class="output-section">
+          <h2>分析結果</h2>
+          <div class="analysis-output" v-html="parsedAnalysisResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const app = new Vue({
+        el: "#app",
+        data: {
+          todoInput: "",
+          analysisType: "balanced",
+          analysisResult: "",
+          apiAvailable: false,
+          isAnalyzing: false,
+          statusMessage: "",
+          session: null,
+          elapsedTime: 0,
+          timerInterval: null
+        },
+        async mounted() {
+          await this.checkAPIAvailability();
+        },
+        computed: {
+          parsedAnalysisResult() {
+            if (!this.analysisResult) return '';
+            return marked.parse(this.analysisResult);
+          }
+        },
+        methods: {
+          async checkAPIAvailability() {
+            try {
+              if (typeof LanguageModel === 'undefined') {
+                this.apiAvailable = false;
+                console.error('LanguageModel is not available');
+                return;
+              }
+
+              this.apiAvailable = true;
+              this.statusMessage = 'Gemini Nanoの準備完了！';
+            } catch (error) {
+              console.error('Error checking API availability:', error);
+              this.apiAvailable = false;
+            }
+          },
+
+          getAnalysisPrompt() {
+            const prompts = {
+              urgent: "緊急度を最優先に考えて、以下のTODOリストの優先順位を決めてください。期限が近いもの、すぐに対応が必要なものから順に並べて、簡潔に理由も添えてください。",
+              important: "重要度を最優先に考えて、以下のTODOリストの優先順位を決めてください。長期的な影響が大きいもの、重要な成果につながるものから順に並べて、簡潔に理由も添えてください。",
+              balanced: "緊急度と重要度のバランスを考えて、以下のTODOリストの優先順位を決めてください。アイゼンハワーマトリクスの考え方で整理して、おすすめの順番を簡潔に提示してください。",
+              "quick-win": "短時間で完了でき、かつ効果が高いタスク（クイックウィン）を優先して、以下のTODOリストの優先順位を決めてください。達成感を得やすい順番を簡潔に提示してください。",
+              impact: "成果・インパクトの大きさを最優先に考えて、以下のTODOリストの優先順位を決めてください。最も価値を生み出すものから順に並べて、簡潔に理由も添えてください。"
+            };
+
+            return prompts[this.analysisType] || prompts.balanced;
+          },
+
+          startTimer() {
+            this.elapsedTime = 0;
+            this.timerInterval = setInterval(() => {
+              this.elapsedTime++;
+            }, 1000);
+          },
+
+          stopTimer() {
+            if (this.timerInterval) {
+              clearInterval(this.timerInterval);
+              this.timerInterval = null;
+            }
+          },
+
+          async analyzeTodo() {
+            this.isAnalyzing = true;
+            this.analysisResult = "";
+            this.statusMessage = "TODOリストを分析中...";
+            this.startTimer();
+
+            // 前回のセッションがあれば破棄
+            if (this.session) {
+              this.session.destroy();
+              this.session = null;
+            }
+
+            try {
+              console.log("%c🚀 Gemini Nano を起動中...", "color: #4285F4; font-weight: bold;");
+
+              // セッションの作成（日本語出力と役割を指定）
+              this.session = await LanguageModel.create({
+                expectedOutputLanguage: 'ja',
+                systemPrompt: this.getAnalysisPrompt()
+              });
+
+              console.log("%c📝 分析対象のTODOリスト:", "color: #9AA0A6;");
+              console.log(this.todoInput);
+
+              // プロンプトの実行
+              console.log("%c🤖 分析結果:", "color: #34A853; font-weight: bold;");
+              const result = await this.session.prompt(`以下のTODOリストを分析して、おすすめの優先順位を提示してください:\n\n${this.todoInput}`);
+
+              this.analysisResult = result;
+              console.log(result);
+              this.statusMessage = "分析完了！";
+
+            } catch (error) {
+              console.error("❌ エラーが発生しました:", error);
+              this.analysisResult = `エラー: ${error.message}`;
+              this.statusMessage = "分析に失敗しました。";
+            } finally {
+              this.isAnalyzing = false;
+              this.stopTimer();
+
+              // セッションの終了（リソース解放）
+              if (this.session) {
+                this.session.destroy();
+                this.session = null;
+              }
+            }
+          }
+        },
+        beforeDestroy() {
+          // コンポーネント破棄時にセッションをクリーンアップ
+          if (this.session) {
+            this.session.destroy();
+            this.session = null;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #333;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  #app {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  h1 {
+    text-align: center;
+    color: #38f9d7;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
+
+  h2 {
+    color: #38f9d7;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+  }
+
+  .error-message {
+    background-color: #fee;
+    border: 2px solid #f88;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+
+  .error-message p {
+    margin-bottom: 10px;
+    color: #c33;
+  }
+
+  .error-message ul {
+    margin-left: 20px;
+    color: #c33;
+  }
+
+  .status-message {
+    background-color: #e0f7fa;
+    border-left: 4px solid #00bcd4;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    color: #006064;
+    font-weight: 500;
+  }
+
+  .input-section {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    resize: vertical;
+    transition: border-color 0.3s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: #38f9d7;
+  }
+
+  textarea:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  .controls {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+
+  .analysis-type {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: #38f9d7;
+  }
+
+  select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  .analyze-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+    min-width: 170px;
+  }
+
+  .analyze-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(56, 249, 215, 0.4);
+  }
+
+  .analyze-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .analyze-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .progress-section {
+    margin-bottom: 20px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 50%, #43e97b 100%);
+    background-size: 200% 100%;
+    animation: progressAnimation 1.5s linear infinite;
+  }
+
+  @keyframes progressAnimation {
+    0% {
+      background-position: 0% 0%;
+    }
+    100% {
+      background-position: 200% 0%;
+    }
+  }
+
+  .elapsed-time {
+    text-align: center;
+    color: #38f9d7;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .output-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px solid #eee;
+  }
+
+  .analysis-output {
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    max-height: 600px;
+    overflow-y: auto;
+    line-height: 1.8;
+  }
+
+  .analysis-output h1,
+  .analysis-output h2,
+  .analysis-output h3 {
+    color: #38f9d7;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+
+  .analysis-output h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid #38f9d7;
+    padding-bottom: 8px;
+  }
+
+  .analysis-output h2 {
+    font-size: 1.5rem;
+  }
+
+  .analysis-output h3 {
+    font-size: 1.2rem;
+  }
+
+  .analysis-output ul,
+  .analysis-output ol {
+    margin-left: 20px;
+    margin-bottom: 15px;
+  }
+
+  .analysis-output li {
+    margin-bottom: 8px;
+  }
+
+  .analysis-output p {
+    margin-bottom: 12px;
+  }
+
+  .analysis-output code {
+    background-color: #e0f7fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: #006064;
+  }
+
+  .analysis-output pre {
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 15px;
+  }
+
+  .analysis-output pre code {
+    background-color: transparent;
+    padding: 0;
+    color: #f8f8f2;
+  }
+
+  .analysis-output blockquote {
+    border-left: 4px solid #38f9d7;
+    padding-left: 15px;
+    margin-left: 0;
+    color: #666;
+    font-style: italic;
+  }
+
+  .analysis-output strong {
+    color: #43e97b;
+    font-weight: 700;
+  }
+
+  .analysis-output a {
+    color: #38f9d7;
+    text-decoration: none;
+  }
+
+  .analysis-output a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    #app {
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .analyze-btn {
+      width: 100%;
+    }
+  }
+</style>
