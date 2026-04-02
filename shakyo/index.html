@@ -225,6 +225,24 @@ function greet(name) {
                    trimmed.startsWith('*');
         }
 
+        // 行末のコメントを除去する関数
+        function removeEndLineComment(line) {
+            // // 以降を削除
+            let result = line;
+            const doubleSlashIndex = result.indexOf('//');
+            if (doubleSlashIndex !== -1) {
+                result = result.substring(0, doubleSlashIndex);
+            }
+
+            // # 以降を削除
+            const hashIndex = result.indexOf('#');
+            if (hashIndex !== -1) {
+                result = result.substring(0, hashIndex);
+            }
+
+            return result;
+        }
+
         // 初期化
         function init() {
             // localStorageから読み込み
@@ -272,9 +290,11 @@ function greet(name) {
                 const userLine = userLines[userLineIndex] || '';
                 userLineIndex++;
 
-                // 空白文字を除去して比較
-                const sampleNormalized = removeWhitespace(sampleLine);
-                const userNormalized = removeWhitespace(userLine);
+                // 行末のコメントを除去してから空白文字を除去して比較
+                const sampleWithoutComment = removeEndLineComment(sampleLine);
+                const userWithoutComment = removeEndLineComment(userLine);
+                const sampleNormalized = removeWhitespace(sampleWithoutComment);
+                const userNormalized = removeWhitespace(userWithoutComment);
 
                 const isComplete = sampleNormalized === userNormalized && sampleNormalized.length > 0;
 
