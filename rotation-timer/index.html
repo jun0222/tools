@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>高速回転学習タイマー</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body {
+            overscroll-behavior: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .flash-success {
+            animation: flash-success 0.4s ease-out;
+        }
+
+        @keyframes flash-success {
+            0%, 100% { background-color: white; }
+            50% { background-color: #86efac; }
+        }
+
+        .scale-bounce {
+            animation: scale-bounce 0.3s ease-out;
+        }
+
+        @keyframes scale-bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .timer-display {
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .preset-btn {
+            transition: all 0.2s;
+        }
+
+        .preset-btn:active {
+            transform: scale(0.95);
+        }
+
+        .main-button {
+            min-height: 60px;
+            font-size: 1.125rem;
+            transition: all 0.2s;
+        }
+
+        .main-button:active {
+            transform: scale(0.98);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        @media (max-width: 640px) {
+            .timer-display {
+                font-size: 5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50">
+
+    <div class="flex flex-col h-full max-w-lg mx-auto p-4 pb-safe">
+
+        <!-- ヘッダー -->
+        <div class="text-center mb-4">
+            <h1 class="text-xl font-bold text-slate-800 mb-1">高速回転学習タイマー</h1>
+            <p class="text-xs text-slate-500">「意味がわからなくても止まらない」</p>
+        </div>
+
+        <!-- メインカード -->
+        <div id="timer-card" class="bg-white rounded-3xl shadow-2xl flex-1 flex flex-col">
+
+            <!-- 統計エリア -->
+            <div class="stat-card text-white p-4 rounded-t-3xl">
+                <div class="flex justify-around items-center">
+                    <div class="text-center">
+                        <div class="text-xs opacity-80 mb-1">現在の周回</div>
+                        <div class="flex items-baseline justify-center gap-1">
+                            <span id="lap-count" class="text-4xl font-black scale-bounce">1</span>
+                            <span class="text-sm">周目</span>
+                        </div>
+                    </div>
+                    <div class="w-px h-12 bg-white/30"></div>
+                    <div class="text-center">
+                        <div class="text-xs opacity-80 mb-1">本日の総周回</div>
+                        <div class="flex items-baseline justify-center gap-1">
+                            <span id="total-laps" class="text-4xl font-black">0</span>
+                            <span class="text-sm">周</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- タイマー表示 -->
+            <div class="flex-1 flex flex-col justify-center items-center p-6">
+                <div id="display" class="timer-display text-8xl font-black text-slate-800 mb-8">
+                    30
+                </div>
+
+                <!-- プリセットボタン -->
+                <div class="w-full mb-6">
+                    <div class="text-xs text-slate-500 mb-2 text-center">クイック設定</div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setPreset(10)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
+                            10秒
+                        </button>
+                        <button onclick="setPreset(20)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
+                            20秒
+                        </button>
+                        <button onclick="setPreset(30)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
+                            30秒
+                        </button>
+                        <button onclick="setPreset(60)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
+                            60秒
+                        </button>
+                    </div>
+                </div>
+
+                <!-- カスタム時間設定 -->
+                <div class="flex items-center justify-center gap-3 mb-6">
+                    <label class="text-sm text-slate-600 font-medium">カスタム:</label>
+                    <input type="number" id="sec-input" value="30" min="5" max="600"
+                           class="w-20 border-2 border-slate-200 rounded-xl px-3 py-2 text-center font-bold text-lg focus:outline-none focus:border-blue-400">
+                    <span class="text-sm text-slate-600">秒</span>
+                </div>
+            </div>
+
+            <!-- コントロールボタン -->
+            <div class="p-6 pt-0">
+                <div class="flex gap-3">
+                    <button onclick="toggleTimer()" id="btn-main"
+                        class="main-button flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-lg">
+                        スタート
+                    </button>
+                    <button onclick="resetTimer()"
+                        class="main-button bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 rounded-2xl">
+                        リセット
+                    </button>
+                </div>
+
+                <!-- サウンド設定 -->
+                <div class="flex items-center justify-center gap-4 mt-4">
+                    <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                        <input type="checkbox" id="sound-toggle" checked
+                               class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                        <span>サウンド</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                        <input type="checkbox" id="vibration-toggle" checked
+                               class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                        <span>バイブ</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- フッター -->
+            <div class="bg-slate-50 p-4 rounded-b-3xl border-t border-slate-100">
+                <p class="text-xs text-slate-500 text-center leading-relaxed">
+                    「拾えるものだけ拾って次へ！」<br>
+                    繰り返すたびに理解が深まります
+                </p>
+            </div>
+        </div>
+
+        <!-- リセット確認ボタン（本日の統計リセット） -->
+        <button onclick="confirmResetStats()" class="mt-4 text-xs text-slate-400 hover:text-slate-600 py-2">
+            本日の統計をリセット
+        </button>
+    </div>
+
+    <script>
+        // 状態管理
+        let timeLeft;
+        let timerInterval = null;
+        let lap = 1;
+        let totalLaps = 0;
+        let sessionStartTime = null;
+
+        // DOM要素
+        const display = document.getElementById('display');
+        const lapDisplay = document.getElementById('lap-count');
+        const totalLapsDisplay = document.getElementById('total-laps');
+        const secInput = document.getElementById('sec-input');
+        const btnMain = document.getElementById('btn-main');
+        const card = document.getElementById('timer-card');
+        const soundToggle = document.getElementById('sound-toggle');
+        const vibrationToggle = document.getElementById('vibration-toggle');
+
+        // LocalStorage キー
+        const STORAGE_KEY = 'rotation-timer-stats';
+        const DATE_KEY = 'rotation-timer-date';
+
+        // 初期化
+        function init() {
+            loadStats();
+            updateDisplay();
+
+            // スクリーンロック防止
+            if ('wakeLock' in navigator) {
+                requestWakeLock();
+            }
+        }
+
+        // 統計の読み込み
+        function loadStats() {
+            const savedDate = localStorage.getItem(DATE_KEY);
+            const today = new Date().toDateString();
+
+            if (savedDate === today) {
+                const stats = localStorage.getItem(STORAGE_KEY);
+                if (stats) {
+                    totalLaps = parseInt(stats) || 0;
+                }
+            } else {
+                // 日付が変わっていたらリセット
+                totalLaps = 0;
+                saveStats();
+            }
+
+            totalLapsDisplay.textContent = totalLaps;
+        }
+
+        // 統計の保存
+        function saveStats() {
+            localStorage.setItem(STORAGE_KEY, totalLaps.toString());
+            localStorage.setItem(DATE_KEY, new Date().toDateString());
+        }
+
+        // プリセット設定
+        function setPreset(seconds) {
+            if (!timerInterval) {
+                secInput.value = seconds;
+                timeLeft = seconds;
+                updateDisplay();
+            }
+        }
+
+        // タイマー切り替え
+        function toggleTimer() {
+            if (timerInterval) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        // タイマー開始
+        function startTimer() {
+            if (!timeLeft) {
+                timeLeft = parseInt(secInput.value);
+            }
+
+            if (!sessionStartTime) {
+                sessionStartTime = Date.now();
+            }
+
+            btnMain.textContent = "一時停止";
+            btnMain.className = "main-button flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-2xl shadow-lg";
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+
+                if (timeLeft <= 0) {
+                    completeLap();
+                }
+            }, 1000);
+        }
+
+        // タイマー一時停止
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btnMain.textContent = "再開";
+            btnMain.className = "main-button flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-2xl shadow-lg";
+        }
+
+        // 周回完了
+        function completeLap() {
+            lap++;
+            totalLaps++;
+
+            lapDisplay.textContent = lap;
+            lapDisplay.classList.add('scale-bounce');
+            setTimeout(() => lapDisplay.classList.remove('scale-bounce'), 300);
+
+            totalLapsDisplay.textContent = totalLaps;
+            saveStats();
+
+            timeLeft = parseInt(secInput.value);
+            updateDisplay();
+
+            // 視覚的フィードバック
+            card.classList.add('flash-success');
+            setTimeout(() => card.classList.remove('flash-success'), 400);
+
+            // サウンドとバイブレーション
+            if (soundToggle.checked) {
+                playSound();
+            }
+            if (vibrationToggle.checked) {
+                vibrate();
+            }
+        }
+
+        // 表示更新
+        function updateDisplay() {
+            display.textContent = timeLeft || parseInt(secInput.value);
+        }
+
+        // リセット
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            lap = 1;
+            timeLeft = parseInt(secInput.value);
+            sessionStartTime = null;
+
+            updateDisplay();
+            lapDisplay.textContent = lap;
+            btnMain.textContent = "スタート";
+            btnMain.className = "main-button flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-lg";
+        }
+
+        // 統計リセット確認
+        function confirmResetStats() {
+            if (confirm('本日の統計をリセットしますか？')) {
+                totalLaps = 0;
+                totalLapsDisplay.textContent = totalLaps;
+                saveStats();
+            }
+        }
+
+        // サウンド再生
+        function playSound() {
+            try {
+                // Web Audio APIで簡単なビープ音を生成
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+
+        // バイブレーション
+        function vibrate() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate([100, 50, 100]);
+            }
+        }
+
+        // スクリーンロック防止
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    console.log('Wake Lock released');
+                });
+            } catch (err) {
+                console.log('Wake Lock not supported');
+            }
+        }
+
+        // ページ表示時にWake Lockを再取得
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && 'wakeLock' in navigator) {
+                await requestWakeLock();
+            }
+        });
+
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>
