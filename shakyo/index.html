@@ -330,8 +330,30 @@ function greet(name) {
             }
         }
 
+        // タブキー入力を有効にする
+        function enableTabKey(textarea) {
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const value = textarea.value;
+
+                    // カーソル位置にタブを挿入
+                    textarea.value = value.substring(0, start) + '\t' + value.substring(end);
+
+                    // カーソル位置をタブの後ろに移動
+                    textarea.selectionStart = textarea.selectionEnd = start + 1;
+                }
+            });
+        }
+
         // イベントリスナーのセットアップ
         function setupEventListeners() {
+            // タブキー入力を有効化
+            enableTabKey(sampleCode);
+            enableTabKey(userCode);
+
             // サンプルコードの編集を監視
             sampleCode.addEventListener('input', () => {
                 completedLines.clear(); // サンプルが変わったら完成行をリセット
