@@ -216,6 +216,15 @@ function greet(name) {
             return str.replace(/\s+/g, '');
         }
 
+        // コメント行かどうかを判定する関数
+        function isCommentLine(line) {
+            const trimmed = line.trim();
+            return trimmed.startsWith('//') ||
+                   trimmed.startsWith('#') ||
+                   trimmed.startsWith('/*') ||
+                   trimmed.startsWith('*');
+        }
+
         // 初期化
         function init() {
             // localStorageから読み込み
@@ -243,16 +252,25 @@ function greet(name) {
             const sampleLines = sampleCode.value.split('\n');
             const userLines = userCode.value.split('\n');
 
-            let totalLines = Math.max(sampleLines.length, userLines.length);
+            let totalLines = 0;
             let correctLines = 0;
             const newCompletedLines = new Set();
 
             // ハイライトレイヤーの内容を構築
             let highlightHTML = '';
+            let userLineIndex = 0;
 
-            for (let i = 0; i < totalLines; i++) {
+            for (let i = 0; i < sampleLines.length; i++) {
                 const sampleLine = sampleLines[i] || '';
-                const userLine = userLines[i] || '';
+
+                // サンプル行がコメント行の場合はスキップ
+                if (isCommentLine(sampleLine)) {
+                    continue;
+                }
+
+                totalLines++;
+                const userLine = userLines[userLineIndex] || '';
+                userLineIndex++;
 
                 // 空白文字を除去して比較
                 const sampleNormalized = removeWhitespace(sampleLine);
@@ -262,16 +280,21 @@ function greet(name) {
 
                 if (isComplete) {
                     correctLines++;
-                    newCompletedLines.add(i);
+                    newCompletedLines.add(userLineIndex - 1);
                     highlightHTML += `<span class="highlight-line">${userLine || ' '}</span>\n`;
 
                     // 新しく完成した行の場合、紙吹雪を表示
-                    if (!completedLines.has(i)) {
+                    if (!completedLines.has(userLineIndex - 1)) {
                         showConfetti();
                     }
                 } else {
                     highlightHTML += `${userLine || ' '}\n`;
                 }
+            }
+
+            // 残りのユーザー入力行を追加
+            for (let i = userLineIndex; i < userLines.length; i++) {
+                highlightHTML += `${userLines[i] || ' '}\n`;
             }
 
             // 完成した行のセットを更新
