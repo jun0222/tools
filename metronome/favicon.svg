@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="45" fill="url(#grad)"/>
+
+  <!-- Metronome body (trapezoid) -->
+  <path d="M 35 70 L 30 40 L 70 40 L 65 70 Z" fill="white" opacity="0.9"/>
+
+  <!-- Metronome pendulum -->
+  <line x1="50" y1="40" x2="50" y2="65" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="50" cy="68" r="5" fill="white"/>
+
+  <!-- Beat indicator -->
+  <circle cx="50" cy="30" r="4" fill="#fbbf24"/>
+
+  <!-- Music note -->
+  <text x="50" y="25" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">♩</text>
+</svg>
