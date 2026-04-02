@@ -1,5 +1,3 @@
-<!-- TODO: 正解するたびに草とか生やしたい -->
-<!-- TODO: タブ入力できるように -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -14,7 +12,7 @@
             box-sizing: border-box;
             font-family: 'Consolas', 'Courier New', monospace;
         }
-        
+
         body {
             background-color: #1e1e1e;
             color: #d4d4d4;
@@ -22,7 +20,7 @@
             display: flex;
             flex-direction: column;
         }
-        
+
         .header {
             background-color: #252526;
             padding: 10px;
@@ -31,17 +29,17 @@
             align-items: center;
             border-bottom: 1px solid #3e3e42;
         }
-        
+
         .title {
             font-size: 18px;
             font-weight: bold;
         }
-        
+
         .actions {
             display: flex;
             gap: 10px;
         }
-        
+
         .btn {
             padding: 6px 12px;
             background-color: #0e639c;
@@ -50,33 +48,62 @@
             border-radius: 3px;
             cursor: pointer;
         }
-        
+
         .btn:hover {
             background-color: #1177bb;
         }
-        
+
         .editor-container {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
-        
+
         .editor-column {
             flex: 1;
             display: flex;
             flex-direction: column;
             border-right: 1px solid #3e3e42;
+            position: relative;
         }
-        
+
         .editor-header {
             padding: 8px;
             background-color: #252526;
             border-bottom: 1px solid #3e3e42;
         }
-        
-        .textarea {
+
+        .editor-wrapper {
             flex: 1;
-            background-color: #1e1e1e;
+            position: relative;
+            overflow: auto;
+        }
+
+        .highlight-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre;
+            pointer-events: none;
+            color: transparent;
+            overflow: hidden;
+        }
+
+        .highlight-line {
+            background-color: rgba(106, 153, 85, 0.25);
+        }
+
+        .textarea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: transparent;
             color: #d4d4d4;
             border: none;
             outline: none;
@@ -87,7 +114,7 @@
             white-space: pre;
             tab-size: 4;
         }
-        
+
         .footer {
             background-color: #007acc;
             color: white;
@@ -95,92 +122,41 @@
             display: flex;
             justify-content: space-between;
         }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background-color: #252526;
-            width: 50%;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        
-        .modal-close {
-            color: #aaa;
-            float: right;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        .modal-close:hover {
-            color: white;
-        }
-        
-        .modal-title {
-            margin-bottom: 15px;
-        }
-        
-        .modal-textarea {
-            width: 100%;
-            height: 200px;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            border: 1px solid #3e3e42;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
+
         .accuracy {
             margin-left: 15px;
         }
-        
+
         .accuracy.high {
             color: #6a9955;
         }
-        
+
         .accuracy.medium {
             color: orange;
         }
-        
+
         .accuracy.low {
             color: #f14c4c;
         }
-        
-        .feedback {
+
+        .confetti {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            border-radius: 4px;
-            color: white;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
             opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1000;
+            pointer-events: none;
         }
-        
-        .feedback.success {
-            background-color: #6a9955;
-        }
-        
-        .feedback.error {
-            background-color: #f14c4c;
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -188,116 +164,140 @@
     <div class="header">
         <div class="title">コード写経ツール</div>
         <div class="actions">
-            <button class="btn" id="load-btn">読み込み</button>
             <button class="btn" id="clear-btn">クリア</button>
         </div>
     </div>
-    
+
     <div class="editor-container">
         <div class="editor-column">
-            <div class="editor-header">サンプルコード</div>
-            <textarea class="textarea" id="sample-code" readonly></textarea>
+            <div class="editor-header">サンプルコード（直接編集可能）</div>
+            <div class="editor-wrapper">
+                <textarea class="textarea" id="sample-code" spellcheck="false"></textarea>
+            </div>
         </div>
-        
+
         <div class="editor-column">
             <div class="editor-header">
                 あなたのコード
                 <span class="accuracy" id="accuracy-display"></span>
             </div>
-            <textarea class="textarea" id="user-code" spellcheck="false"></textarea>
+            <div class="editor-wrapper">
+                <div class="highlight-layer" id="highlight-layer"></div>
+                <textarea class="textarea" id="user-code" spellcheck="false"></textarea>
+            </div>
         </div>
     </div>
-    
+
     <div class="footer">
         <div>コード写経練習</div>
         <div id="status">正確度: 0%</div>
     </div>
     
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" id="modal-close">&times;</span>
-            <h2 class="modal-title">サンプルコードを読み込む</h2>
-            <textarea class="modal-textarea" id="modal-textarea" placeholder="ここにサンプルコードを入力してください"></textarea>
-            <div class="modal-buttons">
-                <button class="btn" id="modal-cancel">キャンセル</button>
-                <button class="btn" id="modal-load">読み込む</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="feedback" class="feedback"></div>
-    
     <script>
         // DOM要素の取得
         const sampleCode = document.getElementById('sample-code');
         const userCode = document.getElementById('user-code');
+        const highlightLayer = document.getElementById('highlight-layer');
         const accuracyDisplay = document.getElementById('accuracy-display');
         const status = document.getElementById('status');
-        const loadBtn = document.getElementById('load-btn');
         const clearBtn = document.getElementById('clear-btn');
-        const modal = document.getElementById('modal');
-        const modalTextarea = document.getElementById('modal-textarea');
-        const modalClose = document.getElementById('modal-close');
-        const modalCancel = document.getElementById('modal-cancel');
-        const modalLoad = document.getElementById('modal-load');
-        const feedback = document.getElementById('feedback');
-        
+
         // デフォルトサンプルコード
         const defaultSampleCode = `// サンプルコード
 function greet(name) {
     return "Hello, " + name + "!";
 }`;
-        
+
+        // 完成した行を追跡
+        let completedLines = new Set();
+
+        // 空白文字を除去する関数
+        function removeWhitespace(str) {
+            return str.replace(/\s+/g, '');
+        }
+
         // 初期化
         function init() {
-            // デフォルト値を設定（localStorageは使用しない）
-            sampleCode.value = defaultSampleCode;
-            userCode.value = '';
-            
+            // localStorageから読み込み
+            const savedSample = localStorage.getItem('shakyo-sample');
+            const savedUser = localStorage.getItem('shakyo-user');
+
+            sampleCode.value = savedSample || defaultSampleCode;
+            userCode.value = savedUser || '';
+
             // 正確度の更新
             updateAccuracy();
-            
+
             // イベントリスナーの設定
             setupEventListeners();
         }
-        
+
+        // localStorageに保存
+        function saveToStorage() {
+            localStorage.setItem('shakyo-sample', sampleCode.value);
+            localStorage.setItem('shakyo-user', userCode.value);
+        }
+
         // 正確度の更新
         function updateAccuracy() {
-            const sample = sampleCode.value;
-            const user = userCode.value;
-            
-            let correctChars = 0;
-            const maxLength = Math.max(sample.length, user.length);
-            
-            if (maxLength === 0) {
-                // 両方空の場合は0%
-                setAccuracy(0);
-                return;
-            }
-            
-            for (let i = 0; i < user.length; i++) {
-                if (user[i] === sample[i]) {
-                    correctChars++;
+            const sampleLines = sampleCode.value.split('\n');
+            const userLines = userCode.value.split('\n');
+
+            let totalLines = Math.max(sampleLines.length, userLines.length);
+            let correctLines = 0;
+            const newCompletedLines = new Set();
+
+            // ハイライトレイヤーの内容を構築
+            let highlightHTML = '';
+
+            for (let i = 0; i < totalLines; i++) {
+                const sampleLine = sampleLines[i] || '';
+                const userLine = userLines[i] || '';
+
+                // 空白文字を除去して比較
+                const sampleNormalized = removeWhitespace(sampleLine);
+                const userNormalized = removeWhitespace(userLine);
+
+                const isComplete = sampleNormalized === userNormalized && sampleNormalized.length > 0;
+
+                if (isComplete) {
+                    correctLines++;
+                    newCompletedLines.add(i);
+                    highlightHTML += `<span class="highlight-line">${userLine || ' '}</span>\n`;
+
+                    // 新しく完成した行の場合、紙吹雪を表示
+                    if (!completedLines.has(i)) {
+                        showConfetti();
+                    }
+                } else {
+                    highlightHTML += `${userLine || ' '}\n`;
                 }
             }
-            
-            const accuracy = Math.floor((correctChars / maxLength) * 100);
+
+            // 完成した行のセットを更新
+            completedLines = newCompletedLines;
+
+            // ハイライトレイヤーを更新
+            highlightLayer.innerHTML = highlightHTML;
+
+            // 正確度を計算（行単位）
+            const accuracy = totalLines > 0 ? Math.floor((correctLines / totalLines) * 100) : 0;
             setAccuracy(accuracy);
-            
-            // 完了チェック
-            if (accuracy === 100 && user.length > 0 && user.length === sample.length) {
-                showFeedback('おめでとうございます！完璧です！', 'success');
+
+            // 全行完成チェック
+            if (correctLines === totalLines && totalLines > 0 && userCode.value.length > 0) {
+                status.textContent = `完璧です！ 正確度: ${accuracy}%`;
             }
         }
-        
+
         // 正確度の表示を設定
         function setAccuracy(accuracy) {
             // ステータスの更新
             status.textContent = `正確度: ${accuracy}%`;
-            
+
             // 正確度表示の更新
             accuracyDisplay.textContent = `正確度: ${accuracy}%`;
-            
+
             if (accuracy >= 90) {
                 accuracyDisplay.className = 'accuracy high';
             } else if (accuracy >= 70) {
@@ -306,59 +306,57 @@ function greet(name) {
                 accuracyDisplay.className = 'accuracy low';
             }
         }
-        
+
         // イベントリスナーのセットアップ
         function setupEventListeners() {
-            // ユーザーのタイピングを監視
-            userCode.addEventListener('input', updateAccuracy);
-            
-            // ボタンのイベント
-            loadBtn.addEventListener('click', () => {
-                modalTextarea.value = sampleCode.value;
-                modal.style.display = 'flex';
+            // サンプルコードの編集を監視
+            sampleCode.addEventListener('input', () => {
+                completedLines.clear(); // サンプルが変わったら完成行をリセット
+                updateAccuracy();
+                saveToStorage();
             });
-            
+
+            // ユーザーのタイピングを監視
+            userCode.addEventListener('input', () => {
+                updateAccuracy();
+                saveToStorage();
+            });
+
+            // スクロール同期
+            userCode.addEventListener('scroll', () => {
+                highlightLayer.scrollTop = userCode.scrollTop;
+                highlightLayer.scrollLeft = userCode.scrollLeft;
+            });
+
+            // クリアボタン
             clearBtn.addEventListener('click', () => {
                 userCode.value = '';
+                completedLines.clear();
                 updateAccuracy();
-                showFeedback('クリアしました！', 'success');
-            });
-            
-            // モーダルイベント
-            modalClose.addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
-            
-            modalCancel.addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
-            
-            modalLoad.addEventListener('click', () => {
-                sampleCode.value = modalTextarea.value;
-                updateAccuracy();
-                modal.style.display = 'none';
-                showFeedback('サンプルコードを読み込みました！', 'success');
-            });
-            
-            // モーダル外クリックで閉じる
-            window.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
+                saveToStorage();
             });
         }
-        
-        // フィードバックメッセージの表示
-        function showFeedback(message, type) {
-            feedback.textContent = message;
-            feedback.className = `feedback ${type}`;
-            feedback.style.opacity = 1;
-            
-            setTimeout(() => {
-                feedback.style.opacity = 0;
-            }, 2000);
+
+        // 紙吹雪エフェクトを表示
+        function showConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe'];
+            const confettiCount = 15;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `confetti-fall ${1 + Math.random()}s linear`;
+                document.body.appendChild(confetti);
+
+                // アニメーション終了後に要素を削除
+                setTimeout(() => {
+                    confetti.remove();
+                }, 2000);
+            }
         }
-        
+
         // 初期化
         init();
     </script>
