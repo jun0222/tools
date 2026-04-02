@@ -296,15 +296,16 @@ function greet(name) {
                 const sampleNormalized = removeWhitespace(sampleWithoutComment);
                 const userNormalized = removeWhitespace(userWithoutComment);
 
-                const isComplete = sampleNormalized === userNormalized && sampleNormalized.length > 0;
+                // 空行同士も一致とみなす
+                const isComplete = sampleNormalized === userNormalized;
 
                 if (isComplete) {
                     correctLines++;
                     newCompletedLines.add(userLineIndex - 1);
                     highlightHTML += `<span class="highlight-line">${userLine || ' '}</span>\n`;
 
-                    // 新しく完成した行の場合、紙吹雪を表示
-                    if (!completedLines.has(userLineIndex - 1)) {
+                    // 新しく完成した行の場合、紙吹雪を表示（空行以外）
+                    if (!completedLines.has(userLineIndex - 1) && sampleNormalized.length > 0) {
                         showConfetti();
                     }
                 } else {
@@ -368,6 +369,15 @@ function greet(name) {
             });
         }
 
+        // スクロール同期関数
+        function syncScroll() {
+            // ユーザーコードのスクロール位置をハイライトレイヤーとサンプルコードに同期
+            highlightLayer.scrollTop = userCode.scrollTop;
+            highlightLayer.scrollLeft = userCode.scrollLeft;
+            sampleCode.scrollTop = userCode.scrollTop;
+            sampleCode.scrollLeft = userCode.scrollLeft;
+        }
+
         // イベントリスナーのセットアップ
         function setupEventListeners() {
             // タブキー入力を有効化
@@ -385,12 +395,19 @@ function greet(name) {
             userCode.addEventListener('input', () => {
                 updateAccuracy();
                 saveToStorage();
+                // 入力後に少し待ってからスクロール同期（カーソル位置への自動スクロール後に実行）
+                setTimeout(syncScroll, 0);
             });
 
             // スクロール同期
-            userCode.addEventListener('scroll', () => {
-                highlightLayer.scrollTop = userCode.scrollTop;
-                highlightLayer.scrollLeft = userCode.scrollLeft;
+            userCode.addEventListener('scroll', syncScroll);
+
+            // サンプルコードのスクロールもユーザーコードに反映
+            sampleCode.addEventListener('scroll', () => {
+                userCode.scrollTop = sampleCode.scrollTop;
+                userCode.scrollLeft = sampleCode.scrollLeft;
+                highlightLayer.scrollTop = sampleCode.scrollTop;
+                highlightLayer.scrollLeft = sampleCode.scrollLeft;
             });
 
             // クリアボタン
