@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard to PDF</title>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            padding: 40px;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 16px;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .preview-area {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .preview-area.empty {
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f1f3f5;
+            color: #495057;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* 印刷時のスタイル */
+        .print-content {
+            display: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+
+        @media print {
+            body {
+                background: white;
+                display: block;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-content {
+                display: block !important;
+                padding: 0;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function App() {
+        const [text, setText] = useState("");
+        const [status, setStatus] = useState(null);
+
+        // 自動的にクリップボードから読み込み
+        useEffect(() => {
+            loadFromClipboard();
+        }, []);
+
+        const loadFromClipboard = async () => {
+            try {
+                const clipboardText = await navigator.clipboard.readText();
+                if (clipboardText.trim()) {
+                    setText(clipboardText);
+                    setStatus({ type: 'success', message: 'クリップボードから読み込みました' });
+                    setTimeout(() => setStatus(null), 3000);
+                } else {
+                    setStatus({ type: 'error', message: 'クリップボードが空です' });
+                }
+            } catch (err) {
+                setStatus({ type: 'error', message: 'クリップボードの読み取りに失敗しました' });
+                console.error('Clipboard error:', err);
+            }
+        };
+
+        const handleDownload = () => {
+            if (!text.trim()) {
+                setStatus({ type: 'error', message: '変換する文章がありません' });
+                return;
+            }
+            window.print();
+        };
+
+        const handleClear = () => {
+            setText("");
+            setStatus(null);
+        };
+
+        return (
+            <div className="container no-print">
+                <h1>📋 Clipboard to PDF</h1>
+                <p className="subtitle">クリップボードの内容をワンボタンでPDFに変換</p>
+
+                <div className={`preview-area ${!text.trim() ? 'empty' : ''}`}>
+                    {text.trim() || 'クリップボードから読み込んだ内容がここに表示されます'}
+                </div>
+
+                <div className="button-group">
+                    <button
+                        className="btn-secondary"
+                        onClick={loadFromClipboard}
+                    >
+                        再読み込み
+                    </button>
+                    <button
+                        className="btn-primary"
+                        onClick={handleDownload}
+                        disabled={!text.trim()}
+                    >
+                        PDFダウンロード
+                    </button>
+                    <button
+                        className="btn-secondary"
+                        onClick={handleClear}
+                    >
+                        クリア
+                    </button>
+                </div>
+
+                {status && (
+                    <div className={`status ${status.type}`}>
+                        {status.message}
+                    </div>
+                )}
+
+                {/* 印刷される領域 */}
+                <div className="print-content">
+                    {text}
+                </div>
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+
+</body>
+</html>
