@@ -143,16 +143,30 @@
                 return;
             }
 
+            // ファイル名を入力させる
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const defaultFilename = `clipboard_${timestamp}`;
+
+            let filename = prompt('ファイル名を入力してください（拡張子なし）:', defaultFilename);
+
+            // キャンセルされた場合
+            if (filename === null) {
+                return;
+            }
+
+            // 空の場合はデフォルト
+            filename = filename.trim() || defaultFilename;
+
+            // .txtを削除（もし入力されていたら）
+            filename = filename.replace(/\.txt$/i, '');
+
             // テキストファイルとしてダウンロード
             const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-
-            // ファイル名を日時で生成
-            const now = new Date();
-            const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            a.download = `clipboard_${timestamp}.txt`;
+            a.download = `${filename}.txt`;
 
             a.click();
             URL.revokeObjectURL(url);
