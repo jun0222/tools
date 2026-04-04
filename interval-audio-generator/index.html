@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>インターバル音声生成</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
     <style>
         body {
             min-height: 100vh;
@@ -34,7 +36,7 @@
                     <input
                         type="number"
                         id="interval"
-                        value="30"
+                        value="20"
                         min="5"
                         max="300"
                         class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-center focus:outline-none focus:border-indigo-400"
@@ -48,7 +50,7 @@
                     <input
                         type="number"
                         id="repeat"
-                        value="10"
+                        value="7"
                         min="1"
                         max="100"
                         class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-center focus:outline-none focus:border-indigo-400"
@@ -60,9 +62,9 @@
             <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl p-6 mb-6">
                 <div class="text-center">
                     <div class="text-sm opacity-80 mb-1">総時間</div>
-                    <div class="text-3xl font-black" id="totalTime">5分00秒</div>
+                    <div class="text-3xl font-black" id="totalTime">2分20秒</div>
                     <div class="text-xs opacity-80 mt-2">
-                        ファイル名: interval_<span id="filenamePrev">30s_x10</span>.wav
+                        ファイル名: interval_<span id="filenamePrev">20s_x7</span>.mp3
                     </div>
                 </div>
             </div>
@@ -93,11 +95,12 @@
                     <strong>使い方：</strong><br>
                     1. インターバル秒数と繰り返し回数を設定<br>
                     2. 「音声ファイルを生成」ボタンをクリック<br>
-                    3. 生成された音声ファイル(.wav)をダウンロード<br>
+                    3. 生成された音声ファイル(.mp3)をダウンロード<br>
                     4. スマホなどで再生してバックグラウンドでタイマーとして使用<br><br>
                     <strong>仕組み：</strong><br>
                     インターバル経過後、毎回ビープ音が鳴ります。<br>
-                    ファイル名に繰り返し回数が記録されているので、終了時に何周したかわかります。
+                    最後のビープ音だけ3回鳴るので、終了がわかります。<br>
+                    ファイル名に繰り返し回数が記録されているので、何周したかわかります。
                 </p>
             </div>
 
@@ -168,13 +171,16 @@
 
             // ビープ音の設定
             const beepDuration = 0.2; // ビープ音の長さ（秒）
+            const beepGap = 0.15; // ビープ音の間隔（秒）
 
-            // 全体の長さを計算
-            const totalDuration = (interval + beepDuration) * repeat;
+            // 全体の長さを計算（最後だけ3回分のビープ音を考慮）
+            const totalDuration = (interval + beepDuration) * repeat + beepGap * 2 + beepDuration * 2;
             const totalSamples = Math.floor(totalDuration * sampleRate);
 
             const audioBuffer = audioContext.createBuffer(1, totalSamples, sampleRate);
             const channelData = audioBuffer.getChannelData(0);
+
+            let currentPos = 0;
 
             // 各インターバルでビープ音を生成
             for (let i = 0; i < repeat; i++) {
@@ -182,104 +188,83 @@
                 progressBar.style.width = progress + '%';
                 progressText.textContent = progress + '%';
 
-                // ビープ音の開始位置（インターバル後）
-                const beepStartPos = Math.floor((interval * (i + 1) + beepDuration * i) * sampleRate);
-                const beepSamples = Math.floor(beepDuration * sampleRate);
+                // インターバル分進める
+                currentPos += Math.floor(interval * sampleRate);
 
-                // ビープ音を生成（800Hz）
-                for (let j = 0; j < beepSamples && (beepStartPos + j) < totalSamples; j++) {
-                    const t = j / sampleRate;
-                    const envelope = Math.exp(-t * 8); // エンベロープ
-                    channelData[beepStartPos + j] = Math.sin(2 * Math.PI * 800 * t) * envelope * 0.4;
+                const isLastBeep = (i === repeat - 1);
+                const beepCount = isLastBeep ? 3 : 1;
+
+                // ビープ音を生成
+                for (let b = 0; b < beepCount; b++) {
+                    const beepStartPos = currentPos;
+                    const beepSamples = Math.floor(beepDuration * sampleRate);
+
+                    // ビープ音を生成（800Hz）
+                    for (let j = 0; j < beepSamples && (beepStartPos + j) < totalSamples; j++) {
+                        const t = j / sampleRate;
+                        const envelope = Math.exp(-t * 8); // エンベロープ
+                        channelData[beepStartPos + j] = Math.sin(2 * Math.PI * 800 * t) * envelope * 0.4;
+                    }
+
+                    currentPos += beepSamples;
+
+                    // ビープの間に隙間を追加（最後のビープ以外）
+                    if (b < beepCount - 1) {
+                        currentPos += Math.floor(beepGap * sampleRate);
+                    }
                 }
 
                 // 少し待機（UIの更新のため）
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
 
-            // WAVファイルに変換
-            const wavBlob = audioBufferToWav(audioBuffer);
+            // MP3ファイルに変換
+            const mp3Blob = audioBufferToMp3(audioBuffer);
 
             // ダウンロード
-            const url = URL.createObjectURL(wavBlob);
+            const url = URL.createObjectURL(mp3Blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `interval_${interval}s_x${repeat}.wav`;
+            a.download = `interval_${interval}s_x${repeat}.mp3`;
             a.click();
             URL.revokeObjectURL(url);
 
-            alert(`音声ファイルの生成が完了しました！\n\nファイル名: interval_${interval}s_x${repeat}.wav\n繰り返し回数: ${repeat}回`);
+            alert(`音声ファイルの生成が完了しました！\n\nファイル名: interval_${interval}s_x${repeat}.mp3\n繰り返し回数: ${repeat}回\n（最後のビープ音は3回鳴ります）`);
         }
 
-        // AudioBufferをWAVファイルに変換
-        function audioBufferToWav(buffer) {
-            const numberOfChannels = buffer.numberOfChannels;
+        // AudioBufferをMP3ファイルに変換
+        function audioBufferToMp3(buffer) {
+            const channels = 1; // モノラル
             const sampleRate = buffer.sampleRate;
-            const format = 1; // PCM
-            const bitDepth = 16;
+            const samples = buffer.getChannelData(0);
 
-            const bytesPerSample = bitDepth / 8;
-            const blockAlign = numberOfChannels * bytesPerSample;
-
-            const data = [];
-            for (let i = 0; i < buffer.numberOfChannels; i++) {
-                data.push(buffer.getChannelData(i));
+            // Float32ArrayをInt16Arrayに変換
+            const int16Samples = new Int16Array(samples.length);
+            for (let i = 0; i < samples.length; i++) {
+                const s = Math.max(-1, Math.min(1, samples[i]));
+                int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
             }
 
-            const interleaved = interleave(data);
-            const dataLength = interleaved.length * bytesPerSample;
-            const headerLength = 44;
-            const totalLength = headerLength + dataLength;
+            // MP3エンコーダーを初期化
+            const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128);
+            const mp3Data = [];
 
-            const arrayBuffer = new ArrayBuffer(totalLength);
-            const view = new DataView(arrayBuffer);
-
-            // WAVヘッダーを書き込み
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, totalLength - 8, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true); // fmt chunk size
-            view.setUint16(20, format, true);
-            view.setUint16(22, numberOfChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * blockAlign, true);
-            view.setUint16(32, blockAlign, true);
-            view.setUint16(34, bitDepth, true);
-            writeString(view, 36, 'data');
-            view.setUint32(40, dataLength, true);
-
-            // PCMデータを書き込み
-            floatTo16BitPCM(view, 44, interleaved);
-
-            return new Blob([arrayBuffer], { type: 'audio/wav' });
-        }
-
-        function interleave(channelData) {
-            const length = channelData[0].length;
-            const numberOfChannels = channelData.length;
-            const result = new Float32Array(length * numberOfChannels);
-
-            let offset = 0;
-            for (let i = 0; i < length; i++) {
-                for (let channel = 0; channel < numberOfChannels; channel++) {
-                    result[offset++] = channelData[channel][i];
+            const sampleBlockSize = 1152; // MP3フレームサイズ
+            for (let i = 0; i < int16Samples.length; i += sampleBlockSize) {
+                const sampleChunk = int16Samples.subarray(i, i + sampleBlockSize);
+                const mp3buf = mp3encoder.encodeBuffer(sampleChunk);
+                if (mp3buf.length > 0) {
+                    mp3Data.push(mp3buf);
                 }
             }
-            return result;
-        }
 
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
+            // 最後のフレームを書き込み
+            const mp3buf = mp3encoder.flush();
+            if (mp3buf.length > 0) {
+                mp3Data.push(mp3buf);
             }
-        }
 
-        function floatTo16BitPCM(view, offset, input) {
-            for (let i = 0; i < input.length; i++, offset += 2) {
-                const s = Math.max(-1, Math.min(1, input[i]));
-                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-            }
+            return new Blob(mp3Data, { type: 'audio/mp3' });
         }
 
         // 初期化
