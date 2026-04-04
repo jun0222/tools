@@ -181,10 +181,15 @@
             </div>
         </div>
 
-        <!-- リセット確認ボタン（本日の統計リセット） -->
-        <button onclick="confirmResetStats()" class="mt-4 text-xs text-slate-400 hover:text-slate-600 py-2">
-            本日の統計をリセット
-        </button>
+        <!-- データ管理ボタン -->
+        <div class="mt-4 flex gap-2">
+            <button onclick="copyHistoryToClipboard()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded-xl">
+                履歴をコピー
+            </button>
+            <button onclick="confirmClearHistory()" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-4 rounded-xl">
+                データを消去
+            </button>
+        </div>
     </div>
 
     <script>
@@ -206,8 +211,7 @@
         const vibrationToggle = document.getElementById('vibration-toggle');
 
         // LocalStorage キー
-        const STORAGE_KEY = 'rotation-timer-stats';
-        const DATE_KEY = 'rotation-timer-date';
+        const HISTORY_KEY = 'rotation-timer-history';
 
         // 初期化
         function init() {
@@ -220,29 +224,40 @@
             }
         }
 
+        // 今日の日付を YYYY/MM/DD 形式で取得
+        function getTodayKey() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+        }
+
+        // 履歴データの取得
+        function getHistory() {
+            const historyStr = localStorage.getItem(HISTORY_KEY);
+            return historyStr ? JSON.parse(historyStr) : {};
+        }
+
+        // 履歴データの保存
+        function saveHistory(history) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+
         // 統計の読み込み
         function loadStats() {
-            const savedDate = localStorage.getItem(DATE_KEY);
-            const today = new Date().toDateString();
-
-            if (savedDate === today) {
-                const stats = localStorage.getItem(STORAGE_KEY);
-                if (stats) {
-                    totalLaps = parseInt(stats) || 0;
-                }
-            } else {
-                // 日付が変わっていたらリセット
-                totalLaps = 0;
-                saveStats();
-            }
-
+            const history = getHistory();
+            const todayKey = getTodayKey();
+            totalLaps = history[todayKey] || 0;
             totalLapsDisplay.textContent = totalLaps;
         }
 
         // 統計の保存
         function saveStats() {
-            localStorage.setItem(STORAGE_KEY, totalLaps.toString());
-            localStorage.setItem(DATE_KEY, new Date().toDateString());
+            const history = getHistory();
+            const todayKey = getTodayKey();
+            history[todayKey] = totalLaps;
+            saveHistory(history);
         }
 
         // プリセット設定
@@ -341,12 +356,35 @@
             btnMain.className = "main-button flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-lg";
         }
 
-        // 統計リセット確認
-        function confirmResetStats() {
-            if (confirm('本日の統計をリセットしますか？')) {
+        // 履歴をクリップボードにコピー（スプレッドシート用）
+        async function copyHistoryToClipboard() {
+            const history = getHistory();
+            const entries = Object.entries(history).sort((a, b) => a[0].localeCompare(b[0]));
+
+            if (entries.length === 0) {
+                alert('コピーするデータがありません');
+                return;
+            }
+
+            // タブ区切り形式で作成
+            const text = entries.map(([date, laps]) => `${date}\t${laps}`).join('\n');
+
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('クリップボードにコピーしました！\nスプレッドシートに貼り付けできます。');
+            } catch (err) {
+                console.error('コピー失敗:', err);
+                alert('コピーに失敗しました');
+            }
+        }
+
+        // データ消去確認
+        function confirmClearHistory() {
+            if (confirm('すべての履歴データを消去しますか？\nこの操作は取り消せません。')) {
+                localStorage.removeItem(HISTORY_KEY);
                 totalLaps = 0;
                 totalLapsDisplay.textContent = totalLaps;
-                saveStats();
+                alert('データを消去しました');
             }
         }
 
