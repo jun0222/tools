@@ -318,6 +318,11 @@
                 sessionStartTime = Date.now();
             }
 
+            // ユーザーインタラクション時にAudioContextを初期化
+            if (soundToggle.checked) {
+                initAudioContext();
+            }
+
             btnMain.textContent = "一時停止";
             btnMain.className = "main-button flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-2xl shadow-lg";
 
@@ -418,11 +423,25 @@
             }
         }
 
+        // AudioContext（グローバルで保持）
+        let audioContext = null;
+
+        // AudioContextの初期化
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // サスペンド状態の場合は再開
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
         // サウンド再生
-        function playSound() {
+        async function playSound() {
             try {
-                // Web Audio APIで簡単なビープ音を生成
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                initAudioContext();
+
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
 
@@ -438,7 +457,7 @@
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.2);
             } catch (e) {
-                console.log('Audio not supported');
+                console.log('Audio not supported:', e);
             }
         }
 
