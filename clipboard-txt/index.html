@@ -115,23 +115,18 @@
 <div id="root"></div>
 
 <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState } = React;
 
     function App() {
         const [text, setText] = useState("");
         const [status, setStatus] = useState(null);
 
-        // 自動的にクリップボードから読み込み
-        useEffect(() => {
-            loadFromClipboard();
-        }, []);
-
-        const loadFromClipboard = async () => {
+        const handlePaste = async () => {
             try {
                 const clipboardText = await navigator.clipboard.readText();
                 if (clipboardText.trim()) {
                     setText(clipboardText);
-                    setStatus({ type: 'success', message: 'クリップボードから読み込みました' });
+                    setStatus({ type: 'success', message: 'クリップボードから貼り付けました' });
                     setTimeout(() => setStatus(null), 3000);
                 } else {
                     setStatus({ type: 'error', message: 'クリップボードが空です' });
@@ -169,17 +164,24 @@
         return (
             <div className="container">
                 <h1>📋 Clipboard to TXT</h1>
-                <p className="subtitle">クリップボードの内容をワンボタンでテキストファイル化</p>
+                <p className="subtitle">クリップボードの内容をテキストファイル化</p>
 
                 <div className={`preview-area ${!text.trim() ? 'empty' : ''}`}>
-                    {text.trim() || 'クリップボードから読み込んだ内容がここに表示されます'}
+                    {text.trim() || 'クリップボードから貼り付けた内容がここに表示されます'}
                 </div>
+
+                <button
+                    onClick={handlePaste}
+                    style={{ marginBottom: '10px' }}
+                >
+                    📋 クリップボードから貼り付け
+                </button>
 
                 <button
                     onClick={handleDownload}
                     disabled={!text.trim()}
                 >
-                    TXTダウンロード
+                    💾 TXTダウンロード
                 </button>
 
                 {status && (
