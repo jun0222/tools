@@ -120,14 +120,14 @@
                 <div class="w-full mb-6">
                     <div class="text-xs text-slate-500 mb-2 text-center">クイック設定</div>
                     <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setPreset(6)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
+                            6秒
+                        </button>
                         <button onclick="setPreset(10)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
                             10秒
                         </button>
                         <button onclick="setPreset(20)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
                             20秒
-                        </button>
-                        <button onclick="setPreset(30)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
-                            30秒
                         </button>
                         <button onclick="setPreset(60)" class="preset-btn bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 rounded-xl text-sm">
                             60秒
@@ -138,7 +138,7 @@
                 <!-- カスタム時間設定 -->
                 <div class="flex items-center justify-center gap-3 mb-6">
                     <label class="text-sm text-slate-600 font-medium">カスタム:</label>
-                    <input type="number" id="sec-input" value="10" min="5" max="600"
+                    <input type="number" id="sec-input" value="6" min="5" max="600"
                            class="w-20 border-2 border-slate-200 rounded-xl px-3 py-2 text-center font-bold text-lg focus:outline-none focus:border-blue-400">
                     <span class="text-sm text-slate-600">秒</span>
                 </div>
