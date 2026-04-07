@@ -427,20 +427,20 @@
         let audioContext = null;
 
         // AudioContextの初期化
-        function initAudioContext() {
+        async function initAudioContext() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
             // サスペンド状態の場合は再開
             if (audioContext.state === 'suspended') {
-                audioContext.resume();
+                await audioContext.resume();
             }
         }
 
         // サウンド再生
         async function playSound() {
             try {
-                initAudioContext();
+                await initAudioContext();
 
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
