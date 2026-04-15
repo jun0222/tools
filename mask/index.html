@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>テキストマスクツール</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+
+      #app {
+        width: 90%;
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #4a90e2;
+        margin-bottom: 24px;
+        font-size: 1.5rem;
+      }
+
+      .section-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        color: #555;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        font-family: monospace;
+        resize: vertical;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.2s;
+      }
+
+      textarea:focus {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        outline: none;
+        border-color: #4a90e2;
+      }
+
+      #inputText {
+        height: 140px;
+      }
+
+      #outputText {
+        height: 140px;
+        background-color: #f9f9f9;
+        cursor: pointer;
+      }
+
+      #outputText:hover {
+        background-color: #f0f4ff;
+      }
+
+      .controls {
+        margin: 20px 0;
+        padding: 16px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        border: 1px solid #eee;
+      }
+
+      .mode-selector {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+
+      .mode-selector label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+
+      .mode-selector input[type="radio"] {
+        cursor: pointer;
+        accent-color: #4a90e2;
+      }
+
+      .replace-inputs {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .replace-inputs input[type="text"] {
+        flex: 1;
+        min-width: 120px;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+      }
+
+      .replace-inputs input[type="text"]:focus {
+        border-color: #4a90e2;
+        outline: none;
+      }
+
+      .replace-inputs .arrow {
+        color: #888;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+
+      .random-note {
+        font-size: 0.82rem;
+        color: #777;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background-color: #0077cc;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s, box-shadow 0.2s;
+        margin-bottom: 24px;
+      }
+
+      .btn-primary:hover {
+        background-color: #005fa3;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary:active {
+        background-color: #004d8a;
+      }
+
+      .output-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .copy-hint {
+        font-size: 0.78rem;
+        color: #aaa;
+      }
+
+      #toast {
+        visibility: hidden;
+        min-width: 200px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 12px 20px;
+        position: fixed;
+        z-index: 100;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 30px;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      #toast.show {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h1>テキストマスクツール</h1>
+
+      <label class="section-label" for="inputText">1. 原文を入力</label>
+      <textarea
+        id="inputText"
+        placeholder="ここへテキストを入力..."
+        oninput="saveToLocalStorage('inputText')"
+      ></textarea>
+
+      <div class="controls">
+        <label class="section-label">2. マスクモードを選択</label>
+        <div class="mode-selector">
+          <label>
+            <input
+              type="radio"
+              name="mode"
+              value="replace"
+              checked
+              onchange="toggleMode()"
+            />
+            指定語句置換
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="mode"
+              value="random"
+              onchange="toggleMode()"
+            />
+            文字種別ランダム変換
+          </label>
+        </div>
+
+        <div id="replaceOptions">
+          <div class="replace-inputs">
+            <input
+              type="text"
+              id="findText"
+              placeholder="置き換え前 (例: 田中)"
+              oninput="saveToLocalStorage('findText')"
+            />
+            <span class="arrow">→</span>
+            <input
+              type="text"
+              id="replaceText"
+              placeholder="置き換え後 (例: ***)"
+              oninput="saveToLocalStorage('replaceText')"
+            />
+          </div>
+        </div>
+
+        <div id="randomOptions" class="hidden">
+          <p class="random-note">
+            数字は数字、英大文字は英大文字、英小文字は英小文字、ひらがな・カタカナ・漢字もそれぞれの種別内でランダムに変換されます。記号・空白はそのまま保持されます。
+          </p>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="processText()">マスク処理を実行</button>
+
+      <div class="output-header">
+        <label class="section-label" for="outputText" style="margin-bottom: 0;">3. 処理結果</label>
+        <span class="copy-hint">クリックでコピー</span>
+      </div>
+      <textarea
+        id="outputText"
+        readonly
+        placeholder="結果がここに表示されます"
+        onclick="copyOutput()"
+      ></textarea>
+    </div>
+
+    <div id="toast">コピーしました</div>
+
+    <script>
+      // --- モード切替 ---
+      function toggleMode() {
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        document.getElementById("replaceOptions").classList.toggle("hidden", mode !== "replace");
+        document.getElementById("randomOptions").classList.toggle("hidden", mode !== "random");
+      }
+
+      // --- メイン処理 ---
+      function processText() {
+        const input = document.getElementById("inputText").value;
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        let result = "";
+
+        if (mode === "replace") {
+          const find = document.getElementById("findText").value;
+          const replace = document.getElementById("replaceText").value;
+          result = find === "" ? input : input.split(find).join(replace);
+        } else {
+          result = maskByType(input);
+        }
+
+        document.getElementById("outputText").value = result;
+      }
+
+      // --- 文字種別ランダム変換 ---
+      function maskByType(text) {
+        const pools = {
+          num:   "0123456789",
+          upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+          lower: "abcdefghijklmnopqrstuvwxyz",
+          hira:  "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ",
+          kata:  "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ",
+          kanji: "本月火水木金土日大人小上下中左右前後内外男女東西南北春夏秋冬山川海空花草木石雨風雲光音声色白黒赤青緑",
+        };
+
+        const getRandom = (str) => str[Math.floor(Math.random() * str.length)];
+
+        return text.split("").map((char) => {
+          if (/[0-9]/.test(char))              return getRandom(pools.num);
+          if (/[a-z]/.test(char))              return getRandom(pools.lower);
+          if (/[A-Z]/.test(char))              return getRandom(pools.upper);
+          if (/[\u3041-\u3096]/.test(char))    return getRandom(pools.hira);
+          if (/[\u30a1-\u30f6]/.test(char))    return getRandom(pools.kata);
+          if (/[\u4e00-\u9faf]/.test(char))    return getRandom(pools.kanji);
+          return char;
+        }).join("");
+      }
+
+      // --- クリップボードコピー ---
+      function copyOutput() {
+        const text = document.getElementById("outputText").value;
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("コピーしました");
+        }).catch(() => {
+          // fallback
+          const el = document.getElementById("outputText");
+          el.select();
+          document.execCommand("copy");
+          showToast("コピーしました");
+        });
+      }
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+      }
+
+      // --- LocalStorage 保存・復元 ---
+      function saveToLocalStorage(id) {
+        const el = document.getElementById(id);
+        if (el) localStorage.setItem("mask_" + id, el.value);
+      }
+
+      function loadFromLocalStorage(id) {
+        const el = document.getElementById(id);
+        const val = localStorage.getItem("mask_" + id);
+        if (el && val !== null) el.value = val;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadFromLocalStorage("inputText");
+        loadFromLocalStorage("findText");
+        loadFromLocalStorage("replaceText");
+      });
+    </script>
+  </body>
+</html>
