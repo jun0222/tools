@@ -1,0 +1,276 @@
+<!-- TODO: 表示領域を可変に -->
+<!-- TODO: 履歴機能 -->
+<!-- TODO: インデントをもっとちゃんと -->
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQLフォーマッタ</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #f0f0f0;
+        color: #333;
+      }
+
+      #editor,
+      #output {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        background-color: #fff;
+        font-family: "Courier New", monospace;
+      }
+
+      #output {
+        background-color: #f9f9f9;
+        white-space: pre-wrap; /* 改行と空白を保持 */
+        cursor: pointer;
+      }
+
+      .keyword {
+        font-weight: bold;
+        color: #1a73e8;
+      }
+
+      .operator {
+        color: #d9534f;
+      }
+
+      .number {
+        color: #5bc0de;
+      }
+
+      .string {
+        color: #f0ad4e;
+      }
+
+      .toast {
+        visibility: hidden;
+        min-width: 250px;
+        margin-left: -125px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 2px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        bottom: 30px;
+        font-size: 17px;
+      }
+
+      .toast.show {
+        visibility: visible;
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      }
+
+      @keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+        to {
+          bottom: 30px;
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeout {
+        from {
+          bottom: 30px;
+          opacity: 1;
+        }
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+
+      .sql-command {
+        cursor: pointer;
+        display: block;
+        margin: 5px 0;
+        padding: 5px;
+        background-color: #e7e7e7;
+        border-radius: 5px;
+      }
+
+      #copyButton {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SQLフォーマッタ</h1>
+    <textarea
+      id="editor"
+      placeholder="SQLコードを入力してください..."
+    ></textarea>
+    <pre id="output" onclick="copyToClipboard(this.textContent)">
+ここをクリックして内容をコピー</pre
+    >
+    <button
+      id="copyButton"
+      onclick="copyToClipboard(document.getElementById('output').textContent)"
+      style="display: none"
+    >
+      コピー
+    </button>
+    <div id="sqlCommands">
+      <div
+        class="sql-command"
+        onclick="copyToClipboard('SELECT * FROM テーブル名;')"
+      >
+        SELECT * FROM テーブル名;
+      </div>
+      <div
+        class="sql-command"
+        onclick="copyToClipboard('INSERT INTO テーブル名 (列1, 列2) VALUES (値1, 値2);')"
+      >
+        INSERT INTO テーブル名 (列1, 列2) VALUES (値1, 値2);
+      </div>
+      <div
+        class="sql-command"
+        onclick="copyToClipboard('UPDATE テーブル名 SET 列1 = 値1 WHERE 条件;')"
+      >
+        UPDATE テーブル名 SET 列1 = 値1 WHERE 条件;
+      </div>
+      <div class="sql-command" onclick="copyToClipboard('WHERE 条件;')">
+        WHERE 条件;
+      </div>
+      <div
+        class="sql-command"
+        onclick="copyToClipboard('INNER JOIN 別のテーブル名 ON テーブル名.列名 = 別のテーブル名.列名;')"
+      >
+        INNER JOIN 別のテーブル名 ON テーブル名.列名 = 別のテーブル名.列名;
+      </div>
+      <div class="sql-command" onclick="copyToClipboard('GROUP BY 列名;')">
+        GROUP BY 列名;
+      </div>
+      <div class="sql-command" onclick="copyToClipboard('ORDER BY 列名 ASC;')">
+        ORDER BY 列名 ASC;
+      </div>
+      <div class="sql-command" onclick="copyToClipboard('LIMIT 数値;')">
+        LIMIT 数値;
+      </div>
+    </div>
+    <div id="toast" class="toast">コピーしました！</div>
+    <script>
+      function formatSQL(sql) {
+        const keywords = [
+          "SELECT",
+          "FROM",
+          "WHERE",
+          "AND",
+          "OR",
+          "GROUP BY",
+          "ORDER BY",
+          "LIMIT",
+          "INSERT INTO",
+          "VALUES",
+          "UPDATE",
+          "SET",
+          "DELETE FROM",
+          "INNER JOIN",
+          "LEFT JOIN",
+          "RIGHT JOIN",
+          "FULL JOIN",
+        ];
+        const operators = ["=", ">", "<", ">=", "<=", "<>"];
+        let indentLevel = 0;
+        const increaseIndent = ["SELECT", "FROM", "WHERE", "SET", "VALUES"];
+        const decreaseIndent = ["AND", "OR"];
+
+        return (
+          sql
+            .replace(/\s+/g, " ")
+            .replace(/,\s*/g, ",\n  ")
+            .replace(/\(\s*/g, "(\n  ")
+            .replace(/\s*\)/g, "\n)")
+            .replace(/;\s*/g, ";\n")
+            .split(/\n/)
+            .map((line) => {
+              const trimmedLine = line.trim();
+              if (
+                decreaseIndent.some((keyword) =>
+                  trimmedLine.startsWith(keyword)
+                )
+              ) {
+                indentLevel = Math.max(indentLevel - 1, 0);
+              }
+              const indentedLine = "  ".repeat(indentLevel) + trimmedLine;
+              if (
+                increaseIndent.some((keyword) =>
+                  trimmedLine.startsWith(keyword)
+                )
+              ) {
+                indentLevel++;
+                return indentedLine + "\n";
+              }
+              return indentedLine;
+            })
+            .join("\n")
+            .replace(
+              new RegExp(`\\b(${keywords.join("|")})\\b`, "gi"),
+              (match) => `<span class="keyword">${match.toUpperCase()}</span>`
+            )
+            .replace(
+              new RegExp(`\\b(${operators.join("|")})\\b`, "g"),
+              (match) => `<span class="operator">${match}</span>`
+            )
+            .replace(
+              /\b\d+\b/g,
+              (match) => `<span class="number">${match}</span>`
+            )
+            .replace(
+              /'[^']*'/g,
+              (match) => `<span class="string">${match}</span>`
+            )
+            .trim() + (sql.trim().endsWith(";") ? "" : ";")
+        );
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            const toast = document.getElementById("toast");
+            toast.className = "toast show";
+            setTimeout(() => {
+              toast.className = toast.className.replace("show", "");
+            }, 3000);
+          })
+          .catch((err) => console.error("Failed to copy: ", err));
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const sqlEditor = document.getElementById("editor");
+        const formattedOutput = document.getElementById("output");
+
+        sqlEditor.addEventListener("input", function () {
+          try {
+            const formattedSQL = formatSQL(sqlEditor.value);
+            formattedOutput.innerHTML = formattedSQL;
+          } catch (e) {
+            formattedOutput.textContent = "エラー: " + e.message;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
