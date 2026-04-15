@@ -3,153 +3,207 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Neo Blue Rhythm — UI Components</title>
+  <title>Neo Brutalism — UI Components</title>
   <style>
-    /* ===== Reset & Base ===== */
+    /* ===== TOKEN ===== */
+    :root {
+      --black: #0a0a0a;
+      --white: #ffffff;
+      --cream: #fafaf5;
+      --blue:  #1a5fff;
+      --yellow:#ffe000;
+      --green: #00d96e;
+      --red:   #ff2e2e;
+      --purple:#7000ff;
+      --pink:  #ff2d9b;
+      --border: 2.5px solid #0a0a0a;
+      --shadow: 4px 4px 0 #0a0a0a;
+      --shadow-lg: 6px 6px 0 #0a0a0a;
+      --shadow-sm: 2px 2px 0 #0a0a0a;
+      --radius: 4px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f5f3ff 100%);
-      min-height: 100vh;
-      color: #1e293b;
+      font-family: var(--font);
+      background: var(--cream);
+      color: var(--black);
       line-height: 1.5;
     }
 
-    /* ===== Page Layout ===== */
+    /* ===== PAGE HEADER ===== */
     .page-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 48px 24px 40px;
+      background: var(--blue);
+      border-bottom: 3px solid var(--black);
+      padding: 56px 24px 48px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-    .page-header h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; }
-    .page-header p { margin-top: 8px; opacity: 0.8; font-size: 0.9rem; }
+    .page-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(0,0,0,0.08) 39px, rgba(0,0,0,0.08) 40px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 39px, rgba(0,0,0,0.08) 39px, rgba(0,0,0,0.08) 40px
+      );
+    }
+    .page-header-inner { position: relative; }
+    .page-header h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .page-header h1 span {
+      background: var(--yellow);
+      color: var(--black);
+      padding: 0 6px;
+      display: inline-block;
+    }
+    .page-header p {
+      margin-top: 12px;
+      color: rgba(255,255,255,0.85);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
 
+    /* ===== NAV ===== */
     .page-nav {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid #e2e8f0;
+      background: var(--yellow);
+      border-bottom: 3px solid var(--black);
       padding: 0 24px;
       display: flex;
-      gap: 4px;
+      gap: 0;
       overflow-x: auto;
       scrollbar-width: none;
     }
     .page-nav::-webkit-scrollbar { display: none; }
     .page-nav a {
       display: inline-block;
-      padding: 14px 16px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #64748b;
+      padding: 13px 16px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--black);
       text-decoration: none;
       white-space: nowrap;
-      border-bottom: 2px solid transparent;
-      transition: color 0.2s, border-color 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-right: 2px solid var(--black);
+      transition: background 0.1s;
     }
-    .page-nav a:hover { color: #3b82f6; border-bottom-color: #3b82f6; }
+    .page-nav a:first-child { border-left: 2px solid var(--black); }
+    .page-nav a:hover { background: var(--black); color: var(--yellow); }
 
-    .main { max-width: 900px; margin: 0 auto; padding: 48px 24px 96px; }
-
-    /* ===== Section ===== */
-    .section { margin-bottom: 72px; }
+    /* ===== LAYOUT ===== */
+    .main { max-width: 920px; margin: 0 auto; padding: 56px 24px 100px; }
+    .section { margin-bottom: 80px; }
     .section-title {
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #1e293b;
+      font-size: 1.4rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--black);
       margin-bottom: 4px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-    .section-title::before {
-      content: '';
-      display: inline-block;
-      width: 4px;
-      height: 1.2em;
-      background: linear-gradient(to bottom, #3b82f6, #7c3aed);
-      border-radius: 4px;
+    .section-title .num {
+      background: var(--black);
+      color: var(--yellow);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      font-weight: 900;
     }
-    .section-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 28px; }
+    .section-desc { font-size: 0.85rem; color: #555; margin-bottom: 20px; font-weight: 500; }
 
-    /* ===== Component Preview Box ===== */
+    /* ===== PREVIEW ===== */
     .preview {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-      overflow: hidden;
+      border: var(--border);
+      background: var(--white);
     }
     .preview-stage {
-      padding: 40px 32px;
+      padding: 36px 28px;
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
       align-items: flex-start;
-      background: linear-gradient(135deg, #f8faff 0%, #fdf8ff 100%);
+      background: repeating-linear-gradient(
+        -45deg, #f5f5f5, #f5f5f5 2px, var(--white) 2px, var(--white) 10px
+      );
     }
     .preview-stage.center { justify-content: center; }
     .preview-stage.column { flex-direction: column; }
+    .preview-stage.white  { background: var(--white); }
 
-    /* ===== Code Block ===== */
+    /* ===== CODE BLOCK ===== */
     .code-block {
-      border-top: 1px solid #f1f5f9;
-      background: #0f172a;
+      border-top: var(--border);
+      background: #0a0a0a;
       position: relative;
     }
     .code-tabs {
       display: flex;
-      gap: 0;
-      border-bottom: 1px solid #1e293b;
+      border-bottom: 2px solid #333;
     }
     .code-tab {
-      padding: 10px 18px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #64748b;
+      padding: 9px 18px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #555;
       cursor: pointer;
-      border-right: 1px solid #1e293b;
-      transition: color 0.2s, background 0.2s;
+      border-right: 1px solid #222;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: color 0.15s, background 0.15s;
     }
-    .code-tab.active { color: #38bdf8; background: #1e293b; }
+    .code-tab.active { color: var(--yellow); background: #1a1a1a; }
     .code-content {
       padding: 20px 24px;
       font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
-      font-size: 0.78rem;
-      line-height: 1.7;
-      color: #94a3b8;
+      font-size: 0.77rem;
+      line-height: 1.75;
+      color: #888;
       overflow-x: auto;
       display: none;
     }
     .code-content.active { display: block; }
-    .code-content .kw { color: #c084fc; }
-    .code-content .str { color: #86efac; }
-    .code-content .sel { color: #38bdf8; }
-    .code-content .prop { color: #93c5fd; }
-    .code-content .val { color: #fca5a5; }
-    .code-content .cmt { color: #475569; font-style: italic; }
-
+    .kw  { color: #c084fc; }
+    .str { color: #86efac; }
+    .sel { color: #60a5fa; }
+    .prop{ color: #93c5fd; }
+    .val { color: #fca5a5; }
+    .cmt { color: #3f3f3f; font-style: italic; }
     .copy-btn {
       position: absolute;
-      top: 10px;
-      right: 16px;
-      background: #1e293b;
-      color: #64748b;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 5px 12px;
-      font-size: 0.7rem;
-      font-weight: 600;
+      top: 9px;
+      right: 14px;
+      background: #1a1a1a;
+      color: #555;
+      border: 1.5px solid #333;
+      padding: 4px 12px;
+      font-size: 0.68rem;
+      font-weight: 800;
       cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: color 0.15s, border-color 0.15s;
     }
-    .copy-btn:hover { color: #38bdf8; border-color: #38bdf8; }
-    .copy-btn.copied { color: #4ade80; border-color: #4ade80; }
+    .copy-btn:hover { color: var(--yellow); border-color: var(--yellow); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
 
     /* ================================================================
-       COMPONENTS — copy everything inside each .preview-stage
+       COMPONENTS
        ================================================================ */
 
     /* ----- BUTTONS ----- */
@@ -158,106 +212,92 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 12px 24px;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      border: none;
+      padding: 11px 22px;
+      border: var(--border);
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      font-weight: 800;
       cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
       text-decoration: none;
       white-space: nowrap;
       line-height: 1;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s, box-shadow 0.1s;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: var(--white);
+      color: var(--black);
     }
-    .nb-btn:active { transform: scale(0.96); }
+    .nb-btn:hover  { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
+    .nb-btn:active { transform: translate(2px,2px);   box-shadow: var(--shadow-sm); }
 
-    .nb-btn-primary {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white;
-      box-shadow: 0 4px 14px rgba(59,130,246,0.4);
-    }
-    .nb-btn-primary:hover { filter: brightness(1.08); box-shadow: 0 6px 20px rgba(59,130,246,0.5); }
+    .nb-btn-primary { background: var(--blue);   color: var(--white); }
+    .nb-btn-yellow  { background: var(--yellow); color: var(--black); }
+    .nb-btn-green   { background: var(--green);  color: var(--black); }
+    .nb-btn-red     { background: var(--red);    color: var(--white); }
+    .nb-btn-purple  { background: var(--purple); color: var(--white); }
+    .nb-btn-pink    { background: var(--pink);   color: var(--white); }
+    .nb-btn-black   { background: var(--black);  color: var(--white); }
+    .nb-btn-ghost   { background: transparent;   color: var(--black); }
 
-    .nb-btn-purple {
-      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-      color: white;
-      box-shadow: 0 4px 14px rgba(139,92,246,0.4);
-    }
-    .nb-btn-purple:hover { filter: brightness(1.08); box-shadow: 0 6px 20px rgba(139,92,246,0.5); }
-
-    .nb-btn-success {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: white;
-      box-shadow: 0 4px 14px rgba(34,197,94,0.35);
-    }
-    .nb-btn-success:hover { filter: brightness(1.08); }
-
-    .nb-btn-danger {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      box-shadow: 0 4px 14px rgba(239,68,68,0.35);
-    }
-    .nb-btn-danger:hover { filter: brightness(1.08); }
-
-    .nb-btn-ghost {
-      background: transparent;
-      color: #3b82f6;
-      border: 2px solid #3b82f6;
-      box-shadow: none;
-    }
-    .nb-btn-ghost:hover { background: #eff6ff; }
-
-    .nb-btn-slate {
-      background: #f1f5f9;
-      color: #475569;
-      box-shadow: none;
-    }
-    .nb-btn-slate:hover { background: #e2e8f0; }
-
-    .nb-btn-sm { padding: 8px 16px; font-size: 0.8rem; border-radius: 10px; }
-    .nb-btn-lg { padding: 16px 32px; font-size: 1rem; border-radius: 16px; }
+    .nb-btn-sm { padding: 7px 14px; font-size: 0.76rem; box-shadow: var(--shadow-sm); }
+    .nb-btn-sm:hover  { transform: translate(-1px,-1px); box-shadow: var(--shadow); }
+    .nb-btn-sm:active { transform: translate(1px,1px);   box-shadow: none; }
+    .nb-btn-lg { padding: 16px 32px; font-size: 1rem; box-shadow: var(--shadow-lg); }
     .nb-btn-full { width: 100%; }
-    .nb-btn-icon { padding: 10px; border-radius: 12px; }
+    .nb-btn-icon { padding: 10px; }
 
     /* ----- BADGES ----- */
     .nb-badge {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 4px 10px;
-      border-radius: 99px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
+      padding: 4px 9px;
+      border: 2px solid var(--black);
+      border-radius: 2px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: 2px 2px 0 var(--black);
     }
-    .nb-badge-blue   { background: #dbeafe; color: #1d4ed8; }
-    .nb-badge-purple { background: #ede9fe; color: #6d28d9; }
-    .nb-badge-green  { background: #dcfce7; color: #15803d; }
-    .nb-badge-red    { background: #fee2e2; color: #b91c1c; }
-    .nb-badge-amber  { background: #fef3c7; color: #b45309; }
-    .nb-badge-slate  { background: #f1f5f9; color: #475569; }
+    .nb-badge-blue   { background: var(--blue);   color: var(--white); }
+    .nb-badge-yellow { background: var(--yellow); color: var(--black); }
+    .nb-badge-green  { background: var(--green);  color: var(--black); }
+    .nb-badge-red    { background: var(--red);    color: var(--white); }
+    .nb-badge-purple { background: var(--purple); color: var(--white); }
+    .nb-badge-white  { background: var(--white);  color: var(--black); }
+    .nb-badge-black  { background: var(--black);  color: var(--white); }
     .nb-badge-dot::before {
       content: '';
-      display: inline-block;
-      width: 6px; height: 6px;
+      width: 7px; height: 7px;
       border-radius: 50%;
+      border: 1.5px solid currentColor;
       background: currentColor;
+      display: inline-block;
     }
 
     /* ----- CARDS ----- */
     .nb-card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      background: var(--white);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
-    .nb-card-body { padding: 24px; }
-    .nb-card-title { font-size: 1rem; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
-    .nb-card-desc  { font-size: 0.85rem; color: #64748b; line-height: 1.6; }
+    .nb-card-header {
+      padding: 16px 20px 14px;
+      border-bottom: var(--border);
+      background: var(--black);
+      color: var(--white);
+    }
+    .nb-card-header .title { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
+    .nb-card-body  { padding: 20px; }
+    .nb-card-title { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    .nb-card-desc  { font-size: 0.85rem; color: #555; line-height: 1.6; }
     .nb-card-footer {
-      padding: 14px 24px;
-      background: #f8fafc;
-      border-top: 1px solid #f1f5f9;
+      padding: 14px 20px;
+      border-top: var(--border);
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -265,96 +305,95 @@
     }
 
     .nb-stat-card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
       overflow: hidden;
     }
     .nb-stat-card-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px 24px;
+      background: var(--blue);
+      color: var(--white);
+      padding: 20px;
+      border-bottom: var(--border);
+      position: relative;
     }
-    .nb-stat-card-header .label { font-size: 0.75rem; opacity: 0.8; margin-bottom: 6px; }
-    .nb-stat-card-header .value {
-      font-size: 2.5rem;
-      font-weight: 900;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
+    .nb-stat-card-header::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; right: -3px;
+      width: 100%; height: 100%;
+      background: var(--black);
+      z-index: -1;
     }
-    .nb-stat-card-header .unit { font-size: 0.9rem; opacity: 0.7; margin-left: 4px; }
-    .nb-stat-card-body { padding: 16px 24px; }
+    .nb-stat-card-header .label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; }
+    .nb-stat-card-header .value { font-size: 3rem; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin-top: 4px; }
+    .nb-stat-card-header .unit  { font-size: 1rem; font-weight: 700; }
+    .nb-stat-card-body { padding: 14px 20px; background: var(--white); }
 
     .nb-metric-row {
       display: flex;
-      gap: 1px;
-      background: #f1f5f9;
-      border-radius: 16px;
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
     .nb-metric-item {
       flex: 1;
-      background: white;
-      padding: 16px;
+      padding: 16px 12px;
       text-align: center;
+      background: var(--white);
+      border-right: var(--border);
     }
-    .nb-metric-item:first-child { border-radius: 16px 0 0 16px; }
-    .nb-metric-item:last-child  { border-radius: 0 16px 16px 0; }
-    .nb-metric-label { font-size: 0.7rem; color: #94a3b8; margin-bottom: 4px; font-weight: 600; }
-    .nb-metric-value {
-      font-size: 1.6rem;
-      font-weight: 900;
-      color: #1e293b;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-    }
+    .nb-metric-item:last-child { border-right: none; }
+    .nb-metric-label { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 4px; }
+    .nb-metric-value { font-size: 1.8rem; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
 
     /* ----- INPUTS ----- */
     .nb-field { display: flex; flex-direction: column; gap: 6px; }
-    .nb-label { font-size: 0.8rem; font-weight: 700; color: #475569; }
+    .nb-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
     .nb-input {
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
+      padding: 11px 14px;
+      border: var(--border);
+      border-radius: var(--radius);
       font-size: 0.9rem;
-      color: #1e293b;
-      background: white;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      font-weight: 600;
+      color: var(--black);
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
       outline: none;
       width: 100%;
+      transition: box-shadow 0.1s, transform 0.1s;
+      font-family: var(--font);
     }
-    .nb-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-    .nb-input::placeholder { color: #94a3b8; }
-    .nb-input-error { border-color: #f87171; }
-    .nb-input-error:focus { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
-    .nb-hint { font-size: 0.75rem; color: #94a3b8; }
-    .nb-hint-error { color: #ef4444; }
+    .nb-input:focus { box-shadow: var(--shadow); transform: translate(-1px,-1px); }
+    .nb-input::placeholder { color: #aaa; font-weight: 500; }
+    .nb-input-error { border-color: var(--red); box-shadow: 2px 2px 0 var(--red); }
+    .nb-hint { font-size: 0.73rem; font-weight: 600; color: #888; }
+    .nb-hint-error { color: var(--red); font-weight: 700; }
 
     .nb-input-wrap { position: relative; }
-    .nb-input-wrap .nb-input { padding-left: 44px; }
+    .nb-input-wrap .nb-input { padding-left: 42px; }
     .nb-input-icon {
       position: absolute;
-      left: 14px;
+      left: 13px;
       top: 50%;
       transform: translateY(-50%);
-      color: #94a3b8;
+      color: #aaa;
       pointer-events: none;
       display: flex;
-      align-items: center;
     }
-
     .nb-select {
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%230a0a0a'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 40px;
+      background-position: right 13px center;
+      padding-right: 36px;
       cursor: pointer;
     }
 
     /* ----- TOGGLE ----- */
     .nb-toggle-wrap {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
@@ -362,33 +401,32 @@
     }
     .nb-toggle-input { display: none; }
     .nb-toggle-track {
-      width: 44px;
-      height: 24px;
-      background: #e2e8f0;
-      border-radius: 99px;
+      width: 46px; height: 26px;
+      background: var(--white);
+      border: var(--border);
+      border-radius: 2px;
       position: relative;
-      transition: background 0.25s;
+      box-shadow: var(--shadow-sm);
+      transition: background 0.15s;
     }
-    .nb-toggle-input:checked ~ .nb-toggle-track {
-      background: linear-gradient(135deg, #3b82f6, #6366f1);
-    }
+    .nb-toggle-input:checked ~ .nb-toggle-track { background: var(--blue); }
     .nb-toggle-thumb {
       position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 18px;
-      height: 18px;
-      background: white;
-      border-radius: 50%;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-      transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      background: var(--black);
+      border-radius: 2px;
+      transition: transform 0.18s cubic-bezier(0.4,0,0.2,1);
     }
-    .nb-toggle-input:checked ~ .nb-toggle-track .nb-toggle-thumb { transform: translateX(20px); }
-    .nb-toggle-label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+    .nb-toggle-input:checked ~ .nb-toggle-track .nb-toggle-thumb {
+      transform: translateX(20px);
+      background: var(--yellow);
+    }
+    .nb-toggle-label { font-size: 0.85rem; font-weight: 700; }
 
     /* ----- CHECKBOX ----- */
     .nb-check-wrap {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
@@ -396,352 +434,405 @@
     }
     .nb-check-input { display: none; }
     .nb-check-box {
-      width: 20px;
-      height: 20px;
-      border: 2px solid #e2e8f0;
-      border-radius: 6px;
-      background: white;
+      width: 20px; height: 20px;
+      border: var(--border);
+      border-radius: 2px;
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color 0.2s, background 0.2s;
       flex-shrink: 0;
+      transition: background 0.15s;
     }
-    .nb-check-input:checked ~ .nb-check-box {
-      background: linear-gradient(135deg, #3b82f6, #6366f1);
-      border-color: transparent;
-    }
+    .nb-check-input:checked ~ .nb-check-box { background: var(--black); }
     .nb-check-box svg { display: none; }
     .nb-check-input:checked ~ .nb-check-box svg { display: block; }
-    .nb-check-label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+    .nb-check-label { font-size: 0.85rem; font-weight: 700; }
 
     /* ----- PROGRESS ----- */
-    .nb-progress-wrap { display: flex; flex-direction: column; gap: 6px; }
-    .nb-progress-header { display: flex; justify-content: space-between; align-items: center; }
-    .nb-progress-title { font-size: 0.8rem; font-weight: 700; color: #475569; }
-    .nb-progress-pct { font-size: 0.75rem; font-weight: 800; color: #3b82f6; font-variant-numeric: tabular-nums; }
+    .nb-progress-wrap { display: flex; flex-direction: column; gap: 7px; }
+    .nb-progress-header { display: flex; justify-content: space-between; }
+    .nb-progress-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .nb-progress-pct   { font-size: 0.75rem; font-weight: 900; font-variant-numeric: tabular-nums; }
     .nb-progress-track {
-      height: 8px;
-      background: #f1f5f9;
-      border-radius: 99px;
+      height: 16px;
+      background: var(--white);
+      border: var(--border);
+      border-radius: 2px;
+      box-shadow: var(--shadow-sm);
       overflow: hidden;
+      position: relative;
     }
     .nb-progress-bar {
       height: 100%;
-      border-radius: 99px;
-      background: linear-gradient(90deg, #3b82f6, #818cf8);
-      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+      background: var(--blue);
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
     }
-    .nb-progress-bar.success { background: linear-gradient(90deg, #22c55e, #4ade80); }
-    .nb-progress-bar.danger  { background: linear-gradient(90deg, #ef4444, #f87171); }
-    .nb-progress-bar.purple  { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+    .nb-progress-bar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg, transparent, transparent 10px, rgba(255,255,255,0.15) 10px, rgba(255,255,255,0.15) 11px
+      );
+    }
+    .nb-progress-bar.yellow  { background: var(--yellow); }
+    .nb-progress-bar.green   { background: var(--green); }
+    .nb-progress-bar.red     { background: var(--red); }
+    .nb-progress-bar.purple  { background: var(--purple); }
+    .nb-progress-bar.black   { background: var(--black); }
 
     /* ----- ALERTS ----- */
     .nb-alert {
       display: flex;
       gap: 12px;
-      padding: 14px 18px;
-      border-radius: 14px;
+      padding: 14px 16px;
+      border: var(--border);
+      border-radius: var(--radius);
       font-size: 0.85rem;
-      line-height: 1.5;
+      box-shadow: var(--shadow);
     }
     .nb-alert-icon { flex-shrink: 0; font-size: 1rem; line-height: 1.4; }
-    .nb-alert-body {}
-    .nb-alert-title { font-weight: 700; margin-bottom: 2px; }
-    .nb-alert-info    { background: #eff6ff; color: #1d4ed8; border-left: 3px solid #3b82f6; }
-    .nb-alert-success { background: #f0fdf4; color: #15803d; border-left: 3px solid #22c55e; }
-    .nb-alert-warning { background: #fffbeb; color: #b45309; border-left: 3px solid #f59e0b; }
-    .nb-alert-danger  { background: #fef2f2; color: #b91c1c; border-left: 3px solid #ef4444; }
-
-    /* ----- DIVIDER ----- */
-    .nb-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #cbd5e1;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .nb-divider::before, .nb-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #e2e8f0;
-    }
+    .nb-alert-title { font-weight: 800; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+    .nb-alert-info    { background: #dbeafe; border-left: 5px solid var(--blue); }
+    .nb-alert-success { background: #dcfce7; border-left: 5px solid var(--green); }
+    .nb-alert-warning { background: var(--yellow); border-left: 5px solid #cc7000; }
+    .nb-alert-danger  { background: #fee2e2; border-left: 5px solid var(--red); }
 
     /* ----- TABS ----- */
-    .nb-tabs { display: flex; gap: 2px; background: #f1f5f9; padding: 4px; border-radius: 14px; }
+    .nb-tabs {
+      display: flex;
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
     .nb-tab {
       flex: 1;
-      padding: 9px 16px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 10px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #64748b;
-      background: transparent;
+      border-right: var(--border);
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--black);
+      background: var(--white);
       cursor: pointer;
-      transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: background 0.12s, color 0.12s;
       text-align: center;
     }
-    .nb-tab.active {
-      background: white;
-      color: #3b82f6;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
+    .nb-tab:last-child { border-right: none; }
+    .nb-tab:hover { background: #f0f0f0; }
+    .nb-tab.active { background: var(--black); color: var(--yellow); }
 
     /* ----- AVATAR ----- */
     .nb-avatar {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
-      font-weight: 800;
-      font-size: 0.85rem;
-      color: white;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: var(--border);
+      border-radius: var(--radius);
+      font-weight: 900;
+      font-size: 0.82rem;
+      box-shadow: var(--shadow-sm);
+      background: var(--yellow);
+      color: var(--black);
       flex-shrink: 0;
     }
-    .nb-avatar-sm { width: 32px; height: 32px; font-size: 0.72rem; }
+    .nb-avatar-sm { width: 30px; height: 30px; font-size: 0.66rem; }
     .nb-avatar-md { width: 44px; height: 44px; }
     .nb-avatar-lg { width: 60px; height: 60px; font-size: 1.1rem; }
-    .nb-avatar-blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .nb-avatar-green  { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .nb-avatar-red    { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .nb-avatar-amber  { background: linear-gradient(135deg, #f59e0b, #d97706); }
-
+    .nb-avatar-blue   { background: var(--blue);   color: var(--white); }
+    .nb-avatar-green  { background: var(--green);  color: var(--black); }
+    .nb-avatar-red    { background: var(--red);    color: var(--white); }
+    .nb-avatar-purple { background: var(--purple); color: var(--white); }
+    .nb-avatar-black  { background: var(--black);  color: var(--yellow); }
     .nb-avatar-group { display: flex; }
-    .nb-avatar-group .nb-avatar { border: 2px solid white; margin-left: -8px; }
+    .nb-avatar-group .nb-avatar { margin-left: -6px; border: var(--border); }
     .nb-avatar-group .nb-avatar:first-child { margin-left: 0; }
 
     /* ----- LIST ----- */
-    .nb-list { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .nb-list {
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
     .nb-list-item {
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 14px 18px;
-      border-bottom: 1px solid #f8fafc;
-      transition: background 0.15s;
+      padding: 13px 16px;
+      border-bottom: 2px solid #e5e5e5;
+      background: var(--white);
+      transition: background 0.1s;
     }
     .nb-list-item:last-child { border-bottom: none; }
-    .nb-list-item:hover { background: #f8faff; }
+    .nb-list-item:hover { background: #fafaf0; }
     .nb-list-item-icon {
       width: 36px; height: 36px;
-      border-radius: 10px;
+      border: 2px solid var(--black);
+      border-radius: var(--radius);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1rem;
       flex-shrink: 0;
+      box-shadow: 2px 2px 0 var(--black);
     }
-    .nb-list-item-icon.blue   { background: #dbeafe; }
-    .nb-list-item-icon.purple { background: #ede9fe; }
-    .nb-list-item-icon.green  { background: #dcfce7; }
-    .nb-list-item-body { flex: 1; min-width: 0; }
-    .nb-list-item-title { font-size: 0.88rem; font-weight: 700; color: #1e293b; }
-    .nb-list-item-sub   { font-size: 0.75rem; color: #94a3b8; margin-top: 1px; }
-    .nb-list-item-end   { font-size: 0.8rem; font-weight: 700; color: #64748b; flex-shrink: 0; }
+    .nb-list-item-icon.blue   { background: var(--blue);   }
+    .nb-list-item-icon.yellow { background: var(--yellow); }
+    .nb-list-item-icon.green  { background: var(--green);  }
+    .nb-list-item-body  { flex: 1; min-width: 0; }
+    .nb-list-item-title { font-size: 0.88rem; font-weight: 800; }
+    .nb-list-item-sub   { font-size: 0.73rem; color: #888; margin-top: 1px; font-weight: 600; }
 
-    /* ===== Utility ===== */
-    .w-full { width: 100%; }
-    .gap-sm { gap: 8px; }
-    .gap-md { gap: 16px; }
-    pre { white-space: pre; }
+    /* ----- DIVIDER ----- */
+    .nb-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+    }
+    .nb-divider::before, .nb-divider::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: var(--black);
+    }
+
+    /* ----- TOAST ----- */
+    .nb-toast {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: var(--black);
+      color: var(--white);
+      min-width: 260px;
+    }
+    .nb-toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .nb-toast-body { flex: 1; }
+    .nb-toast-title { font-weight: 900; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .nb-toast-msg   { font-size: 0.8rem; opacity: 0.7; margin-top: 1px; }
+    .nb-toast-close {
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 900;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .nb-toast.success { background: var(--green); color: var(--black); }
+    .nb-toast.warning { background: var(--yellow); color: var(--black); }
+    .nb-toast.danger  { background: var(--red);   color: var(--white); }
+
+    /* ----- KBD ----- */
+    .nb-kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border: var(--border);
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: var(--white);
+      box-shadow: 0 3px 0 var(--black);
+      line-height: 1;
+    }
   </style>
 </head>
 <body>
 
-<!-- ===== Header ===== -->
 <header class="page-header">
-  <h1>Neo Blue Rhythm</h1>
-  <p>コピペで使えるUIコンポーネント集 — Pure HTML &amp; CSS</p>
+  <div class="page-header-inner">
+    <h1>Neo <span>Brutalism</span></h1>
+    <p>コピペで使えるUIコンポーネント集 — Pure HTML &amp; CSS</p>
+  </div>
 </header>
 
-<!-- ===== Nav ===== -->
 <nav class="page-nav">
   <a href="#buttons">Buttons</a>
   <a href="#badges">Badges</a>
   <a href="#cards">Cards</a>
   <a href="#inputs">Inputs</a>
-  <a href="#toggles">Toggle / Checkbox</a>
+  <a href="#toggles">Toggle</a>
   <a href="#progress">Progress</a>
   <a href="#alerts">Alerts</a>
   <a href="#tabs">Tabs</a>
   <a href="#avatars">Avatars</a>
   <a href="#list">List</a>
-  <a href="#divider">Divider</a>
+  <a href="#toast">Toast</a>
+  <a href="#misc">Misc</a>
 </nav>
 
 <main class="main">
 
-  <!-- ===================================
-       BUTTONS
-       =================================== -->
+  <!-- BUTTONS -->
   <section class="section" id="buttons">
-    <h2 class="section-title">Buttons</h2>
-    <p class="section-desc">グラデーション・ゴースト・スレートの3系統。サイズはsm / md / lgで切り替え。</p>
-
+    <h2 class="section-title"><span class="num">01</span>Buttons</h2>
+    <p class="section-desc">太いボーダー＋オフセットシャドウ。ホバーでシャドウ拡大、アクティブで押し込み。</p>
     <div class="preview">
       <div class="preview-stage">
         <button class="nb-btn nb-btn-primary">Primary</button>
+        <button class="nb-btn nb-btn-yellow">Yellow</button>
+        <button class="nb-btn nb-btn-green">Success</button>
+        <button class="nb-btn nb-btn-red">Danger</button>
         <button class="nb-btn nb-btn-purple">Purple</button>
-        <button class="nb-btn nb-btn-success">Success</button>
-        <button class="nb-btn nb-btn-danger">Danger</button>
+        <button class="nb-btn nb-btn-pink">Pink</button>
+        <button class="nb-btn nb-btn-black">Black</button>
         <button class="nb-btn nb-btn-ghost">Ghost</button>
-        <button class="nb-btn nb-btn-slate">Slate</button>
       </div>
-      <div class="preview-stage" style="background:white">
+      <div class="preview-stage white">
         <button class="nb-btn nb-btn-primary nb-btn-sm">Small</button>
         <button class="nb-btn nb-btn-primary">Medium</button>
         <button class="nb-btn nb-btn-primary nb-btn-lg">Large</button>
-        <button class="nb-btn nb-btn-primary nb-btn-icon" title="icon">
+        <button class="nb-btn nb-btn-black nb-btn-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
         </button>
+        <button class="nb-btn nb-btn-yellow nb-btn-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
       </div>
-      <div class="preview-stage" style="background:white; padding: 24px 32px;">
+      <div class="preview-stage white" style="padding:20px 28px;">
         <button class="nb-btn nb-btn-primary nb-btn-full">Full Width Button</button>
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
           <div class="code-tab active" onclick="switchTab(this,'btn-html')">HTML</div>
           <div class="code-tab" onclick="switchTab(this,'btn-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="btn-html"><code><span class="cmt">&lt;!-- Primary / Purple / Success / Danger / Ghost / Slate --&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-primary"</span><span class="sel">&gt;</span>Primary<span class="sel">&lt;/button&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-purple"</span><span class="sel">&gt;</span>Purple<span class="sel">&lt;/button&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-success"</span><span class="sel">&gt;</span>Success<span class="sel">&lt;/button&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-danger"</span><span class="sel">&gt;</span>Danger<span class="sel">&lt;/button&gt;</span>
+        <pre class="code-content active" id="btn-html"><code><span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-primary"</span><span class="sel">&gt;</span>Primary<span class="sel">&lt;/button&gt;</span>
+<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-yellow"</span><span class="sel">&gt;</span>Yellow<span class="sel">&lt;/button&gt;</span>
+<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-green"</span><span class="sel">&gt;</span>Success<span class="sel">&lt;/button&gt;</span>
+<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-red"</span><span class="sel">&gt;</span>Danger<span class="sel">&lt;/button&gt;</span>
+<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-black"</span><span class="sel">&gt;</span>Black<span class="sel">&lt;/button&gt;</span>
 <span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-ghost"</span><span class="sel">&gt;</span>Ghost<span class="sel">&lt;/button&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-slate"</span><span class="sel">&gt;</span>Slate<span class="sel">&lt;/button&gt;</span>
-
-<span class="cmt">&lt;!-- Sizes --&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-primary nb-btn-sm"</span><span class="sel">&gt;</span>Small<span class="sel">&lt;/button&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-primary nb-btn-lg"</span><span class="sel">&gt;</span>Large<span class="sel">&lt;/button&gt;</span>
-<span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-primary nb-btn-full"</span><span class="sel">&gt;</span>Full Width<span class="sel">&lt;/button&gt;</span></code></pre>
+<span class="cmt">&lt;!-- サイズ: nb-btn-sm / nb-btn-lg / nb-btn-full / nb-btn-icon --&gt;</span></code></pre>
         <pre class="code-content" id="btn-css"><code><span class="sel">.nb-btn</span> {
   <span class="prop">display</span>: <span class="val">inline-flex</span>;
   <span class="prop">align-items</span>: <span class="val">center</span>;
-  <span class="prop">justify-content</span>: <span class="val">center</span>;
-  <span class="prop">gap</span>: <span class="val">8px</span>;
-  <span class="prop">padding</span>: <span class="val">12px 24px</span>;
-  <span class="prop">border-radius</span>: <span class="val">14px</span>;
-  <span class="prop">font-size</span>: <span class="val">0.9rem</span>;
-  <span class="prop">font-weight</span>: <span class="val">700</span>;
-  <span class="prop">border</span>: <span class="val">none</span>;
+  <span class="prop">padding</span>: <span class="val">11px 22px</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
+  <span class="prop">font-size</span>: <span class="val">0.88rem</span>;
+  <span class="prop">font-weight</span>: <span class="val">800</span>;
   <span class="prop">cursor</span>: <span class="val">pointer</span>;
-  <span class="prop">transition</span>: <span class="val">transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease</span>;
-  <span class="prop">white-space</span>: <span class="val">nowrap</span>;
-  <span class="prop">line-height</span>: <span class="val">1</span>;
+  <span class="prop">box-shadow</span>: <span class="val">4px 4px 0 #0a0a0a</span>;
+  <span class="prop">text-transform</span>: <span class="val">uppercase</span>;
+  <span class="prop">letter-spacing</span>: <span class="val">0.03em</span>;
+  <span class="prop">transition</span>: <span class="val">transform 0.1s, box-shadow 0.1s</span>;
+  <span class="prop">background</span>: <span class="val">#ffffff</span>;
+  <span class="prop">color</span>: <span class="val">#0a0a0a</span>;
 }
-<span class="sel">.nb-btn:active</span> { <span class="prop">transform</span>: <span class="val">scale(0.96)</span>; }
+<span class="sel">.nb-btn:hover</span>  { <span class="prop">transform</span>: <span class="val">translate(-2px,-2px)</span>; <span class="prop">box-shadow</span>: <span class="val">6px 6px 0 #0a0a0a</span>; }
+<span class="sel">.nb-btn:active</span> { <span class="prop">transform</span>: <span class="val">translate(2px,2px)</span>;  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #0a0a0a</span>; }
 
-<span class="sel">.nb-btn-primary</span> {
-  <span class="prop">background</span>: <span class="val">linear-gradient(135deg, #3b82f6, #2563eb)</span>;
-  <span class="prop">color</span>: <span class="val">white</span>;
-  <span class="prop">box-shadow</span>: <span class="val">0 4px 14px rgba(59,130,246,0.4)</span>;
-}
-<span class="sel">.nb-btn-primary:hover</span> {
-  <span class="prop">filter</span>: <span class="val">brightness(1.08)</span>;
-  <span class="prop">box-shadow</span>: <span class="val">0 6px 20px rgba(59,130,246,0.5)</span>;
-}
-<span class="sel">.nb-btn-ghost</span> {
-  <span class="prop">background</span>: <span class="val">transparent</span>;
-  <span class="prop">color</span>: <span class="val">#3b82f6</span>;
-  <span class="prop">border</span>: <span class="val">2px solid #3b82f6</span>;
-}
-<span class="sel">.nb-btn-sm</span> { <span class="prop">padding</span>: <span class="val">8px 16px</span>; <span class="prop">font-size</span>: <span class="val">0.8rem</span>; <span class="prop">border-radius</span>: <span class="val">10px</span>; }
-<span class="sel">.nb-btn-lg</span> { <span class="prop">padding</span>: <span class="val">16px 32px</span>; <span class="prop">font-size</span>: <span class="val">1rem</span>; <span class="prop">border-radius</span>: <span class="val">16px</span>; }
-<span class="sel">.nb-btn-full</span> { <span class="prop">width</span>: <span class="val">100%</span>; }</code></pre>
+<span class="sel">.nb-btn-primary</span> { <span class="prop">background</span>: <span class="val">#1a5fff</span>; <span class="prop">color</span>: <span class="val">#fff</span>; }
+<span class="sel">.nb-btn-yellow</span>  { <span class="prop">background</span>: <span class="val">#ffe000</span>; <span class="prop">color</span>: <span class="val">#0a0a0a</span>; }
+<span class="sel">.nb-btn-green</span>   { <span class="prop">background</span>: <span class="val">#00d96e</span>; <span class="prop">color</span>: <span class="val">#0a0a0a</span>; }
+<span class="sel">.nb-btn-red</span>     { <span class="prop">background</span>: <span class="val">#ff2e2e</span>; <span class="prop">color</span>: <span class="val">#fff</span>; }
+<span class="sel">.nb-btn-black</span>   { <span class="prop">background</span>: <span class="val">#0a0a0a</span>; <span class="prop">color</span>: <span class="val">#ffe000</span>; }
+<span class="sel">.nb-btn-ghost</span>   { <span class="prop">background</span>: <span class="val">transparent</span>; }</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       BADGES
-       =================================== -->
+  <!-- BADGES -->
   <section class="section" id="badges">
-    <h2 class="section-title">Badges</h2>
-    <p class="section-desc">ステータス・ラベルの表示に使うピル型バッジ。dot付きバリアントあり。</p>
-
+    <h2 class="section-title"><span class="num">02</span>Badges</h2>
+    <p class="section-desc">角ばったボーダー付きバッジ。dot付きバリアントあり。</p>
     <div class="preview">
       <div class="preview-stage">
         <span class="nb-badge nb-badge-blue">Blue</span>
-        <span class="nb-badge nb-badge-purple">Purple</span>
+        <span class="nb-badge nb-badge-yellow">Yellow</span>
         <span class="nb-badge nb-badge-green">Success</span>
         <span class="nb-badge nb-badge-red">Error</span>
-        <span class="nb-badge nb-badge-amber">Warning</span>
-        <span class="nb-badge nb-badge-slate">Default</span>
+        <span class="nb-badge nb-badge-purple">Purple</span>
+        <span class="nb-badge nb-badge-white">Default</span>
+        <span class="nb-badge nb-badge-black">Black</span>
       </div>
-      <div class="preview-stage" style="background:white">
+      <div class="preview-stage white">
         <span class="nb-badge nb-badge-blue nb-badge-dot">Active</span>
         <span class="nb-badge nb-badge-green nb-badge-dot">Online</span>
         <span class="nb-badge nb-badge-red nb-badge-dot">Error</span>
-        <span class="nb-badge nb-badge-slate nb-badge-dot">Offline</span>
+        <span class="nb-badge nb-badge-yellow nb-badge-dot">Warning</span>
+        <span class="nb-badge nb-badge-black nb-badge-dot">Offline</span>
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
           <div class="code-tab active" onclick="switchTab(this,'badge-html')">HTML</div>
           <div class="code-tab" onclick="switchTab(this,'badge-css')">CSS</div>
         </div>
         <pre class="code-content active" id="badge-html"><code><span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-badge nb-badge-blue"</span><span class="sel">&gt;</span>Blue<span class="sel">&lt;/span&gt;</span>
-<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-badge nb-badge-green"</span><span class="sel">&gt;</span>Success<span class="sel">&lt;/span&gt;</span>
-<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-badge nb-badge-red"</span><span class="sel">&gt;</span>Error<span class="sel">&lt;/span&gt;</span>
-<span class="cmt">&lt;!-- ドット付き --&gt;</span>
-<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-badge nb-badge-green nb-badge-dot"</span><span class="sel">&gt;</span>Online<span class="sel">&lt;/span&gt;</span></code></pre>
+<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-badge nb-badge-green nb-badge-dot"</span><span class="sel">&gt;</span>Online<span class="sel">&lt;/span&gt;</span>
+<span class="cmt">&lt;!-- blue / yellow / green / red / purple / white / black --&gt;</span></code></pre>
         <pre class="code-content" id="badge-css"><code><span class="sel">.nb-badge</span> {
   <span class="prop">display</span>: <span class="val">inline-flex</span>;
   <span class="prop">align-items</span>: <span class="val">center</span>;
   <span class="prop">gap</span>: <span class="val">5px</span>;
-  <span class="prop">padding</span>: <span class="val">4px 10px</span>;
-  <span class="prop">border-radius</span>: <span class="val">99px</span>;
-  <span class="prop">font-size</span>: <span class="val">0.72rem</span>;
-  <span class="prop">font-weight</span>: <span class="val">700</span>;
+  <span class="prop">padding</span>: <span class="val">4px 9px</span>;
+  <span class="prop">border</span>: <span class="val">2px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">2px</span>;
+  <span class="prop">font-size</span>: <span class="val">0.7rem</span>;
+  <span class="prop">font-weight</span>: <span class="val">800</span>;
+  <span class="prop">text-transform</span>: <span class="val">uppercase</span>;
+  <span class="prop">letter-spacing</span>: <span class="val">0.05em</span>;
+  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #0a0a0a</span>;
 }
-<span class="sel">.nb-badge-blue</span>   { <span class="prop">background</span>: <span class="val">#dbeafe</span>; <span class="prop">color</span>: <span class="val">#1d4ed8</span>; }
-<span class="sel">.nb-badge-purple</span> { <span class="prop">background</span>: <span class="val">#ede9fe</span>; <span class="prop">color</span>: <span class="val">#6d28d9</span>; }
-<span class="sel">.nb-badge-green</span>  { <span class="prop">background</span>: <span class="val">#dcfce7</span>; <span class="prop">color</span>: <span class="val">#15803d</span>; }
-<span class="sel">.nb-badge-red</span>    { <span class="prop">background</span>: <span class="val">#fee2e2</span>; <span class="prop">color</span>: <span class="val">#b91c1c</span>; }
-<span class="sel">.nb-badge-amber</span>  { <span class="prop">background</span>: <span class="val">#fef3c7</span>; <span class="prop">color</span>: <span class="val">#b45309</span>; }
+<span class="sel">.nb-badge-blue</span>   { <span class="prop">background</span>: <span class="val">#1a5fff</span>; <span class="prop">color</span>: <span class="val">#fff</span>; }
+<span class="sel">.nb-badge-yellow</span> { <span class="prop">background</span>: <span class="val">#ffe000</span>; <span class="prop">color</span>: <span class="val">#0a0a0a</span>; }
+<span class="sel">.nb-badge-green</span>  { <span class="prop">background</span>: <span class="val">#00d96e</span>; <span class="prop">color</span>: <span class="val">#0a0a0a</span>; }
+<span class="sel">.nb-badge-red</span>    { <span class="prop">background</span>: <span class="val">#ff2e2e</span>; <span class="prop">color</span>: <span class="val">#fff</span>; }
 <span class="sel">.nb-badge-dot::before</span> {
   <span class="prop">content</span>: <span class="val">''</span>;
-  <span class="prop">display</span>: <span class="val">inline-block</span>;
-  <span class="prop">width</span>: <span class="val">6px</span>; <span class="prop">height</span>: <span class="val">6px</span>;
+  <span class="prop">width</span>: <span class="val">7px</span>; <span class="prop">height</span>: <span class="val">7px</span>;
   <span class="prop">border-radius</span>: <span class="val">50%</span>;
+  <span class="prop">border</span>: <span class="val">1.5px solid currentColor</span>;
   <span class="prop">background</span>: <span class="val">currentColor</span>;
+  <span class="prop">display</span>: <span class="val">inline-block</span>;
 }</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       CARDS
-       =================================== -->
+  <!-- CARDS -->
   <section class="section" id="cards">
-    <h2 class="section-title">Cards</h2>
-    <p class="section-desc">コンテンツラッパー用カード。グラデーションヘッダー付きのStatカードも含む。</p>
-
+    <h2 class="section-title"><span class="num">03</span>Cards</h2>
+    <p class="section-desc">ブルータルなボーダー＋ハードシャドウのカード群。</p>
     <div class="preview">
       <div class="preview-stage" style="gap:20px; align-items:stretch; flex-wrap:wrap;">
-
-        <!-- Basic Card -->
-        <div class="nb-card" style="width:260px; flex-shrink:0;">
+        <div class="nb-card" style="width:240px; flex-shrink:0;">
+          <div class="nb-card-header"><div class="title">Basic Card</div></div>
           <div class="nb-card-body">
-            <div class="nb-card-title">Basic Card</div>
-            <div class="nb-card-desc">シンプルなコンテンツカード。タイトルと説明文を入れるだけ。</div>
+            <div class="nb-card-title">カードタイトル</div>
+            <div class="nb-card-desc">シンプルなコンテンツカード。ヘッダー・ボディ・フッターの三層構成。</div>
           </div>
           <div class="nb-card-footer">
-            <button class="nb-btn nb-btn-slate nb-btn-sm">キャンセル</button>
-            <button class="nb-btn nb-btn-primary nb-btn-sm">確認</button>
+            <button class="nb-btn nb-btn-ghost nb-btn-sm">キャンセル</button>
+            <button class="nb-btn nb-btn-black nb-btn-sm">確認</button>
           </div>
         </div>
 
-        <!-- Stat Card -->
-        <div class="nb-stat-card" style="width:220px; flex-shrink:0;">
+        <div class="nb-stat-card" style="width:200px; flex-shrink:0;">
           <div class="nb-stat-card-header">
             <div class="label">本日の周回数</div>
             <div class="value">42<span class="unit">周</span></div>
@@ -751,12 +842,11 @@
           </div>
         </div>
 
-        <!-- Metric Row -->
-        <div style="width:320px; flex-shrink:0;">
+        <div style="flex-shrink:0; width:300px;">
           <div class="nb-metric-row">
             <div class="nb-metric-item">
-              <div class="nb-metric-label">現在</div>
-              <div class="nb-metric-value">7</div>
+              <div class="nb-metric-label">今周</div>
+              <div class="nb-metric-value" style="color:var(--blue)">7</div>
             </div>
             <div class="nb-metric-item">
               <div class="nb-metric-label">今日計</div>
@@ -764,70 +854,58 @@
             </div>
             <div class="nb-metric-item">
               <div class="nb-metric-label">最高</div>
-              <div class="nb-metric-value">98</div>
+              <div class="nb-metric-value" style="color:var(--red)">98</div>
             </div>
           </div>
         </div>
-
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
           <div class="code-tab active" onclick="switchTab(this,'card-html')">HTML</div>
           <div class="code-tab" onclick="switchTab(this,'card-css')">CSS</div>
         </div>
         <pre class="code-content active" id="card-html"><code><span class="cmt">&lt;!-- Basic Card --&gt;</span>
 <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card"</span><span class="sel">&gt;</span>
+  <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card-header"</span><span class="sel">&gt;&lt;div</span> <span class="prop">class</span>=<span class="str">"title"</span><span class="sel">&gt;</span>タイトル<span class="sel">&lt;/div&gt;&lt;/div&gt;</span>
   <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card-body"</span><span class="sel">&gt;</span>
-    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card-title"</span><span class="sel">&gt;</span>タイトル<span class="sel">&lt;/div&gt;</span>
-    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card-desc"</span><span class="sel">&gt;</span>説明文<span class="sel">&lt;/div&gt;</span>
+    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card-title"</span><span class="sel">&gt;</span>見出し<span class="sel">&lt;/div&gt;</span>
+    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card-desc"</span><span class="sel">&gt;</span>本文<span class="sel">&lt;/div&gt;</span>
   <span class="sel">&lt;/div&gt;</span>
   <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-card-footer"</span><span class="sel">&gt;</span>
-    <span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-primary nb-btn-sm"</span><span class="sel">&gt;</span>確認<span class="sel">&lt;/button&gt;</span>
+    <span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-btn nb-btn-black nb-btn-sm"</span><span class="sel">&gt;</span>確認<span class="sel">&lt;/button&gt;</span>
   <span class="sel">&lt;/div&gt;</span>
 <span class="sel">&lt;/div&gt;</span>
 
 <span class="cmt">&lt;!-- Stat Card --&gt;</span>
 <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-stat-card"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-stat-card-header"</span><span class="sel">&gt;</span>
-    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"label"</span><span class="sel">&gt;</span>本日の周回数<span class="sel">&lt;/div&gt;</span>
+    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"label"</span><span class="sel">&gt;</span>ラベル<span class="sel">&lt;/div&gt;</span>
     <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"value"</span><span class="sel">&gt;</span>42<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"unit"</span><span class="sel">&gt;</span>周<span class="sel">&lt;/span&gt;&lt;/div&gt;</span>
   <span class="sel">&lt;/div&gt;</span>
-  <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-stat-card-body"</span><span class="sel">&gt;</span>...<span class="sel">&lt;/div&gt;</span>
-<span class="sel">&lt;/div&gt;</span>
-
-<span class="cmt">&lt;!-- Metric Row --&gt;</span>
-<span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-metric-row"</span><span class="sel">&gt;</span>
-  <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-metric-item"</span><span class="sel">&gt;</span>
-    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-metric-label"</span><span class="sel">&gt;</span>ラベル<span class="sel">&lt;/div&gt;</span>
-    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-metric-value"</span><span class="sel">&gt;</span>42<span class="sel">&lt;/div&gt;</span>
-  <span class="sel">&lt;/div&gt;</span>
+  <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-stat-card-body"</span><span class="sel">&gt;</span>…<span class="sel">&lt;/div&gt;</span>
 <span class="sel">&lt;/div&gt;</span></code></pre>
         <pre class="code-content" id="card-css"><code><span class="sel">.nb-card</span> {
-  <span class="prop">background</span>: <span class="val">white</span>;
-  <span class="prop">border-radius</span>: <span class="val">20px</span>;
-  <span class="prop">box-shadow</span>: <span class="val">0 4px 24px rgba(0,0,0,0.08)</span>;
+  <span class="prop">background</span>: <span class="val">#fff</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
+  <span class="prop">box-shadow</span>: <span class="val">4px 4px 0 #0a0a0a</span>;
   <span class="prop">overflow</span>: <span class="val">hidden</span>;
 }
-<span class="sel">.nb-card-body</span>  { <span class="prop">padding</span>: <span class="val">24px</span>; }
-<span class="sel">.nb-card-title</span> { <span class="prop">font-size</span>: <span class="val">1rem</span>; <span class="prop">font-weight</span>: <span class="val">800</span>; <span class="prop">color</span>: <span class="val">#1e293b</span>; <span class="prop">margin-bottom</span>: <span class="val">6px</span>; }
-<span class="sel">.nb-card-desc</span>  { <span class="prop">font-size</span>: <span class="val">0.85rem</span>; <span class="prop">color</span>: <span class="val">#64748b</span>; }
-<span class="sel">.nb-card-footer</span> {
-  <span class="prop">padding</span>: <span class="val">14px 24px</span>;
-  <span class="prop">background</span>: <span class="val">#f8fafc</span>;
-  <span class="prop">border-top</span>: <span class="val">1px solid #f1f5f9</span>;
-  <span class="prop">display</span>: <span class="val">flex</span>;
-  <span class="prop">justify-content</span>: <span class="val">flex-end</span>;
-  <span class="prop">gap</span>: <span class="val">10px</span>;
+<span class="sel">.nb-card-header</span> {
+  <span class="prop">padding</span>: <span class="val">14px 20px</span>;
+  <span class="prop">border-bottom</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">background</span>: <span class="val">#0a0a0a</span>;
+  <span class="prop">color</span>: <span class="val">#fff</span>;
 }
-
 <span class="sel">.nb-stat-card-header</span> {
-  <span class="prop">background</span>: <span class="val">linear-gradient(135deg, #667eea 0%, #764ba2 100%)</span>;
-  <span class="prop">color</span>: <span class="val">white</span>;
-  <span class="prop">padding</span>: <span class="val">20px 24px</span>;
+  <span class="prop">background</span>: <span class="val">#1a5fff</span>;
+  <span class="prop">color</span>: <span class="val">#fff</span>;
+  <span class="prop">padding</span>: <span class="val">20px</span>;
+  <span class="prop">border-bottom</span>: <span class="val">2.5px solid #0a0a0a</span>;
 }
 <span class="sel">.nb-stat-card-header .value</span> {
-  <span class="prop">font-size</span>: <span class="val">2.5rem</span>;
+  <span class="prop">font-size</span>: <span class="val">3rem</span>;
   <span class="prop">font-weight</span>: <span class="val">900</span>;
   <span class="prop">font-variant-numeric</span>: <span class="val">tabular-nums</span>;
 }</code></pre>
@@ -835,159 +913,119 @@
     </div>
   </section>
 
-  <!-- ===================================
-       INPUTS
-       =================================== -->
+  <!-- INPUTS -->
   <section class="section" id="inputs">
-    <h2 class="section-title">Inputs</h2>
-    <p class="section-desc">テキスト入力・アイコン付き・セレクト。エラー状態あり。</p>
-
+    <h2 class="section-title"><span class="num">04</span>Inputs</h2>
+    <p class="section-desc">フォーカスでシャドウ拡大＋わずかに浮く。</p>
     <div class="preview">
-      <div class="preview-stage column" style="max-width:400px; gap:20px;">
-
+      <div class="preview-stage column" style="max-width:380px; gap:18px;">
         <div class="nb-field">
-          <label class="nb-label">通常のテキスト入力</label>
+          <label class="nb-label">テキスト入力</label>
           <input class="nb-input" type="text" placeholder="入力してください">
-          <span class="nb-hint">ヒントテキストはここに</span>
+          <span class="nb-hint">ヒントテキスト</span>
         </div>
-
         <div class="nb-field">
           <label class="nb-label">アイコン付き</label>
           <div class="nb-input-wrap">
             <span class="nb-input-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </span>
             <input class="nb-input" type="text" placeholder="検索...">
           </div>
         </div>
-
         <div class="nb-field">
           <label class="nb-label">エラー状態</label>
           <input class="nb-input nb-input-error" type="text" value="無効な値">
           <span class="nb-hint nb-hint-error">このフィールドは必須です</span>
         </div>
-
         <div class="nb-field">
           <label class="nb-label">セレクト</label>
           <select class="nb-input nb-select">
-            <option>オプション1</option>
-            <option>オプション2</option>
-            <option>オプション3</option>
+            <option>オプション 1</option>
+            <option>オプション 2</option>
+            <option>オプション 3</option>
           </select>
         </div>
-
-        <div class="nb-field">
-          <label class="nb-label">数値入力</label>
-          <input class="nb-input" type="number" value="10" min="1" max="100" style="text-align:center; font-weight:700; font-size:1.1rem;">
-        </div>
-
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
-          <div class="code-tab active" onclick="switchTab(this,'input-html')">HTML</div>
-          <div class="code-tab" onclick="switchTab(this,'input-css')">CSS</div>
+          <div class="code-tab active" onclick="switchTab(this,'inp-html')">HTML</div>
+          <div class="code-tab" onclick="switchTab(this,'inp-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="input-html"><code><span class="cmt">&lt;!-- Basic --&gt;</span>
-<span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-field"</span><span class="sel">&gt;</span>
+        <pre class="code-content active" id="inp-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-field"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;label</span> <span class="prop">class</span>=<span class="str">"nb-label"</span><span class="sel">&gt;</span>ラベル<span class="sel">&lt;/label&gt;</span>
-  <span class="sel">&lt;input</span> <span class="prop">class</span>=<span class="str">"nb-input"</span> <span class="prop">type</span>=<span class="str">"text"</span> <span class="prop">placeholder</span>=<span class="str">"入力..."</span><span class="sel">&gt;</span>
-  <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-hint"</span><span class="sel">&gt;</span>ヒント<span class="sel">&lt;/span&gt;</span>
+  <span class="sel">&lt;input</span> <span class="prop">class</span>=<span class="str">"nb-input"</span> <span class="prop">type</span>=<span class="str">"text"</span> <span class="prop">placeholder</span>=<span class="str">"..."</span><span class="sel">&gt;</span>
 <span class="sel">&lt;/div&gt;</span>
 
 <span class="cmt">&lt;!-- アイコン付き --&gt;</span>
 <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-input-wrap"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-input-icon"</span><span class="sel">&gt;</span>🔍<span class="sel">&lt;/span&gt;</span>
-  <span class="sel">&lt;input</span> <span class="prop">class</span>=<span class="str">"nb-input"</span> <span class="prop">type</span>=<span class="str">"text"</span> <span class="prop">placeholder</span>=<span class="str">"検索..."</span><span class="sel">&gt;</span>
+  <span class="sel">&lt;input</span> <span class="prop">class</span>=<span class="str">"nb-input"</span> <span class="prop">type</span>=<span class="str">"text"</span><span class="sel">&gt;</span>
 <span class="sel">&lt;/div&gt;</span>
 
-<span class="cmt">&lt;!-- エラー状態 --&gt;</span>
+<span class="cmt">&lt;!-- エラー --&gt;</span>
 <span class="sel">&lt;input</span> <span class="prop">class</span>=<span class="str">"nb-input nb-input-error"</span> <span class="prop">type</span>=<span class="str">"text"</span><span class="sel">&gt;</span>
 <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-hint nb-hint-error"</span><span class="sel">&gt;</span>エラーメッセージ<span class="sel">&lt;/span&gt;</span></code></pre>
-        <pre class="code-content" id="input-css"><code><span class="sel">.nb-input</span> {
-  <span class="prop">padding</span>: <span class="val">12px 16px</span>;
-  <span class="prop">border</span>: <span class="val">2px solid #e2e8f0</span>;
-  <span class="prop">border-radius</span>: <span class="val">12px</span>;
+        <pre class="code-content" id="inp-css"><code><span class="sel">.nb-input</span> {
+  <span class="prop">padding</span>: <span class="val">11px 14px</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
   <span class="prop">font-size</span>: <span class="val">0.9rem</span>;
-  <span class="prop">color</span>: <span class="val">#1e293b</span>;
-  <span class="prop">background</span>: <span class="val">white</span>;
-  <span class="prop">transition</span>: <span class="val">border-color 0.2s, box-shadow 0.2s</span>;
+  <span class="prop">font-weight</span>: <span class="val">600</span>;
+  <span class="prop">background</span>: <span class="val">#fff</span>;
+  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #0a0a0a</span>;
   <span class="prop">outline</span>: <span class="val">none</span>;
   <span class="prop">width</span>: <span class="val">100%</span>;
+  <span class="prop">transition</span>: <span class="val">box-shadow 0.1s, transform 0.1s</span>;
 }
 <span class="sel">.nb-input:focus</span> {
-  <span class="prop">border-color</span>: <span class="val">#3b82f6</span>;
-  <span class="prop">box-shadow</span>: <span class="val">0 0 0 3px rgba(59,130,246,0.15)</span>;
+  <span class="prop">box-shadow</span>: <span class="val">4px 4px 0 #0a0a0a</span>;
+  <span class="prop">transform</span>: <span class="val">translate(-1px,-1px)</span>;
 }
-<span class="sel">.nb-input-error</span> { <span class="prop">border-color</span>: <span class="val">#f87171</span>; }
-<span class="sel">.nb-hint-error</span>  { <span class="prop">color</span>: <span class="val">#ef4444</span>; }
-
-<span class="sel">.nb-input-wrap</span>  { <span class="prop">position</span>: <span class="val">relative</span>; }
-<span class="sel">.nb-input-wrap .nb-input</span> { <span class="prop">padding-left</span>: <span class="val">44px</span>; }
-<span class="sel">.nb-input-icon</span> {
-  <span class="prop">position</span>: <span class="val">absolute</span>;
-  <span class="prop">left</span>: <span class="val">14px</span>;
-  <span class="prop">top</span>: <span class="val">50%</span>;
-  <span class="prop">transform</span>: <span class="val">translateY(-50%)</span>;
-  <span class="prop">color</span>: <span class="val">#94a3b8</span>;
-  <span class="prop">pointer-events</span>: <span class="val">none</span>;
+<span class="sel">.nb-input-error</span> {
+  <span class="prop">border-color</span>: <span class="val">#ff2e2e</span>;
+  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #ff2e2e</span>;
 }</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       TOGGLE / CHECKBOX
-       =================================== -->
+  <!-- TOGGLE / CHECKBOX -->
   <section class="section" id="toggles">
-    <h2 class="section-title">Toggle / Checkbox</h2>
-    <p class="section-desc">純粋なCSS実装。JavaScriptなしで動作する。</p>
-
+    <h2 class="section-title"><span class="num">05</span>Toggle / Checkbox</h2>
+    <p class="section-desc">CSS only。JS不要。角張ったブルータル形状。</p>
     <div class="preview">
-      <div class="preview-stage column" style="gap:20px;">
-
+      <div class="preview-stage column" style="gap:18px;">
         <label class="nb-toggle-wrap">
-          <input type="checkbox" class="nb-toggle-input" id="t1" checked>
+          <input type="checkbox" class="nb-toggle-input" checked>
           <span class="nb-toggle-track"><span class="nb-toggle-thumb"></span></span>
-          <span class="nb-toggle-label">サウンドON</span>
+          <span class="nb-toggle-label">サウンドON（デフォルトON）</span>
         </label>
-
         <label class="nb-toggle-wrap">
-          <input type="checkbox" class="nb-toggle-input" id="t2">
+          <input type="checkbox" class="nb-toggle-input">
           <span class="nb-toggle-track"><span class="nb-toggle-thumb"></span></span>
           <span class="nb-toggle-label">バイブレーション</span>
         </label>
-
-        <div style="height:1px; background:#f1f5f9; width:100%;"></div>
-
+        <div style="height:2px;background:#e5e5e5;width:100%;"></div>
         <label class="nb-check-wrap">
-          <input type="checkbox" class="nb-check-input" id="c1" checked>
-          <span class="nb-check-box">
-            <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-              <path d="M1 4.5L4 7.5L10 1.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <span class="nb-check-label">チェックボックス（チェック済み）</span>
+          <input type="checkbox" class="nb-check-input" checked>
+          <span class="nb-check-box"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="#ffe000" stroke-width="2.5" stroke-linecap="round"/></svg></span>
+          <span class="nb-check-label">チェック済み</span>
         </label>
-
         <label class="nb-check-wrap">
-          <input type="checkbox" class="nb-check-input" id="c2">
-          <span class="nb-check-box">
-            <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-              <path d="M1 4.5L4 7.5L10 1.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <span class="nb-check-label">チェックボックス（未チェック）</span>
+          <input type="checkbox" class="nb-check-input">
+          <span class="nb-check-box"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="#ffe000" stroke-width="2.5" stroke-linecap="round"/></svg></span>
+          <span class="nb-check-label">未チェック</span>
         </label>
-
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
-          <div class="code-tab active" onclick="switchTab(this,'toggle-html')">HTML</div>
-          <div class="code-tab" onclick="switchTab(this,'toggle-css')">CSS</div>
+          <div class="code-tab active" onclick="switchTab(this,'tog-html')">HTML</div>
+          <div class="code-tab" onclick="switchTab(this,'tog-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="toggle-html"><code><span class="cmt">&lt;!-- Toggle --&gt;</span>
+        <pre class="code-content active" id="tog-html"><code><span class="cmt">&lt;!-- Toggle --&gt;</span>
 <span class="sel">&lt;label</span> <span class="prop">class</span>=<span class="str">"nb-toggle-wrap"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;input</span> <span class="prop">type</span>=<span class="str">"checkbox"</span> <span class="prop">class</span>=<span class="str">"nb-toggle-input"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-toggle-track"</span><span class="sel">&gt;&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-toggle-thumb"</span><span class="sel">&gt;&lt;/span&gt;&lt;/span&gt;</span>
@@ -999,226 +1037,195 @@
   <span class="sel">&lt;input</span> <span class="prop">type</span>=<span class="str">"checkbox"</span> <span class="prop">class</span>=<span class="str">"nb-check-input"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-check-box"</span><span class="sel">&gt;</span>
     <span class="sel">&lt;svg</span> <span class="prop">width</span>=<span class="str">"11"</span> <span class="prop">height</span>=<span class="str">"9"</span> <span class="prop">viewBox</span>=<span class="str">"0 0 11 9"</span> <span class="prop">fill</span>=<span class="str">"none"</span><span class="sel">&gt;</span>
-      <span class="sel">&lt;path</span> <span class="prop">d</span>=<span class="str">"M1 4.5L4 7.5L10 1.5"</span> <span class="prop">stroke</span>=<span class="str">"white"</span> <span class="prop">stroke-width</span>=<span class="str">"2"</span>
-            <span class="prop">stroke-linecap</span>=<span class="str">"round"</span><span class="sel">/&gt;</span>
+      <span class="sel">&lt;path</span> <span class="prop">d</span>=<span class="str">"M1 4.5L4 7.5L10 1.5"</span> <span class="prop">stroke</span>=<span class="str">"#ffe000"</span>
+            <span class="prop">stroke-width</span>=<span class="str">"2.5"</span> <span class="prop">stroke-linecap</span>=<span class="str">"round"</span><span class="sel">/&gt;</span>
     <span class="sel">&lt;/svg&gt;</span>
   <span class="sel">&lt;/span&gt;</span>
   <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-check-label"</span><span class="sel">&gt;</span>ラベル<span class="sel">&lt;/span&gt;</span>
 <span class="sel">&lt;/label&gt;</span></code></pre>
-        <pre class="code-content" id="toggle-css"><code><span class="sel">.nb-toggle-input</span> { <span class="prop">display</span>: <span class="val">none</span>; }
-<span class="sel">.nb-toggle-track</span> {
-  <span class="prop">width</span>: <span class="val">44px</span>; <span class="prop">height</span>: <span class="val">24px</span>;
-  <span class="prop">background</span>: <span class="val">#e2e8f0</span>;
-  <span class="prop">border-radius</span>: <span class="val">99px</span>;
+        <pre class="code-content" id="tog-css"><code><span class="sel">.nb-toggle-track</span> {
+  <span class="prop">width</span>: <span class="val">46px</span>; <span class="prop">height</span>: <span class="val">26px</span>;
+  <span class="prop">background</span>: <span class="val">#fff</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">2px</span>;
+  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #0a0a0a</span>;
   <span class="prop">position</span>: <span class="val">relative</span>;
-  <span class="prop">transition</span>: <span class="val">background 0.25s</span>;
+  <span class="prop">transition</span>: <span class="val">background 0.15s</span>;
 }
 <span class="sel">.nb-toggle-input:checked ~ .nb-toggle-track</span> {
-  <span class="prop">background</span>: <span class="val">linear-gradient(135deg, #3b82f6, #6366f1)</span>;
+  <span class="prop">background</span>: <span class="val">#1a5fff</span>;
 }
 <span class="sel">.nb-toggle-thumb</span> {
   <span class="prop">position</span>: <span class="val">absolute</span>;
-  <span class="prop">top</span>: <span class="val">3px</span>; <span class="prop">left</span>: <span class="val">3px</span>;
+  <span class="prop">top</span>: <span class="val">2px</span>; <span class="prop">left</span>: <span class="val">2px</span>;
   <span class="prop">width</span>: <span class="val">18px</span>; <span class="prop">height</span>: <span class="val">18px</span>;
-  <span class="prop">background</span>: <span class="val">white</span>;
-  <span class="prop">border-radius</span>: <span class="val">50%</span>;
-  <span class="prop">box-shadow</span>: <span class="val">0 1px 4px rgba(0,0,0,0.2)</span>;
-  <span class="prop">transition</span>: <span class="val">transform 0.25s cubic-bezier(0.4,0,0.2,1)</span>;
+  <span class="prop">background</span>: <span class="val">#0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">2px</span>;
+  <span class="prop">transition</span>: <span class="val">transform 0.18s</span>;
 }
 <span class="sel">.nb-toggle-input:checked ~ .nb-toggle-track .nb-toggle-thumb</span> {
   <span class="prop">transform</span>: <span class="val">translateX(20px)</span>;
+  <span class="prop">background</span>: <span class="val">#ffe000</span>;
 }</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       PROGRESS
-       =================================== -->
+  <!-- PROGRESS -->
   <section class="section" id="progress">
-    <h2 class="section-title">Progress</h2>
-    <p class="section-desc">グラデーションプログレスバー。カラーバリアントあり。</p>
-
+    <h2 class="section-title"><span class="num">06</span>Progress</h2>
+    <p class="section-desc">ボーダー付きのフラットバー。ストライプテクスチャ付き。</p>
     <div class="preview">
       <div class="preview-stage column" style="gap:20px; max-width:500px;">
-
         <div class="nb-progress-wrap">
           <div class="nb-progress-header">
             <span class="nb-progress-title">学習進捗</span>
             <span class="nb-progress-pct">72%</span>
           </div>
-          <div class="nb-progress-track">
-            <div class="nb-progress-bar" style="width:72%"></div>
-          </div>
+          <div class="nb-progress-track"><div class="nb-progress-bar" style="width:72%"></div></div>
         </div>
-
         <div class="nb-progress-wrap">
           <div class="nb-progress-header">
             <span class="nb-progress-title">完了タスク</span>
-            <span class="nb-progress-pct" style="color:#22c55e">100%</span>
+            <span class="nb-progress-pct">100%</span>
           </div>
-          <div class="nb-progress-track">
-            <div class="nb-progress-bar success" style="width:100%"></div>
-          </div>
+          <div class="nb-progress-track"><div class="nb-progress-bar green" style="width:100%"></div></div>
         </div>
-
+        <div class="nb-progress-wrap">
+          <div class="nb-progress-header">
+            <span class="nb-progress-title">注意レベル</span>
+            <span class="nb-progress-pct">28%</span>
+          </div>
+          <div class="nb-progress-track"><div class="nb-progress-bar yellow" style="width:28%"></div></div>
+        </div>
         <div class="nb-progress-wrap">
           <div class="nb-progress-header">
             <span class="nb-progress-title">エラー率</span>
-            <span class="nb-progress-pct" style="color:#ef4444">28%</span>
+            <span class="nb-progress-pct">55%</span>
           </div>
-          <div class="nb-progress-track">
-            <div class="nb-progress-bar danger" style="width:28%"></div>
-          </div>
-        </div>
-
-        <div class="nb-progress-wrap">
-          <div class="nb-progress-header">
-            <span class="nb-progress-title">メモリ使用量</span>
-            <span class="nb-progress-pct" style="color:#8b5cf6">55%</span>
-          </div>
-          <div class="nb-progress-track" style="height:12px; border-radius:6px;">
-            <div class="nb-progress-bar purple" style="width:55%"></div>
+          <div class="nb-progress-track" style="height:24px;">
+            <div class="nb-progress-bar red" style="width:55%"></div>
           </div>
         </div>
-
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
-          <div class="code-tab active" onclick="switchTab(this,'prog-html')">HTML</div>
-          <div class="code-tab" onclick="switchTab(this,'prog-css')">CSS</div>
+          <div class="code-tab active" onclick="switchTab(this,'prg-html')">HTML</div>
+          <div class="code-tab" onclick="switchTab(this,'prg-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="prog-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-progress-wrap"</span><span class="sel">&gt;</span>
+        <pre class="code-content active" id="prg-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-progress-wrap"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-progress-header"</span><span class="sel">&gt;</span>
     <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-progress-title"</span><span class="sel">&gt;</span>進捗<span class="sel">&lt;/span&gt;</span>
     <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-progress-pct"</span><span class="sel">&gt;</span>72%<span class="sel">&lt;/span&gt;</span>
   <span class="sel">&lt;/div&gt;</span>
   <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-progress-track"</span><span class="sel">&gt;</span>
-    <span class="cmt">&lt;!-- width を % で指定 --&gt;</span>
     <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-progress-bar"</span> <span class="prop">style</span>=<span class="str">"width:72%"</span><span class="sel">&gt;&lt;/div&gt;</span>
-    <span class="cmt">&lt;!-- バリアント: success / danger / purple --&gt;</span>
-    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-progress-bar success"</span> <span class="prop">style</span>=<span class="str">"width:100%"</span><span class="sel">&gt;&lt;/div&gt;</span>
+    <span class="cmt">&lt;!-- バリアント: .yellow .green .red .purple .black --&gt;</span>
   <span class="sel">&lt;/div&gt;</span>
 <span class="sel">&lt;/div&gt;</span></code></pre>
-        <pre class="code-content" id="prog-css"><code><span class="sel">.nb-progress-track</span> {
-  <span class="prop">height</span>: <span class="val">8px</span>;
-  <span class="prop">background</span>: <span class="val">#f1f5f9</span>;
-  <span class="prop">border-radius</span>: <span class="val">99px</span>;
+        <pre class="code-content" id="prg-css"><code><span class="sel">.nb-progress-track</span> {
+  <span class="prop">height</span>: <span class="val">16px</span>;
+  <span class="prop">background</span>: <span class="val">#fff</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">2px</span>;
+  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #0a0a0a</span>;
   <span class="prop">overflow</span>: <span class="val">hidden</span>;
 }
 <span class="sel">.nb-progress-bar</span> {
   <span class="prop">height</span>: <span class="val">100%</span>;
-  <span class="prop">border-radius</span>: <span class="val">99px</span>;
-  <span class="prop">background</span>: <span class="val">linear-gradient(90deg, #3b82f6, #818cf8)</span>;
-  <span class="prop">transition</span>: <span class="val">width 0.6s cubic-bezier(0.4,0,0.2,1)</span>;
+  <span class="prop">background</span>: <span class="val">#1a5fff</span>;
+  <span class="prop">transition</span>: <span class="val">width 0.5s</span>;
+  <span class="prop">position</span>: <span class="val">relative</span>;
 }
-<span class="sel">.nb-progress-bar.success</span> { <span class="prop">background</span>: <span class="val">linear-gradient(90deg, #22c55e, #4ade80)</span>; }
-<span class="sel">.nb-progress-bar.danger</span>  { <span class="prop">background</span>: <span class="val">linear-gradient(90deg, #ef4444, #f87171)</span>; }
-<span class="sel">.nb-progress-bar.purple</span>  { <span class="prop">background</span>: <span class="val">linear-gradient(90deg, #8b5cf6, #c084fc)</span>; }</code></pre>
+<span class="cmt">/* ストライプテクスチャ */</span>
+<span class="sel">.nb-progress-bar::after</span> {
+  <span class="prop">content</span>: <span class="val">''</span>;
+  <span class="prop">position</span>: <span class="val">absolute</span>;
+  <span class="prop">inset</span>: <span class="val">0</span>;
+  <span class="prop">background</span>: <span class="val">repeating-linear-gradient(
+    90deg, transparent, transparent 10px,
+    rgba(255,255,255,.15) 10px, rgba(255,255,255,.15) 11px
+  )</span>;
+}
+<span class="sel">.nb-progress-bar.green</span>  { <span class="prop">background</span>: <span class="val">#00d96e</span>; }
+<span class="sel">.nb-progress-bar.yellow</span> { <span class="prop">background</span>: <span class="val">#ffe000</span>; }
+<span class="sel">.nb-progress-bar.red</span>    { <span class="prop">background</span>: <span class="val">#ff2e2e</span>; }</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       ALERTS
-       =================================== -->
+  <!-- ALERTS -->
   <section class="section" id="alerts">
-    <h2 class="section-title">Alerts</h2>
-    <p class="section-desc">情報・成功・警告・エラーの4バリアント。左ボーダー＋淡い背景。</p>
-
+    <h2 class="section-title"><span class="num">07</span>Alerts</h2>
+    <p class="section-desc">太いボーダー＋ハードシャドウの4バリアント。</p>
     <div class="preview">
-      <div class="preview-stage column" style="gap:12px; max-width:500px;">
-
+      <div class="preview-stage column" style="gap:12px; max-width:520px;">
         <div class="nb-alert nb-alert-info">
           <span class="nb-alert-icon">ℹ️</span>
-          <div class="nb-alert-body">
-            <div class="nb-alert-title">情報</div>
-            これは情報のアラートです。補足説明などに使います。
-          </div>
+          <div><div class="nb-alert-title">情報</div>補足説明などに使う情報アラートです。</div>
         </div>
-
         <div class="nb-alert nb-alert-success">
           <span class="nb-alert-icon">✅</span>
-          <div class="nb-alert-body">
-            <div class="nb-alert-title">完了</div>
-            処理が正常に完了しました。
-          </div>
+          <div><div class="nb-alert-title">完了</div>処理が正常に完了しました。</div>
         </div>
-
         <div class="nb-alert nb-alert-warning">
           <span class="nb-alert-icon">⚠️</span>
-          <div class="nb-alert-body">
-            <div class="nb-alert-title">注意</div>
-            この操作は取り消せません。確認してください。
-          </div>
+          <div><div class="nb-alert-title">注意</div>この操作は取り消せません。確認してください。</div>
         </div>
-
         <div class="nb-alert nb-alert-danger">
           <span class="nb-alert-icon">🚨</span>
-          <div class="nb-alert-body">
-            <div class="nb-alert-title">エラー</div>
-            接続に失敗しました。再試行してください。
-          </div>
+          <div><div class="nb-alert-title">エラー</div>接続に失敗しました。再試行してください。</div>
         </div>
-
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
-          <div class="code-tab active" onclick="switchTab(this,'alert-html')">HTML</div>
-          <div class="code-tab" onclick="switchTab(this,'alert-css')">CSS</div>
+          <div class="code-tab active" onclick="switchTab(this,'alr-html')">HTML</div>
+          <div class="code-tab" onclick="switchTab(this,'alr-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="alert-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-alert nb-alert-info"</span><span class="sel">&gt;</span>
+        <pre class="code-content active" id="alr-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-alert nb-alert-info"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-alert-icon"</span><span class="sel">&gt;</span>ℹ️<span class="sel">&lt;/span&gt;</span>
-  <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-alert-body"</span><span class="sel">&gt;</span>
-    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-alert-title"</span><span class="sel">&gt;</span>情報<span class="sel">&lt;/div&gt;</span>
-    メッセージ本文
-  <span class="sel">&lt;/div&gt;</span>
+  <span class="sel">&lt;div&gt;&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-alert-title"</span><span class="sel">&gt;</span>情報<span class="sel">&lt;/div&gt;</span>本文<span class="sel">&lt;/div&gt;</span>
 <span class="sel">&lt;/div&gt;</span>
-<span class="cmt">&lt;!-- バリアント: nb-alert-info / success / warning / danger --&gt;</span></code></pre>
-        <pre class="code-content" id="alert-css"><code><span class="sel">.nb-alert</span> {
+<span class="cmt">&lt;!-- バリアント: nb-alert-info/success/warning/danger --&gt;</span></code></pre>
+        <pre class="code-content" id="alr-css"><code><span class="sel">.nb-alert</span> {
   <span class="prop">display</span>: <span class="val">flex</span>;
   <span class="prop">gap</span>: <span class="val">12px</span>;
-  <span class="prop">padding</span>: <span class="val">14px 18px</span>;
-  <span class="prop">border-radius</span>: <span class="val">14px</span>;
+  <span class="prop">padding</span>: <span class="val">14px 16px</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
   <span class="prop">font-size</span>: <span class="val">0.85rem</span>;
+  <span class="prop">box-shadow</span>: <span class="val">4px 4px 0 #0a0a0a</span>;
 }
-<span class="sel">.nb-alert-title</span> { <span class="prop">font-weight</span>: <span class="val">700</span>; <span class="prop">margin-bottom</span>: <span class="val">2px</span>; }
-<span class="sel">.nb-alert-info</span>    { <span class="prop">background</span>: <span class="val">#eff6ff</span>; <span class="prop">color</span>: <span class="val">#1d4ed8</span>; <span class="prop">border-left</span>: <span class="val">3px solid #3b82f6</span>; }
-<span class="sel">.nb-alert-success</span> { <span class="prop">background</span>: <span class="val">#f0fdf4</span>; <span class="prop">color</span>: <span class="val">#15803d</span>; <span class="prop">border-left</span>: <span class="val">3px solid #22c55e</span>; }
-<span class="sel">.nb-alert-warning</span> { <span class="prop">background</span>: <span class="val">#fffbeb</span>; <span class="prop">color</span>: <span class="val">#b45309</span>; <span class="prop">border-left</span>: <span class="val">3px solid #f59e0b</span>; }
-<span class="sel">.nb-alert-danger</span>  { <span class="prop">background</span>: <span class="val">#fef2f2</span>; <span class="prop">color</span>: <span class="val">#b91c1c</span>; <span class="prop">border-left</span>: <span class="val">3px solid #ef4444</span>; }</code></pre>
+<span class="sel">.nb-alert-info</span>    { <span class="prop">background</span>: <span class="val">#dbeafe</span>; <span class="prop">border-left</span>: <span class="val">6px solid #1a5fff</span>; }
+<span class="sel">.nb-alert-success</span> { <span class="prop">background</span>: <span class="val">#dcfce7</span>; <span class="prop">border-left</span>: <span class="val">6px solid #00d96e</span>; }
+<span class="sel">.nb-alert-warning</span> { <span class="prop">background</span>: <span class="val">#ffe000</span>; <span class="prop">border-left</span>: <span class="val">6px solid #cc7000</span>; }
+<span class="sel">.nb-alert-danger</span>  { <span class="prop">background</span>: <span class="val">#fee2e2</span>; <span class="prop">border-left</span>: <span class="val">6px solid #ff2e2e</span>; }</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       TABS
-       =================================== -->
+  <!-- TABS -->
   <section class="section" id="tabs">
-    <h2 class="section-title">Tabs</h2>
-    <p class="section-desc">ピル型のセグメントタブ。activeクラスをJSで付け替えて使う。</p>
-
+    <h2 class="section-title"><span class="num">08</span>Tabs</h2>
+    <p class="section-desc">activeで黒背景・黄テキスト。シャープなセグメント。</p>
     <div class="preview">
-      <div class="preview-stage center" style="flex-direction:column; gap:24px;">
-
+      <div class="preview-stage center column" style="gap:20px;">
         <div class="nb-tabs" style="max-width:360px; width:100%">
           <button class="nb-tab active" onclick="activateTab(this)">概要</button>
           <button class="nb-tab" onclick="activateTab(this)">統計</button>
           <button class="nb-tab" onclick="activateTab(this)">設定</button>
         </div>
-
         <div class="nb-tabs" style="max-width:480px; width:100%">
           <button class="nb-tab active" onclick="activateTab(this)">今日</button>
           <button class="nb-tab" onclick="activateTab(this)">今週</button>
           <button class="nb-tab" onclick="activateTab(this)">今月</button>
           <button class="nb-tab" onclick="activateTab(this)">全期間</button>
         </div>
-
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
           <div class="code-tab active" onclick="switchTab(this,'tab-html')">HTML</div>
           <div class="code-tab" onclick="switchTab(this,'tab-css')">CSS</div>
@@ -1231,30 +1238,26 @@
 <span class="sel">&lt;/div&gt;</span></code></pre>
         <pre class="code-content" id="tab-css"><code><span class="sel">.nb-tabs</span> {
   <span class="prop">display</span>: <span class="val">flex</span>;
-  <span class="prop">gap</span>: <span class="val">2px</span>;
-  <span class="prop">background</span>: <span class="val">#f1f5f9</span>;
-  <span class="prop">padding</span>: <span class="val">4px</span>;
-  <span class="prop">border-radius</span>: <span class="val">14px</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
+  <span class="prop">box-shadow</span>: <span class="val">4px 4px 0 #0a0a0a</span>;
+  <span class="prop">overflow</span>: <span class="val">hidden</span>;
 }
 <span class="sel">.nb-tab</span> {
   <span class="prop">flex</span>: <span class="val">1</span>;
-  <span class="prop">padding</span>: <span class="val">9px 16px</span>;
+  <span class="prop">padding</span>: <span class="val">10px 16px</span>;
   <span class="prop">border</span>: <span class="val">none</span>;
-  <span class="prop">border-radius</span>: <span class="val">10px</span>;
-  <span class="prop">font-size</span>: <span class="val">0.82rem</span>;
-  <span class="prop">font-weight</span>: <span class="val">700</span>;
-  <span class="prop">color</span>: <span class="val">#64748b</span>;
-  <span class="prop">background</span>: <span class="val">transparent</span>;
+  <span class="prop">border-right</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">font-size</span>: <span class="val">0.78rem</span>;
+  <span class="prop">font-weight</span>: <span class="val">800</span>;
+  <span class="prop">background</span>: <span class="val">#fff</span>;
   <span class="prop">cursor</span>: <span class="val">pointer</span>;
-  <span class="prop">transition</span>: <span class="val">color 0.2s, background 0.2s, box-shadow 0.2s</span>;
+  <span class="prop">text-transform</span>: <span class="val">uppercase</span>;
+  <span class="prop">letter-spacing</span>: <span class="val">0.04em</span>;
 }
-<span class="sel">.nb-tab.active</span> {
-  <span class="prop">background</span>: <span class="val">white</span>;
-  <span class="prop">color</span>: <span class="val">#3b82f6</span>;
-  <span class="prop">box-shadow</span>: <span class="val">0 2px 8px rgba(0,0,0,0.08)</span>;
-}</code></pre>
+<span class="sel">.nb-tab:last-child</span> { <span class="prop">border-right</span>: <span class="val">none</span>; }
+<span class="sel">.nb-tab.active</span> { <span class="prop">background</span>: <span class="val">#0a0a0a</span>; <span class="prop">color</span>: <span class="val">#ffe000</span>; }</code></pre>
         <pre class="code-content" id="tab-js"><code><span class="kw">function</span> <span class="sel">activateTab</span>(el) {
-  <span class="cmt">// 同じ .nb-tabs 内のタブを全部非アクティブに</span>
   el.closest(<span class="str">'.nb-tabs'</span>)
     .querySelectorAll(<span class="str">'.nb-tab'</span>)
     .forEach(t => t.classList.remove(<span class="str">'active'</span>));
@@ -1264,86 +1267,74 @@
     </div>
   </section>
 
-  <!-- ===================================
-       AVATARS
-       =================================== -->
+  <!-- AVATARS -->
   <section class="section" id="avatars">
-    <h2 class="section-title">Avatars</h2>
-    <p class="section-desc">イニシャルアバター。サイズ3種・カラー4種・グループ表示あり。</p>
-
+    <h2 class="section-title"><span class="num">09</span>Avatars</h2>
+    <p class="section-desc">角形アバター。グループ表示あり。</p>
     <div class="preview">
-      <div class="preview-stage" style="flex-wrap:wrap; gap:20px; align-items:center;">
-        <!-- sizes -->
+      <div class="preview-stage" style="align-items:center; gap:16px; flex-wrap:wrap;">
         <span class="nb-avatar nb-avatar-sm">JH</span>
         <span class="nb-avatar nb-avatar-md">JH</span>
         <span class="nb-avatar nb-avatar-lg">JH</span>
-        <!-- colors -->
         <span class="nb-avatar nb-avatar-md nb-avatar-blue">AB</span>
         <span class="nb-avatar nb-avatar-md nb-avatar-green">GR</span>
         <span class="nb-avatar nb-avatar-md nb-avatar-red">RE</span>
-        <span class="nb-avatar nb-avatar-md nb-avatar-amber">AM</span>
-        <!-- group -->
+        <span class="nb-avatar nb-avatar-md nb-avatar-purple">PU</span>
+        <span class="nb-avatar nb-avatar-md nb-avatar-black">BK</span>
         <div class="nb-avatar-group" style="margin-left:8px;">
           <span class="nb-avatar nb-avatar-md">A</span>
           <span class="nb-avatar nb-avatar-md nb-avatar-blue">B</span>
           <span class="nb-avatar nb-avatar-md nb-avatar-green">C</span>
-          <span class="nb-avatar nb-avatar-md nb-avatar-amber">+5</span>
+          <span class="nb-avatar nb-avatar-md nb-avatar-black">+5</span>
         </div>
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
           <div class="code-tab active" onclick="switchTab(this,'av-html')">HTML</div>
           <div class="code-tab" onclick="switchTab(this,'av-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="av-html"><code><span class="cmt">&lt;!-- サイズ: sm / md / lg --&gt;</span>
-<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-avatar nb-avatar-sm"</span><span class="sel">&gt;</span>JH<span class="sel">&lt;/span&gt;</span>
+        <pre class="code-content active" id="av-html"><code><span class="cmt">&lt;!-- sm / md / lg --&gt;</span>
 <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-avatar nb-avatar-md"</span><span class="sel">&gt;</span>JH<span class="sel">&lt;/span&gt;</span>
-<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-avatar nb-avatar-lg"</span><span class="sel">&gt;</span>JH<span class="sel">&lt;/span&gt;</span>
-
-<span class="cmt">&lt;!-- カラー: blue / green / red / amber --&gt;</span>
+<span class="cmt">&lt;!-- カラー: nb-avatar-blue/green/red/purple/black --&gt;</span>
 <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-avatar nb-avatar-md nb-avatar-blue"</span><span class="sel">&gt;</span>AB<span class="sel">&lt;/span&gt;</span>
 
 <span class="cmt">&lt;!-- グループ --&gt;</span>
 <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-avatar-group"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-avatar nb-avatar-md"</span><span class="sel">&gt;</span>A<span class="sel">&lt;/span&gt;</span>
   <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-avatar nb-avatar-md nb-avatar-blue"</span><span class="sel">&gt;</span>B<span class="sel">&lt;/span&gt;</span>
-  <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-avatar nb-avatar-md nb-avatar-green"</span><span class="sel">&gt;</span>+5<span class="sel">&lt;/span&gt;</span>
 <span class="sel">&lt;/div&gt;</span></code></pre>
         <pre class="code-content" id="av-css"><code><span class="sel">.nb-avatar</span> {
   <span class="prop">display</span>: <span class="val">inline-flex</span>;
   <span class="prop">align-items</span>: <span class="val">center</span>;
   <span class="prop">justify-content</span>: <span class="val">center</span>;
-  <span class="prop">border-radius</span>: <span class="val">50%</span>;
-  <span class="prop">font-weight</span>: <span class="val">800</span>;
-  <span class="prop">color</span>: <span class="val">white</span>;
-  <span class="prop">background</span>: <span class="val">linear-gradient(135deg, #667eea, #764ba2)</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
+  <span class="prop">font-weight</span>: <span class="val">900</span>;
+  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #0a0a0a</span>;
+  <span class="prop">background</span>: <span class="val">#ffe000</span>;
+  <span class="prop">color</span>: <span class="val">#0a0a0a</span>;
 }
-<span class="sel">.nb-avatar-sm</span> { <span class="prop">width</span>: <span class="val">32px</span>; <span class="prop">height</span>: <span class="val">32px</span>; <span class="prop">font-size</span>: <span class="val">0.72rem</span>; }
+<span class="sel">.nb-avatar-sm</span> { <span class="prop">width</span>: <span class="val">30px</span>; <span class="prop">height</span>: <span class="val">30px</span>; }
 <span class="sel">.nb-avatar-md</span> { <span class="prop">width</span>: <span class="val">44px</span>; <span class="prop">height</span>: <span class="val">44px</span>; }
-<span class="sel">.nb-avatar-lg</span> { <span class="prop">width</span>: <span class="val">60px</span>; <span class="prop">height</span>: <span class="val">60px</span>; <span class="prop">font-size</span>: <span class="val">1.1rem</span>; }
-<span class="sel">.nb-avatar-blue</span>  { <span class="prop">background</span>: <span class="val">linear-gradient(135deg, #3b82f6, #2563eb)</span>; }
-<span class="sel">.nb-avatar-green</span> { <span class="prop">background</span>: <span class="val">linear-gradient(135deg, #22c55e, #16a34a)</span>; }
+<span class="sel">.nb-avatar-lg</span> { <span class="prop">width</span>: <span class="val">60px</span>; <span class="prop">height</span>: <span class="val">60px</span>; }
+<span class="sel">.nb-avatar-blue</span>  { <span class="prop">background</span>: <span class="val">#1a5fff</span>; <span class="prop">color</span>: <span class="val">#fff</span>; }
+<span class="sel">.nb-avatar-black</span> { <span class="prop">background</span>: <span class="val">#0a0a0a</span>; <span class="prop">color</span>: <span class="val">#ffe000</span>; }
 <span class="sel">.nb-avatar-group .nb-avatar</span> {
-  <span class="prop">border</span>: <span class="val">2px solid white</span>;
-  <span class="prop">margin-left</span>: <span class="val">-8px</span>;
-}
-<span class="sel">.nb-avatar-group .nb-avatar:first-child</span> { <span class="prop">margin-left</span>: <span class="val">0</span>; }</code></pre>
+  <span class="prop">margin-left</span>: <span class="val">-6px</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+}</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       LIST
-       =================================== -->
+  <!-- LIST -->
   <section class="section" id="list">
-    <h2 class="section-title">List</h2>
-    <p class="section-desc">アイコン＋テキスト＋右端アクションのリストアイテム。</p>
-
+    <h2 class="section-title"><span class="num">10</span>List</h2>
+    <p class="section-desc">アイコン＋テキスト＋バッジのリストアイテム。</p>
     <div class="preview">
-      <div class="preview-stage" style="background:white;">
+      <div class="preview-stage white">
         <div class="nb-list" style="width:100%; max-width:460px;">
-
           <div class="nb-list-item">
             <div class="nb-list-item-icon blue">📖</div>
             <div class="nb-list-item-body">
@@ -1352,34 +1343,31 @@
             </div>
             <span class="nb-badge nb-badge-blue">完了</span>
           </div>
-
           <div class="nb-list-item">
-            <div class="nb-list-item-icon purple">🎵</div>
+            <div class="nb-list-item-icon yellow">🎵</div>
             <div class="nb-list-item-body">
               <div class="nb-list-item-title">数学 微分積分</div>
               <div class="nb-list-item-sub">18周完了 · 今日</div>
             </div>
             <span class="nb-badge nb-badge-green nb-badge-dot">進行中</span>
           </div>
-
           <div class="nb-list-item">
             <div class="nb-list-item-icon green">🌿</div>
             <div class="nb-list-item-body">
               <div class="nb-list-item-title">プログラミング基礎</div>
               <div class="nb-list-item-sub">未開始</div>
             </div>
-            <span class="nb-badge nb-badge-slate">待機中</span>
+            <span class="nb-badge nb-badge-white">待機中</span>
           </div>
-
         </div>
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
-          <div class="code-tab active" onclick="switchTab(this,'list-html')">HTML</div>
-          <div class="code-tab" onclick="switchTab(this,'list-css')">CSS</div>
+          <div class="code-tab active" onclick="switchTab(this,'lst-html')">HTML</div>
+          <div class="code-tab" onclick="switchTab(this,'lst-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="list-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-list"</span><span class="sel">&gt;</span>
+        <pre class="code-content active" id="lst-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-list"</span><span class="sel">&gt;</span>
   <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-list-item"</span><span class="sel">&gt;</span>
     <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-list-item-icon blue"</span><span class="sel">&gt;</span>📖<span class="sel">&lt;/div&gt;</span>
     <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-list-item-body"</span><span class="sel">&gt;</span>
@@ -1389,72 +1377,160 @@
     <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-badge nb-badge-blue"</span><span class="sel">&gt;</span>ラベル<span class="sel">&lt;/span&gt;</span>
   <span class="sel">&lt;/div&gt;</span>
 <span class="sel">&lt;/div&gt;</span></code></pre>
-        <pre class="code-content" id="list-css"><code><span class="sel">.nb-list</span> {
-  <span class="prop">background</span>: <span class="val">white</span>;
-  <span class="prop">border-radius</span>: <span class="val">16px</span>;
+        <pre class="code-content" id="lst-css"><code><span class="sel">.nb-list</span> {
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
+  <span class="prop">box-shadow</span>: <span class="val">4px 4px 0 #0a0a0a</span>;
   <span class="prop">overflow</span>: <span class="val">hidden</span>;
-  <span class="prop">box-shadow</span>: <span class="val">0 2px 12px rgba(0,0,0,0.06)</span>;
 }
 <span class="sel">.nb-list-item</span> {
   <span class="prop">display</span>: <span class="val">flex</span>;
   <span class="prop">align-items</span>: <span class="val">center</span>;
   <span class="prop">gap</span>: <span class="val">14px</span>;
-  <span class="prop">padding</span>: <span class="val">14px 18px</span>;
-  <span class="prop">border-bottom</span>: <span class="val">1px solid #f8fafc</span>;
-  <span class="prop">transition</span>: <span class="val">background 0.15s</span>;
+  <span class="prop">padding</span>: <span class="val">13px 16px</span>;
+  <span class="prop">border-bottom</span>: <span class="val">2px solid #e5e5e5</span>;
+  <span class="prop">background</span>: <span class="val">#fff</span>;
 }
-<span class="sel">.nb-list-item:hover</span> { <span class="prop">background</span>: <span class="val">#f8faff</span>; }
+<span class="sel">.nb-list-item:hover</span> { <span class="prop">background</span>: <span class="val">#fafaf0</span>; }
 <span class="sel">.nb-list-item-icon</span> {
   <span class="prop">width</span>: <span class="val">36px</span>; <span class="prop">height</span>: <span class="val">36px</span>;
-  <span class="prop">border-radius</span>: <span class="val">10px</span>;
+  <span class="prop">border</span>: <span class="val">2px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
+  <span class="prop">box-shadow</span>: <span class="val">2px 2px 0 #0a0a0a</span>;
   <span class="prop">display</span>: <span class="val">flex</span>;
   <span class="prop">align-items</span>: <span class="val">center</span>;
   <span class="prop">justify-content</span>: <span class="val">center</span>;
 }
-<span class="sel">.nb-list-item-icon.blue</span>   { <span class="prop">background</span>: <span class="val">#dbeafe</span>; }
-<span class="sel">.nb-list-item-icon.purple</span> { <span class="prop">background</span>: <span class="val">#ede9fe</span>; }
-<span class="sel">.nb-list-item-icon.green</span>  { <span class="prop">background</span>: <span class="val">#dcfce7</span>; }</code></pre>
+<span class="sel">.nb-list-item-icon.blue</span>   { <span class="prop">background</span>: <span class="val">#1a5fff</span>; }
+<span class="sel">.nb-list-item-icon.yellow</span> { <span class="prop">background</span>: <span class="val">#ffe000</span>; }
+<span class="sel">.nb-list-item-icon.green</span>  { <span class="prop">background</span>: <span class="val">#00d96e</span>; }</code></pre>
       </div>
     </div>
   </section>
 
-  <!-- ===================================
-       DIVIDER
-       =================================== -->
-  <section class="section" id="divider">
-    <h2 class="section-title">Divider</h2>
-    <p class="section-desc">テキスト付き区切り線。セクション分けや「または」区切りに。</p>
-
+  <!-- TOAST -->
+  <section class="section" id="toast">
+    <h2 class="section-title"><span class="num">11</span>Toast</h2>
+    <p class="section-desc">通知バナー。黒ベースと色バリアント。</p>
     <div class="preview">
-      <div class="preview-stage column" style="gap:20px; max-width:400px;">
+      <div class="preview-stage column" style="gap:12px; align-items:flex-start;">
+        <div class="nb-toast">
+          <span class="nb-toast-icon">🔔</span>
+          <div class="nb-toast-body"><div class="nb-toast-title">通知</div><div class="nb-toast-msg">新しいメッセージが届きました</div></div>
+          <button class="nb-toast-close">✕</button>
+        </div>
+        <div class="nb-toast success">
+          <span class="nb-toast-icon">✅</span>
+          <div class="nb-toast-body"><div class="nb-toast-title">保存完了</div><div class="nb-toast-msg">変更が正常に保存されました</div></div>
+          <button class="nb-toast-close">✕</button>
+        </div>
+        <div class="nb-toast warning">
+          <span class="nb-toast-icon">⚠️</span>
+          <div class="nb-toast-body"><div class="nb-toast-title">警告</div><div class="nb-toast-msg">ストレージ残量が少なくなっています</div></div>
+          <button class="nb-toast-close">✕</button>
+        </div>
+        <div class="nb-toast danger">
+          <span class="nb-toast-icon">🚨</span>
+          <div class="nb-toast-body"><div class="nb-toast-title">エラー</div><div class="nb-toast-msg">接続に失敗しました</div></div>
+          <button class="nb-toast-close">✕</button>
+        </div>
+      </div>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-tabs">
+          <div class="code-tab active" onclick="switchTab(this,'tst-html')">HTML</div>
+          <div class="code-tab" onclick="switchTab(this,'tst-css')">CSS</div>
+        </div>
+        <pre class="code-content active" id="tst-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-toast"</span><span class="sel">&gt;</span>
+  <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-toast-icon"</span><span class="sel">&gt;</span>🔔<span class="sel">&lt;/span&gt;</span>
+  <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-toast-body"</span><span class="sel">&gt;</span>
+    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-toast-title"</span><span class="sel">&gt;</span>タイトル<span class="sel">&lt;/div&gt;</span>
+    <span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-toast-msg"</span><span class="sel">&gt;</span>メッセージ<span class="sel">&lt;/div&gt;</span>
+  <span class="sel">&lt;/div&gt;</span>
+  <span class="sel">&lt;button</span> <span class="prop">class</span>=<span class="str">"nb-toast-close"</span><span class="sel">&gt;</span>✕<span class="sel">&lt;/button&gt;</span>
+<span class="sel">&lt;/div&gt;</span>
+<span class="cmt">&lt;!-- バリアント: .success .warning .danger --&gt;</span></code></pre>
+        <pre class="code-content" id="tst-css"><code><span class="sel">.nb-toast</span> {
+  <span class="prop">display</span>: <span class="val">inline-flex</span>;
+  <span class="prop">align-items</span>: <span class="val">center</span>;
+  <span class="prop">gap</span>: <span class="val">12px</span>;
+  <span class="prop">padding</span>: <span class="val">12px 18px</span>;
+  <span class="prop">border</span>: <span class="val">2.5px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">4px</span>;
+  <span class="prop">box-shadow</span>: <span class="val">6px 6px 0 #0a0a0a</span>;
+  <span class="prop">font-size</span>: <span class="val">0.85rem</span>;
+  <span class="prop">font-weight</span>: <span class="val">700</span>;
+  <span class="prop">background</span>: <span class="val">#0a0a0a</span>;
+  <span class="prop">color</span>: <span class="val">#fff</span>;
+}
+<span class="sel">.nb-toast.success</span> { <span class="prop">background</span>: <span class="val">#00d96e</span>; <span class="prop">color</span>: <span class="val">#0a0a0a</span>; }
+<span class="sel">.nb-toast.warning</span> { <span class="prop">background</span>: <span class="val">#ffe000</span>; <span class="prop">color</span>: <span class="val">#0a0a0a</span>; }
+<span class="sel">.nb-toast.danger</span>  { <span class="prop">background</span>: <span class="val">#ff2e2e</span>; <span class="prop">color</span>: <span class="val">#fff</span>; }</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- MISC -->
+  <section class="section" id="misc">
+    <h2 class="section-title"><span class="num">12</span>Misc</h2>
+    <p class="section-desc">Divider、Kbd、背景パターン。</p>
+    <div class="preview">
+      <div class="preview-stage column" style="gap:24px; max-width:500px;">
         <div class="nb-divider">セクション区切り</div>
         <div class="nb-divider">または</div>
         <div class="nb-divider"></div>
+        <div style="display:flex;gap:8px;align-items:center;font-size:0.85rem;font-weight:600;">
+          <span class="nb-kbd">⌘</span>
+          <span>+</span>
+          <span class="nb-kbd">K</span>
+          <span style="margin-left:8px;color:#888;">コマンドパレット</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;font-size:0.85rem;font-weight:600;">
+          <span class="nb-kbd">Ctrl</span>
+          <span>+</span>
+          <span class="nb-kbd">S</span>
+          <span style="margin-left:8px;color:#888;">保存</span>
+        </div>
       </div>
       <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">Copy CSS</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         <div class="code-tabs">
-          <div class="code-tab active" onclick="switchTab(this,'div-html')">HTML</div>
-          <div class="code-tab" onclick="switchTab(this,'div-css')">CSS</div>
+          <div class="code-tab active" onclick="switchTab(this,'misc-html')">HTML</div>
+          <div class="code-tab" onclick="switchTab(this,'misc-css')">CSS</div>
         </div>
-        <pre class="code-content active" id="div-html"><code><span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-divider"</span><span class="sel">&gt;</span>または<span class="sel">&lt;/div&gt;</span>
-<span class="cmt">&lt;!-- テキストなしの場合は空要素でOK --&gt;</span>
-<span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-divider"</span><span class="sel">&gt;&lt;/div&gt;</span></code></pre>
-        <pre class="code-content" id="div-css"><code><span class="sel">.nb-divider</span> {
+        <pre class="code-content active" id="misc-html"><code><span class="cmt">&lt;!-- Divider --&gt;</span>
+<span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-divider"</span><span class="sel">&gt;</span>または<span class="sel">&lt;/div&gt;</span>
+<span class="sel">&lt;div</span> <span class="prop">class</span>=<span class="str">"nb-divider"</span><span class="sel">&gt;&lt;/div&gt;</span>
+
+<span class="cmt">&lt;!-- Kbd --&gt;</span>
+<span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-kbd"</span><span class="sel">&gt;</span>⌘<span class="sel">&lt;/span&gt;</span> + <span class="sel">&lt;span</span> <span class="prop">class</span>=<span class="str">"nb-kbd"</span><span class="sel">&gt;</span>K<span class="sel">&lt;/span&gt;</span></code></pre>
+        <pre class="code-content" id="misc-css"><code><span class="sel">.nb-divider</span> {
   <span class="prop">display</span>: <span class="val">flex</span>;
   <span class="prop">align-items</span>: <span class="val">center</span>;
   <span class="prop">gap</span>: <span class="val">12px</span>;
-  <span class="prop">color</span>: <span class="val">#cbd5e1</span>;
-  <span class="prop">font-size</span>: <span class="val">0.75rem</span>;
-  <span class="prop">font-weight</span>: <span class="val">600</span>;
+  <span class="prop">font-size</span>: <span class="val">0.72rem</span>;
+  <span class="prop">font-weight</span>: <span class="val">800</span>;
   <span class="prop">text-transform</span>: <span class="val">uppercase</span>;
-  <span class="prop">letter-spacing</span>: <span class="val">0.05em</span>;
+  <span class="prop">letter-spacing</span>: <span class="val">0.08em</span>;
+  <span class="prop">color</span>: <span class="val">#888</span>;
 }
 <span class="sel">.nb-divider::before, .nb-divider::after</span> {
   <span class="prop">content</span>: <span class="val">''</span>;
   <span class="prop">flex</span>: <span class="val">1</span>;
-  <span class="prop">height</span>: <span class="val">1px</span>;
-  <span class="prop">background</span>: <span class="val">#e2e8f0</span>;
+  <span class="prop">height</span>: <span class="val">2px</span>;
+  <span class="prop">background</span>: <span class="val">#0a0a0a</span>;
+}
+
+<span class="sel">.nb-kbd</span> {
+  <span class="prop">display</span>: <span class="val">inline-flex</span>;
+  <span class="prop">padding</span>: <span class="val">3px 8px</span>;
+  <span class="prop">border</span>: <span class="val">2px solid #0a0a0a</span>;
+  <span class="prop">border-radius</span>: <span class="val">3px</span>;
+  <span class="prop">font-family</span>: <span class="val">monospace</span>;
+  <span class="prop">font-size</span>: <span class="val">0.78rem</span>;
+  <span class="prop">font-weight</span>: <span class="val">700</span>;
+  <span class="prop">background</span>: <span class="val">#fff</span>;
+  <span class="prop">box-shadow</span>: <span class="val">0 3px 0 #0a0a0a</span>;
 }</code></pre>
       </div>
     </div>
@@ -1463,33 +1539,26 @@
 </main>
 
 <script>
-  // タブ切り替え
-  function switchTab(el, targetId) {
+  function switchTab(el, id) {
     const block = el.closest('.code-block');
     block.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
     block.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    block.querySelector('#' + targetId).classList.add('active');
+    block.querySelector('#' + id).classList.add('active');
   }
-
-  // コピー
   function copyCode(btn) {
     const block = btn.closest('.code-block');
     const active = block.querySelector('.code-content.active');
-    const text = active.textContent;
-    navigator.clipboard.writeText(text.trim()).then(() => {
+    navigator.clipboard.writeText(active.textContent.trim()).then(() => {
       btn.textContent = 'Copied!';
       btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy CSS'; btn.classList.remove('copied'); }, 2000);
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
     });
   }
-
-  // タブのアクティブ切り替え
   function activateTab(el) {
     el.closest('.nb-tabs').querySelectorAll('.nb-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
   }
 </script>
-
 </body>
 </html>
