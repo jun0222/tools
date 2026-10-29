@@ -459,20 +459,44 @@
         return rows.filter((r) => !(r.length === 1 && r[0].trim() === ""));
       }
 
-      // "1,234", "¥1,234.5", "(123)", "12%" などを数値として解釈する
+      // "1,234", "¥1,234.5", "(123)", "12%", "▲1,234", "1,234-", "－1234" などを数値として解釈する
       function parseNumericValue(raw) {
         if (raw == null) return null;
         let s = String(raw).trim();
         if (s === "") return null;
 
+        // 全角マイナス類を半角マイナスに正規化
+        s = s.replace(/[－−–—]/g, "-");
+
         let negative = false;
+
+        // 会計でよく使う▲/△（三角記号）による負数表記
+        if (/^[▲△]/.test(s)) {
+          negative = true;
+          s = s.replace(/^[▲△]\s*/, "");
+        }
+
+        // 括弧表記の負数: (123) → -123
         if (/^\(.*\)$/.test(s)) {
           negative = true;
           s = s.slice(1, -1).trim();
         }
-        if (s.startsWith("-")) {
-          negative = negative || false;
+
+        // 末尾マイナス表記: 1,234- (会計フォーマットでよく使われる)
+        if (s.endsWith("-")) {
+          negative = true;
+          s = s.slice(0, -1).trim();
         }
+
+        if (s.startsWith("-")) {
+          negative = true;
+          s = s.slice(1).trim();
+        } else if (s.startsWith("+")) {
+          s = s.slice(1).trim();
+        }
+
+        // 全角数字を半角数字に変換
+        s = s.replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
 
         // 桁区切りのカンマ・通貨記号・空白を除去
         s = s.replace(/[¥$€£,\s]/g, "");
@@ -481,11 +505,10 @@
           s = s.slice(0, -1);
         }
 
-        if (!/^[-+]?\d+(\.\d+)?$/.test(s)) return null;
+        if (s === "" || !/^\d+(\.\d+)?$/.test(s)) return null;
 
-        let num = parseFloat(s);
-        if (negative) num = -Math.abs(num);
-        return num;
+        const num = parseFloat(s);
+        return negative ? -num : num;
       }
 
       function getDelimiter(text) {

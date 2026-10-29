@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイク・スピーカー・カメラ・画面共有テスト</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+
+      #app {
+        width: 95%;
+        max-width: 960px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #16a085;
+        margin-bottom: 8px;
+        font-size: 1.5rem;
+      }
+
+      .sub {
+        text-align: center;
+        color: #777;
+        font-size: 0.85rem;
+        margin-bottom: 24px;
+      }
+
+      section {
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #f9f9f9;
+        border: 1px solid #eee;
+        border-radius: 8px;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+        color: #16a085;
+      }
+
+      button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        background-color: #16a085;
+        color: #fff;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #138d75;
+      }
+
+      .msg {
+        margin: 10px 0 0;
+        font-size: 0.85rem;
+        color: #666;
+        word-break: break-all;
+      }
+
+      .level {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        font-size: 0.85rem;
+      }
+
+      meter {
+        width: 300px;
+        max-width: 100%;
+      }
+
+      video {
+        display: block;
+        width: 100%;
+        max-width: 480px;
+        margin-top: 12px;
+        background: #000;
+        border-radius: 6px;
+      }
+
+      .note {
+        text-align: center;
+        color: #aaa;
+        font-size: 0.8rem;
+        margin: 8px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h1>マイク・スピーカー・カメラ・画面共有テスト</h1>
+      <p class="sub">ブラウザ上でマイク・スピーカー・カメラ・画面共有が使えるかを確認できます。</p>
+
+      <section>
+        <h2>マイク</h2>
+        <button id="micBtn">マイクを開始</button>
+        <div class="level">
+          音量: <meter id="lv" min="0" max="100" low="70" high="90" optimum="30" value="0"></meter>
+          <span id="db">-</span>
+        </div>
+        <p class="msg" id="micMsg">ボタンを押して、何か話してください。メーターが動けばOKです。</p>
+      </section>
+
+      <section>
+        <h2>スピーカー</h2>
+        <button id="spkBtn">ピー音を鳴らす</button>
+        <p class="msg" id="spkMsg">「ピー」と1秒聞こえればOKです。</p>
+      </section>
+
+      <section>
+        <h2>カメラ</h2>
+        <button id="camBtn">カメラを開始</button>
+        <video id="camVid" autoplay playsinline muted></video>
+        <p class="msg" id="camMsg">ボタンを押して、映像が映ればOKです。</p>
+      </section>
+
+      <section>
+        <h2>画面共有</h2>
+        <button id="scrBtn">画面共有を開始</button>
+        <video id="scrVid" autoplay playsinline muted></video>
+        <p class="msg" id="scrMsg">共有する画面を選んで、ここに映ればOKです。</p>
+      </section>
+
+      <p class="note">音声・映像はどこにも送信されません。</p>
+    </div>
+
+    <script>
+      (() => {
+        const $ = (id) => document.getElementById(id);
+        const why = (e) => '（' + e.name + '）。ブラウザの許可設定を確認してください。';
+
+        // ---- マイク ----
+        let mic = null,
+          ctx = null,
+          raf = 0;
+        $('micBtn').onclick = async () => {
+          if (mic) {
+            stopMic();
+            return;
+          }
+          try {
+            mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (e) {
+            $('micMsg').textContent = 'マイクを使えませんでした' + why(e);
+            return;
+          }
+          ctx = new AudioContext();
+          const an = ctx.createAnalyser();
+          an.fftSize = 2048;
+          ctx.createMediaStreamSource(mic).connect(an);
+          const buf = new Float32Array(an.fftSize);
+          $('micBtn').textContent = 'マイクを停止';
+          $('micMsg').textContent = '使用中: ' + mic.getAudioTracks()[0].label;
+          (function loop() {
+            raf = requestAnimationFrame(loop);
+            an.getFloatTimeDomainData(buf);
+            let sum = 0;
+            for (const v of buf) sum += v * v;
+            const db = 20 * Math.log10(Math.sqrt(sum / buf.length) || 1e-8);
+            $('lv').value = Math.max(0, Math.min(100, ((db + 60) / 60) * 100));
+            $('db').textContent = db < -99 ? '-∞ dB' : db.toFixed(1) + ' dB';
+          })();
+        };
+        function stopMic() {
+          cancelAnimationFrame(raf);
+          mic.getTracks().forEach((t) => t.stop());
+          ctx.close();
+          mic = ctx = null;
+          $('lv').value = 0;
+          $('db').textContent = '-';
+          $('micBtn').textContent = 'マイクを開始';
+          $('micMsg').textContent = '停止しました。';
+        }
+
+        // ---- スピーカー（1kHz のピー音を1秒）----
+        $('spkBtn').onclick = () => {
+          const c = new AudioContext();
+          const o = c.createOscillator(),
+            g = c.createGain();
+          o.frequency.value = 1000;
+          g.gain.value = 0.2;
+          o.connect(g).connect(c.destination);
+          o.start();
+          o.stop(c.currentTime + 1);
+          o.onended = () => c.close();
+        };
+
+        // ---- 映像（カメラ・画面共有で共通）----
+        function videoTest(btnId, vidId, msgId, label, getStream) {
+          let s = null;
+          const btn = $(btnId),
+            vid = $(vidId),
+            msg = $(msgId);
+          const stop = (text) => {
+            if (s) s.getTracks().forEach((t) => t.stop());
+            s = null;
+            vid.srcObject = null;
+            btn.textContent = label + 'を開始';
+            msg.textContent = text;
+          };
+          btn.onclick = async () => {
+            if (s) {
+              stop('停止しました。');
+              return;
+            }
+            try {
+              s = await getStream();
+            } catch (e) {
+              msg.textContent = label + 'を使えませんでした' + why(e);
+              return;
+            }
+            vid.srcObject = s;
+            const t = s.getVideoTracks()[0],
+              st = t.getSettings();
+            btn.textContent = label + 'を停止';
+            msg.textContent =
+              '使用中: ' + (t.label || label) + (st.width ? `（${st.width}×${st.height}）` : '');
+            t.onended = () => stop('共有が終了しました。');
+          };
+        }
+
+        videoTest('camBtn', 'camVid', 'camMsg', 'カメラ', () =>
+          navigator.mediaDevices.getUserMedia({ video: true })
+        );
+
+        videoTest('scrBtn', 'scrVid', 'scrMsg', '画面共有', () => {
+          if (!navigator.mediaDevices.getDisplayMedia)
+            return Promise.reject({ name: 'このブラウザは画面共有に未対応' });
+          return navigator.mediaDevices.getDisplayMedia({ video: true });
+        });
+      })();
+    </script>
+  </body>
+</html>
